@@ -231,6 +231,7 @@ export default function App() {
       role: 'kapri',
       text: `🎉 Payment received! Here's your live tracking for this order.`,
       card: { type: 'tracker', number: trackerOrder.number },
+      chips: ['Buy more gifts', 'Shop for another occasion', 'View all categories']
     }
     
     // Save to local storage for immediate offline access
