@@ -54,3 +54,41 @@ counts.
 - **Stack of record:** Next.js 15 (App Router) + Vercel AI SDK 6 (`@ai-sdk/mcp` is now
   stable) + Anthropic Claude, deployed on Vercel.
 - **Deadline:** entries close **30 June 2026**.
+
+## System Architecture: Order Tracking Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant App as Kapri App (UI)
+    participant KV as Vercel KV Database
+    participant API as Kapruka Live Server (Future)
+    
+    User->>App: Enters Tracking Number (e.g., VIMP27778)
+    App->>KV: Check if order exists in local DB
+    alt Order found in KV Database
+        KV-->>App: Returns order details
+        App-->>User: Displays actual order data
+    else Order not found (e.g., real Kapruka order)
+        KV-->>App: Returns null
+        Note over App: App gracefully falls back<br/>to DEMO_ORDER template
+        App->>App: Replaces DEMO order number<br/>with user's input (VIMP27778)
+        App-->>User: Displays realistic-looking demo order
+    end
+    
+    Note over App,API: Future API Integration
+    App-.->>API: If Kapruka provides an API endpoint,<br/>swap KV call with API fetch!
+```
+
+## Frequently Asked Questions (FAQ)
+
+**Q: I entered a real Kapruka order number (e.g., VIMP27778) in the tracking UI, but it shows me a demo order with Cake, Roses, and Chocolates. Why?**
+
+A: You hit the nail right on the head! Because this is currently a prototype and isn't connected to Kapruka's real, private internal database, it has no way to actually fetch real-world orders from the live Kapruka servers.
+
+Here is exactly what happens under the hood when you type a tracking number:
+1. The app first checks its own database (the Vercel KV database we just set up) to see if you placed that order inside this demo app.
+2. If it can't find it (because VIMP27778 is a real Kapruka order from the outside world, not from this demo), the app returns `null`.
+3. Because this is a UI prototype, rather than showing a boring "Order Not Found" error, the app gracefully falls back to displaying the `DEMO_ORDER` template (the Cake, Roses, and Chocolates) so you can still see what the tracking UI looks like.
+4. However, it dynamically replaces the number on that demo order with the one you typed (VIMP27778) so it feels realistic!
+5. **Future Integration**: If Kapruka eventually provides a real API endpoint for order tracking (e.g., `https://api.kapruka.com/orders/VIMP27778`), we can easily swap out the Vercel KV database call in `OrderTracker.tsx` to fetch the real data from Kapruka's servers!
