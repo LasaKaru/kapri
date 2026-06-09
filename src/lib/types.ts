@@ -12,7 +12,7 @@ export interface Product {
   inStock?: boolean
   perishable?: boolean
   url?: string
-  occ: string[]
+  occ?: string[]
 }
 
 export interface CartItem {
@@ -70,7 +70,7 @@ export interface PlacedOrder {
 export type CardData =
   | { type: 'carousel'; items: Product[] }
   | { type: 'bundle'; key: string }
-  | { type: 'delivery'; city: string; rate: number; slow?: boolean }
+  | { type: 'delivery'; city: string; rate: number; slow?: boolean; available?: boolean; date?: string; reason?: string | null; nextDate?: string | null; perishableWarning?: string | null }
   | { type: 'tracker'; number?: string }
   | { type: 'checkout'; order: OrderData }
 

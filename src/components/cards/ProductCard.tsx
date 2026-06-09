@@ -50,8 +50,11 @@ export function ProductCard({ p, inCart, onAdd, onOpen }: ProductCardProps) {
         transform: hover ? 'translateY(-3px)' : 'none', transition:'all .25s var(--ease-out)', scrollSnapAlign:'start' }}>
       <div onClick={() => onOpen(p)} title="View details"
         style={{ position:'relative', height:188, background:'var(--purple-50)', overflow:'hidden', cursor:'pointer' }}>
-        {!imgErr
-          ? <img src={p.img} alt={p.name} onError={() => setImgErr(true)}
+        {!imgErr && p.img
+          ? <img
+              src={p.img.startsWith('http') ? p.img : `/api/product-image?url=${encodeURIComponent(p.url || '')}`}
+              alt={p.name}
+              onError={() => setImgErr(true)}
               style={{ width:'100%', height:'100%', objectFit:'cover',
                 transform: hover ? 'scale(1.05)' : 'none', transition:'transform .4s var(--ease-out)' }} />
           : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:46 }}>🎁</div>}

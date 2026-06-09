@@ -134,12 +134,16 @@ export default function App() {
     setSearchPending(true)
 
     try {
-      const lastVimp = msgs.slice().reverse().find(m => m.card?.type === 'tracker')
-      const cartCount = cart.reduce((s, i) => s + i.qty, 0)
+      // Build conversation history for Claude (text only — no card/chips data)
+      const history = [...msgs, userMsg].map(m => ({
+        role: (m.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+        text: m.text || '',
+      })).filter(m => m.text.trim())
+
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, cartCount, lastVimp: (lastVimp?.card as { number?: string })?.number }),
+        body: JSON.stringify({ messages: history, cart }),
       })
       const data: { lang?: Lang; text?: string; card?: CardData; chips?: string[]; action?: string } = await res.json()
       if (data.lang) setLang(data.lang)
@@ -253,14 +257,18 @@ export default function App() {
         )
       }
       case 'delivery': {
-        const deliveryDate = card.slow ? 'In 2 days' : 'Tomorrow'
+        // Claude returns the full delivery check result
+        const dc = card as CardData & { available?: boolean; date?: string; reason?: string | null; nextDate?: string | null; perishableWarning?: string | null }
         return (
           <DeliveryStatus
             key={idx}
             city={card.city}
-            date={deliveryDate}
-            available={true}
+            date={dc.date ?? (card.slow ? 'In 2 days' : 'Tomorrow')}
+            available={dc.available ?? true}
             rate={card.rate}
+            reason={dc.reason}
+            nextDate={dc.nextDate}
+            perishableWarning={dc.perishableWarning}
           />
         )
       }
