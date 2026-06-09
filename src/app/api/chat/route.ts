@@ -4,90 +4,100 @@ import { parseClaudeResponse } from '@/lib/parse-mcp-response'
 import { respond } from '@/lib/engine'
 import type { CartItem } from '@/lib/types'
 
-// Anthropic message format for conversation history
-interface HistoryMessage {
-  role: 'user' | 'assistant'
-  text: string
-}
+export type HistoryMessage = { role: 'user' | 'assistant'; text: string }
 
-async function callClaude(
-  history: HistoryMessage[],
-  cart: CartItem[],
-  latestText: string,
-): Promise<NextResponse> {
+// ═══════════════════════════════════════════════════════════
+// Tier 1 — Anthropic (claude-sonnet-4-6 + Kapruka MCP beta)
+// Anthropic's servers proxy MCP calls → works from any IP.
+// ═══════════════════════════════════════════════════════════
+async function callAnthropic(history: HistoryMessage[], cart: CartItem[]): Promise<NextResponse> {
   const Anthropic = (await import('@anthropic-ai/sdk')).default
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-  // Build messages array — include up to 10 turns for context
-  const recentHistory = history.slice(-10)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const messages: any[] = recentHistory.map((m) => ({
-    role: m.role,
+  const messages = history.slice(-12).map((m) => ({
+    role: m.role as 'user' | 'assistant',
     content: m.text,
   }))
-
-  const systemPrompt = buildSystemPrompt(cart)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const response = await (client.beta.messages as any).create({
     model: 'claude-sonnet-4-6',
     max_tokens: 4096,
-    system: systemPrompt,
+    system: buildSystemPrompt(cart),
     messages,
     betas: ['mcp-client-2025-11-20'],
-    mcp_servers: [
-      {
-        type: 'url',
-        url: 'https://mcp.kapruka.com/mcp',
-        name: 'kapruka',
-      },
-    ],
+    mcp_servers: [{ type: 'url', url: 'https://mcp.kapruka.com/mcp', name: 'kapruka' }],
   })
 
-  // Extract the final text content from Claude's response
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const textBlock = response.content?.find((c: any) => c.type === 'text')
-  const rawText = textBlock?.text ?? ''
+  const result = parseClaudeResponse(textBlock?.text ?? '')
+  return NextResponse.json(result)
+}
 
-  const result = parseClaudeResponse(rawText)
+// ═══════════════════════════════════════════════════════════
+// Tier 2 — Gemini (gemini-2.5-flash + @ai-sdk/mcp + Kapruka)
+// Direct HTTP to MCP; works on Vercel / local but NOT in
+// the Claude Code sandbox (IP not in allowlist).
+// ═══════════════════════════════════════════════════════════
+async function callGemini(history: HistoryMessage[], cart: CartItem[]): Promise<NextResponse> {
+  const { callGemini: geminiHandler } = await import('@/lib/gemini-route')
+  const result = await geminiHandler(history, cart)
+  return NextResponse.json(result)
+}
+
+// ═══════════════════════════════════════════════════════════
+// Tier 3 — Scripted engine (always works, no API key needed)
+// ═══════════════════════════════════════════════════════════
+function callScriptedEngine(lastText: string, cartCount: number, lastVimp?: string | null): NextResponse {
+  const result = respond(lastText, { cartCount, lastVimp })
   return NextResponse.json(result)
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as {
-      // New format: full conversation history + cart
       messages?: HistoryMessage[]
       cart?: CartItem[]
-      // Legacy format: single message (fallback/scripted engine)
+      // legacy single-shot format
       text?: string
       cartCount?: number
       lastVimp?: string | null
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const history = body.messages ?? []
+    const cart = body.cart ?? []
+    const lastText = body.text ?? history.at(-1)?.text ?? ''
+    const cartCount = cart.reduce((s, i) => s + i.qty, 0) ?? body.cartCount ?? 0
+    const lastVimp = body.lastVimp
 
-    // === Real Claude + Kapruka MCP ===
-    if (apiKey && body.messages && body.messages.length > 0) {
+    const hasHistory = history.length > 0
+
+    // — Tier 1: Anthropic —
+    if (process.env.ANTHROPIC_API_KEY && hasHistory) {
       try {
-        return await callClaude(body.messages, body.cart ?? [], body.messages.at(-1)?.text ?? '')
-      } catch (mcpError) {
-        console.error('Claude/MCP error:', mcpError)
-        // Fall through to scripted engine on error
+        return await callAnthropic(history, cart)
+      } catch (err) {
+        console.error('[Tier1-Anthropic] failed, trying Gemini:', (err as Error).message)
       }
     }
 
-    // === Scripted engine fallback ===
-    const text = body.text ?? body.messages?.at(-1)?.text ?? ''
-    const cartCount = body.cart?.reduce((s, i) => s + i.qty, 0) ?? body.cartCount ?? 0
-    const lastVimp = body.lastVimp
-    const result = respond(text, { cartCount, lastVimp })
-    return NextResponse.json(result)
+    // — Tier 2: Gemini —
+    if (process.env.GOOGLE_GENERATIVE_AI_API_KEY && hasHistory) {
+      try {
+        return await callGemini(history, cart)
+      } catch (err) {
+        console.error('[Tier2-Gemini] failed, falling back to scripted:', (err as Error).message)
+      }
+    }
+
+    // — Tier 3: Scripted engine —
+    return callScriptedEngine(lastText, cartCount, lastVimp)
 
   } catch (err) {
-    console.error('Chat route error:', err)
+    console.error('[Chat route] fatal:', err)
     return NextResponse.json(
-      { lang: 'en', text: "Sorry, something went wrong. Please try again!", chips: [] },
+      { lang: 'en', text: "Sorry, something went wrong. Please try again!", chips: ['Try again'] },
       { status: 500 },
     )
   }
