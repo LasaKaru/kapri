@@ -206,6 +206,35 @@ Add environment variables in the Vercel project settings:
 
 ---
 
+## 📋 Changelog
+
+### Version 1.0 (Kapruka Agent Challenge Entry)
+
+#### ✨ Core AI & Architecture
+- **Agentic Chat Engine:** Built a full-screen, generative UI shopping agent connected to the Kapruka MCP.
+- **AI Fallback Chain:** Implemented a robust 3-tier fallback architecture: Anthropic (Tier 1) → Gemini (Tier 2) → Local Scripted Engine (Tier 3), ensuring 100% uptime.
+- **Multi-lingual Support:** Configured the system prompt to understand and respond in Sinhala, English, and Tanglish.
+- **Vercel KV Integration:** Connected a Redis database to safely store and fetch tracking details for generated orders.
+
+#### 🛍️ Shopping & Discovery
+- **Generative UI Components:** Created rich interactive cards (`<ProductCarousel>`, `<BundleCard>`) that display product images, pricing, and stock status instead of boring text walls.
+- **Persistent Cart System:** Built a multi-item cart backed by `localStorage` featuring a slide-out drawer, live subtotal calculations, and quantity controls.
+- **Voice Input:** Integrated the Web Speech API with `si-LK` locale, allowing users to speak their shopping requests directly in Sinhala!
+- **Dynamic Categories & Occasions:** Added horizontally scrolling, touch-friendly image carousels populated with high-quality Unsplash images for quick discovery.
+
+#### 🚚 Checkout & Delivery
+- **End-to-End Checkout Flow:** Implemented a beautiful, multi-step accordion overlay to capture Recipient, Delivery, Sender, and Gift details.
+- **Smart Delivery Validation:** Built an autocomplete city search that enforces Kapruka's flat delivery fees and 2-day lead times for remote locations.
+- **Perishable Warnings:** The app automatically flags orders containing fresh cakes or flowers, reminding the user to ensure someone is home for delivery.
+- **Form Validation:** Added strict, real-time input validation (including regex checks for Sri Lankan `07X` or `+947X` mobile numbers and address length checks).
+
+#### 🎁 Post-Purchase Experience
+- **AI Gift Message Enhancer:** Added a "magic wand" feature that uses AI to rewrite your gift messages into Warm, Witty, or Formal tones (in English or Sinhala!).
+- **Order Tracking Timeline:** Created a live, visual progress tracker.
+- **Graceful Tracking Fallback:** If a user tracks a real-world Kapruka order (which we can't access in the prototype), the UI gracefully falls back to displaying a realistic demo order rather than crashing.
+
+---
+
 ## 📜 License
 
 MIT — competition entry, open-sourced for the Sri Lankan dev community.

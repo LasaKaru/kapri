@@ -10,12 +10,12 @@ interface SeasonBannerProps {
 
 export function SeasonBanner({ season, onShop }: SeasonBannerProps) {
   const [show, setShow] = useState(() => {
-    try { return localStorage.getItem('kapri_season_x_' + season.key) !== '1' } catch { return true }
+    try { return sessionStorage.getItem('kapri_season_x_' + season.key) !== '1' } catch { return true }
   })
   if (!show) return null
   const dismiss = () => {
     setShow(false)
-    try { localStorage.setItem('kapri_season_x_' + season.key, '1') } catch {}
+    try { sessionStorage.setItem('kapri_season_x_' + season.key, '1') } catch {}
   }
   return (
     <div style={{ display:'flex', justifyContent:'center', background:'linear-gradient(90deg, var(--yellow-300), var(--yellow-400))', flexShrink:0 }}>

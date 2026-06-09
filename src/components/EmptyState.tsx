@@ -41,14 +41,15 @@ const ScrollRow = ({ title, items, onClick }: { title: string, items: (Category|
       </div>
       <div ref={scrollRef} className="scrollbar-hide" style={{ display:'flex', gap:10, overflowX:'auto', paddingBottom:8, scrollSnapType: 'x mandatory' }}>
         {items.map((c) => (
-          <button key={c.name} onClick={() => onClick(c.q)}
+          <div key={c.name} onClick={() => onClick(c.q)} role="button" tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') onClick(c.q) }}
             style={{ scrollSnapAlign: 'start', display:'flex', flexDirection:'column', alignItems:'center', gap:6, minWidth:72, background:'transparent', border:'none', padding:0, cursor:'pointer' }}>
-            <div style={{ position:'relative', width:72, height:72, borderRadius:'var(--radius-lg)', overflow:'hidden', boxShadow:'var(--shadow-sm)' }}>
+            <span style={{ position:'relative', width:72, height:72, borderRadius:'var(--radius-lg)', overflow:'hidden', boxShadow:'var(--shadow-sm)', display:'block' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={c.img} alt={c.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-            </div>
+            </span>
             <span style={{ fontSize:11, fontWeight:500, color:'var(--ink)', whiteSpace:'nowrap' }}>{c.name}</span>
-          </button>
+          </div>
         ))}
       </div>
     </div>
