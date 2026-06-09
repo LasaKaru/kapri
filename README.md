@@ -1,3 +1,17 @@
+<div align="center">
+
+# 🛍️ Kapri — AI Shopping Concierge for Kapruka.lk
+
+**A full-screen, multilingual (English · සිංහල · Tanglish) AI shopping agent built on the public Kapruka MCP server.**
+
+Discover gifts, browse a real catalog, quote delivery to any Sri Lankan city, personalise a cake, write a gift message, and place a real guest-checkout order — all inside one immersive conversation.
+
+`Next.js 16` · `React 19` · `Vercel AI SDK` · `Claude Opus 4.8` · `Gemini 2.5 Flash (fallback)` · `Kapruka MCP` · `Tailwind` · `Framer Motion` · `Zustand`
+
+</div>
+
+---
+
 # Kapri — AI Shopping Concierge for Kapruka
 
 > **Kapruka Agent Challenge 2026** · Entry by [@LasaKaru](https://github.com/LasaKaru)  
