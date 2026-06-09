@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Sinhala:wght@400;600;700&display=swap');
+
+:root {
+  --purple-900: #2A1847;
+  --purple-800: #361E5F;
+  --purple-700: #442A73;
+  --purple-600: #5C3D9A;
+  --purple-500: #7452B2;
+  --purple-400: #9070CA;
+  --purple-300: #A888D8;
+  --purple-200: #C4A8E8;
+  --purple-100: #E8DCFD;
+  --purple-50:  #F5F0FF;
+
+  --yellow-400: #F9DB09;
+  --yellow-300: #FBE840;
+  --yellow-200: #FDF0A0;
+  --yellow-100: #FEFAD0;
+
+  --surface: #F7F5FC;
+  --ink:     #1B1230;
+  --muted:   #6E5E8C;
+  --line:    #E2D9F3;
+
+  --success:      #1F9D57;
+  --success-tint: #F0FDF4;
+  --error:        #DC2626;
+  --error-tint:   #FEF2F2;
+  --warn:         #D97706;
+  --warn-tint:    #FFFBEB;
+
+  --shadow-sm:   0 1px 2px rgba(68,42,115,.07);
+  --shadow-card: 0 2px 8px rgba(68,42,115,.10);
+  --shadow-md:   0 4px 12px rgba(68,42,115,.12);
+  --shadow-lg:   0 8px 24px rgba(68,42,115,.15);
+  --shadow-xl:   0 20px 50px rgba(68,42,115,.20);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  --font-sans: 'Inter', 'Noto Sans Sinhala', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'JetBrains Mono', 'Fira Code', monospace;
+
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --focus-ring:  rgba(68,42,115,.2);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  background: var(--surface);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+#__next, main { height: 100%; }
+
+.scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+.sinhala-text { font-family: 'Inter', 'Noto Sans Sinhala', sans-serif; }
+
+.kapri-hide-sm { }
+@media (max-width: 560px) { .kapri-hide-sm { display: none !important; } }
+
+@media (min-width: 600px) {
+  .kapri-modal { height: min(720px, 92%) !important; border-radius: var(--radius-xl); }
+}
+
+.skeleton {
+  animation: shimmer 1.5s infinite;
+  background: linear-gradient(90deg, var(--purple-100) 25%, var(--purple-50) 50%, var(--purple-100) 75%);
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes kapri-pop        { from { transform: scale(0); }               to { transform: scale(1); } }
+@keyframes kapri-in-right   { from { opacity: 0; transform: translate(14px,6px); } to { opacity:1; transform:none; } }
+@keyframes kapri-in-left    { from { opacity: 0; transform: translate(-14px,6px); } to { opacity:1; transform:none; } }
+@keyframes kapri-bounce     { 0%,100% { transform: translateY(0); opacity:.5; } 50% { transform: translateY(-4px); opacity:1; } }
+@keyframes kapri-breathe    { 0%,100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+@keyframes kapri-pulse      { 0%,100% { opacity:1; } 50% { opacity:.55; } }
+@keyframes kapri-up         { from { opacity:0; transform: translateY(24px); } to { opacity:1; transform:none; } }
+@keyframes kapri-wave       { from { transform: scaleY(0.3); } to { transform: scaleY(1.1); } }
+@keyframes kapri-spin       { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
