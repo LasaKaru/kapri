@@ -16,7 +16,7 @@ import { ProductDetail } from './cards/ProductDetail'
 import { CartDrawer } from './overlays/CartDrawer'
 import { CheckoutFlow } from './overlays/CheckoutFlow'
 import { PaymentSheet } from './overlays/PaymentSheet'
-import { CATALOG, BUNDLES, CATEGORIES, SEASON } from '@/lib/data'
+import { CATALOG, BUNDLES, CATEGORIES, OCCASIONS, SEASON } from '@/lib/data'
 
 import type { Message, CartItem, Lang, Product, OrderData, PlacedOrder, CardData } from '@/lib/types'
 
@@ -32,7 +32,7 @@ const PROMPTS = [
 ]
 
 const DEMO_ORDER: PlacedOrder = {
-  number: 'VIMP-38291',
+  number: 'VIMP38291',
   statusDisplay: 'Out for Delivery · Est. 4 pm',
   stage: 2,
   live: true,
@@ -56,6 +56,7 @@ export default function App() {
   const [msgs, setMsgs] = useState<Message[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
   const [lang, setLang] = useState<Lang>('en')
+  const [sessionOrders, setSessionOrders] = useState<PlacedOrder[]>([])
   const [typing, setTyping] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
@@ -78,12 +79,14 @@ export default function App() {
     setCart(loadCart())
     try { setLang((localStorage.getItem('kapri_lang') as Lang) || 'en') } catch {}
     try { setGiftMessage(localStorage.getItem('kapri_gift') || '') } catch {}
+    try { setSessionOrders(JSON.parse(localStorage.getItem('kapri_orders') || '[]')) } catch {}
   }, [])
 
   // Persist cart
   useEffect(() => { saveCart(cart) }, [cart])
   useEffect(() => { try { localStorage.setItem('kapri_lang', lang) } catch {} }, [lang])
   useEffect(() => { try { localStorage.setItem('kapri_gift', giftMessage) } catch {} }, [giftMessage])
+  useEffect(() => { try { localStorage.setItem('kapri_orders', JSON.stringify(sessionOrders)) } catch {} }, [sessionOrders])
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -140,10 +143,12 @@ export default function App() {
         text: m.text || '',
       })).filter(m => m.text.trim())
 
+      const lastOrder = sessionOrders.length > 0 ? sessionOrders[sessionOrders.length - 1] : null;
+
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history, cart }),
+        body: JSON.stringify({ messages: history, cart, lastVimp: lastOrder?.number }),
       })
       const data: { lang?: Lang; text?: string; card?: CardData; chips?: string[]; action?: string } = await res.json()
       if (data.lang) setLang(data.lang)
@@ -157,6 +162,15 @@ export default function App() {
         action: data.action,
       }
       setMsgs(prev => [...prev, kapriMsg])
+
+      // Automatically open the cart drawer when the user wants to checkout
+      if (data.action === 'checkout') {
+        if (cart.length > 0) {
+          setCartOpen(true)
+        } else {
+          showToast('Please add at least one item to checkout 🛍️')
+        }
+      }
     } catch {
       setMsgs(prev => [...prev, { role: 'kapri', text: 'Oops, something went wrong. Please try again!' }])
     } finally {
@@ -203,7 +217,7 @@ export default function App() {
     setPaidOrders(prev => new Set([...prev, order.ref]))
     // Generate a tracker
     const trackerOrder: PlacedOrder = {
-      number: `VIMP-${Math.floor(10000 + Math.random() * 89999)}`,
+      number: `VIMP${Math.floor(10000 + Math.random() * 89999)}`,
       statusDisplay: 'Order Confirmed · Processing',
       stage: 1,
       live: false,
@@ -218,6 +232,17 @@ export default function App() {
       text: `🎉 Payment received! Here's your live tracking for this order.`,
       card: { type: 'tracker', number: trackerOrder.number },
     }
+    
+    // Save to local storage for immediate offline access
+    setSessionOrders(prev => [...prev, trackerOrder])
+    
+    // Save to Vercel KV database
+    fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(trackerOrder),
+    }).catch(console.error)
+
     setMsgs(prev => {
       // Attach the PlacedOrder data alongside the tracker card so OrderTracker renders correctly
       return [...prev, { ...trackerMsg, _placedOrder: trackerOrder } as Message & { _placedOrder: PlacedOrder }]
@@ -273,8 +298,12 @@ export default function App() {
         )
       }
       case 'tracker': {
-        const placedOrder = msg._placedOrder
-        const order = placedOrder || DEMO_ORDER
+        const trackerCard = card as Extract<CardData, { type: 'tracker' }>
+        const placedOrder = msg._placedOrder || sessionOrders.find(o => o.number === trackerCard.number)
+        let order = placedOrder || DEMO_ORDER
+        if (!placedOrder && trackerCard.number) {
+          order = { ...order, number: trackerCard.number }
+        }
         return <OrderTracker key={idx} order={order} />
       }
       case 'checkout':
@@ -294,8 +323,8 @@ export default function App() {
   const season = SEASON
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', maxWidth: 768, margin: '0 auto',
-      background: '#fff', position: 'relative', boxShadow: 'var(--shadow-xl)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', width: '100%',
+      background: '#fff', position: 'relative' }}>
 
       <Header
         lang={lang}
@@ -308,18 +337,19 @@ export default function App() {
 
       {/* Chat scroll area */}
       <div ref={scrollRef} className="scrollbar-hide"
-        style={{ flex: 1, overflowY: 'auto', padding: '12px 0 8px', display: 'flex', flexDirection: 'column' }}>
+        style={{ flex: 1, overflowY: 'auto', padding: '12px 0 8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
         {msgs.length === 0 ? (
           <EmptyState
             prompts={PROMPTS}
             onPrompt={send}
             categories={CATEGORIES}
+            occasions={OCCASIONS}
             onCategory={send}
             lang={lang}
           />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '0 12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '0 12px', width: '100%', maxWidth: 840 }}>
             {msgs.map((msg, i) => {
               const extMsg = msg as Message & { _placedOrder?: PlacedOrder }
               if (msg.role === 'user') {

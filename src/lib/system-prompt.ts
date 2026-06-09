@@ -1,6 +1,6 @@
 import type { CartItem } from './types'
 
-export function buildSystemPrompt(cart: CartItem[]): string {
+export function buildSystemPrompt(cart: CartItem[], lastVimp?: string | null): string {
   const cartSummary = cart.length > 0
     ? `CURRENT CART (authoritative — trust this over your memory):
 ${cart.map(i => `• ${i.qty}× ${i.p.name} (id:${i.p.id}) @ Rs. ${i.p.price.toLocaleString('en-LK')}${i.icing ? ` — icing: "${i.icing}"` : ''}`).join('\n')}
@@ -9,6 +9,7 @@ Subtotal: Rs. ${cart.reduce((s, i) => s + i.p.price * i.qty, 0).toLocaleString('
 
   return `You are Kapri, Kapruka's premium AI shopping concierge.
 Kapruka is Sri Lanka's largest e-commerce platform for gifts, cakes, flowers & more.
+${lastVimp ? `\n[NOTE] The user's most recent order number is ${lastVimp}. If they ask to track an order without specifying a number, use this one.` : ''}
 
 ═══ PERSONA ═══
 • Warm, witty, concise, proudly Sri Lankan — like the best salesperson at a Colombo gift shop
@@ -43,6 +44,7 @@ Kapruka is Sri Lanka's largest e-commerce platform for gifts, cakes, flowers & m
 • Occasion keywords: birthday, anniversary, mother, father, valentine, avurudu, graduation
 • Budget keywords: "under X", "below X", "max X", "5000 ekata" → max_price filter
 • Before checkout: verify delivery date for all perishables with kapruka_check_delivery
+• Support/Contact: Kapruka hotline +94 117 551 111, WhatsApp +94 707 117 777 (24/7), Global shop WhatsApp +94 707 115 533.
 
 ═══ RESPONSE FORMAT ═══
 CRITICAL: Always respond with ONLY valid JSON. No markdown outside the JSON. No backticks.

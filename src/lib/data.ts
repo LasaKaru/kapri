@@ -44,23 +44,25 @@ export const CATALOG: Product[] = [
 ]
 
 export const CATEGORIES: Category[] = [
-  { name:'Cakes',       emoji:'🎂', q:'cakes' },
-  { name:'Flowers',     emoji:'🌹', q:'flowers' },
-  { name:'Chocolates',  emoji:'🍫', q:'chocolates' },
-  { name:'Hampers',     emoji:'🧺', q:'hampers' },
-  { name:'Perfumes',    emoji:'🌸', q:'perfumes' },
-  { name:'Jewellery',   emoji:'💍', q:'jewellery' },
-  { name:'Electronics', emoji:'📱', q:'electronics' },
-  { name:'Soft Toys',   emoji:'🧸', q:'soft toys' },
+  { name:'Cakes',       emoji:'🎂', q:'cakes',       img:IMG('photo-1578985545062-69928b1d9587') },
+  { name:'Flowers',     emoji:'🌹', q:'flowers',     img:IMG('photo-1518895949257-7621c3c786d7') },
+  { name:'Chocolates',  emoji:'🍫', q:'Chocolates',  img:IMG('photo-1549007994-cb92caebd54b') },
+  { name:'Hampers',     emoji:'🧺', q:'Giftset',     img:IMG('photo-1513885535751-8b9238bd345a') },
+  { name:'Jewellery',   emoji:'💍', q:'Jewellery',   img:IMG('photo-1599643478518-a784e5dc4c8f') },
+  { name:'Electronics', emoji:'📱', q:'Electronic',  img:IMG('photo-1572569511254-d8f925fe2cbb') },
+  { name:'Cosmetics',   emoji:'🧴', q:'Cosmetics',   img:IMG('photo-1620916566398-39f1143ab7be') },
+  { name:'Kids & Toys', emoji:'🧸', q:'KidsToys',    img:IMG('photo-1559454403-b8fb88521f11') },
+  { name:'Liquor',      emoji:'🍷', q:'Liquor',      img:IMG('photo-1569529465841-dfecdab7503b') },
+  { name:'Books',       emoji:'📚', q:'Books',       img:IMG('photo-1544947950-fa07a98d237f') },
 ]
 
 export const OCCASIONS: Occasion[] = [
-  { name:'Birthday',    emoji:'🎉', q:'birthday' },
-  { name:'Anniversary', emoji:'💞', q:'anniversary' },
-  { name:'For Mom',     emoji:'👩', q:'mother' },
-  { name:'For Dad',     emoji:'👨', q:'father' },
-  { name:'Avurudu',     emoji:'🇱🇰', q:'avurudu' },
-  { name:'Valentine',   emoji:'❤️', q:'valentine' },
+  { name:'Birthday',    emoji:'🎉', q:'birthday',    img:IMG('photo-1558636508-e0db3814bd1d') },
+  { name:'Anniversary', emoji:'💞', q:'anniversary', img:IMG('photo-1518199266791-5375a83190b7') },
+  { name:'For Mom',     emoji:'👩', q:'mother',      img:IMG('photo-1511895426328-dc8714191300') },
+  { name:'For Dad',     emoji:'👨', q:'father',      img:IMG('photo-1506506200949-df8644f002d1') },
+  { name:'Wedding',     emoji:'💒', q:'wedding',     img:IMG('photo-1511285560929-80b456fea0bc') },
+  { name:'Graduation',  emoji:'🎓', q:'graduation',  img:IMG('photo-1541339907198-e08756dedf3f') },
 ]
 
 export const CITIES: City[] = [

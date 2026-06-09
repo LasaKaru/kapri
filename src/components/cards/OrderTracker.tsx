@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Ico } from '../ui/Icons'
 import { LKR } from '@/lib/data'
 import type { PlacedOrder } from '@/lib/types'
@@ -15,7 +15,22 @@ const STAGES: [string, string][] = [
   ['Delivered','gift'],
 ]
 
-export function OrderTracker({ order }: OrderTrackerProps) {
+export function OrderTracker({ order: initialOrder }: OrderTrackerProps) {
+  const [order, setOrder] = useState<PlacedOrder>(initialOrder)
+
+  useEffect(() => {
+    if (order.number && order.number.startsWith('VIMP')) {
+      fetch(`/api/orders/${order.number}`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.error && data.number) {
+            setOrder(data)
+          }
+        })
+        .catch(err => console.error('Failed to fetch order from DB:', err))
+    }
+  }, [order.number])
+
   return (
     <div style={{ width:'100%', maxWidth:360, background:'#fff', borderRadius:'var(--radius-lg)',
       overflow:'hidden', border:'1px solid var(--line)', boxShadow:'var(--shadow-md)' }}>

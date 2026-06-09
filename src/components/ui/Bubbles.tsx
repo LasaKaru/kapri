@@ -35,12 +35,23 @@ export function KapriRow({ children }: { children: React.ReactNode }) {
 }
 
 export function KapriText({ children }: { children: React.ReactNode }) {
+  const formatText = (text: React.ReactNode) => {
+    if (typeof text !== 'string') return text
+    const parts = text.split(/(\*\*.*?\*\*)/g)
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={i} style={{ fontWeight: 700 }}>{part.slice(2, -2)}</strong>
+      }
+      return part
+    })
+  }
+
   return (
     <div className="sinhala-text" style={{ alignSelf:'flex-start', maxWidth:'92%', padding:'10px 15px',
       background:'var(--purple-100)', color:'var(--ink)', borderRadius:'var(--radius-lg)',
       borderTopLeftRadius:'var(--radius-sm)', fontSize:14, lineHeight:1.5,
       boxShadow:'var(--shadow-sm)', whiteSpace:'pre-wrap' }}>
-      {children}
+      {formatText(children)}
     </div>
   )
 }

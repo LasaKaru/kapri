@@ -93,12 +93,14 @@ export interface Category {
   name: string
   emoji: string
   q: string
+  img: string
 }
 
 export interface Occasion {
   name: string
   emoji: string
   q: string
+  img: string
 }
 
 export interface Bundle {

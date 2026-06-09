@@ -141,6 +141,15 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
       chips: ['Gifts for mom', 'Birthday cakes', 'Checkout'] }
   }
 
+  // --- support ---
+  if (/support|contact|call|phone|help desk|whatsapp|hotline|customer care/i.test(text)) {
+    return { lang, text: L(lang, {
+      en: "Kapruka's official 24/7 hotline is **+94 117 551 111**. For urgent support regarding orders or deliveries, you can call or message the 24/7 WhatsApp line at **+94 707 117 777**.\n\n**More ways to get help:**\n• **Order by phone:** Call 1337 (within Sri Lanka)\n• **Global Shop Live Chat:** WhatsApp +94 707 115 533\n• **Head Office:** 147 Old Kottawa Road, Nugegoda\n• **Online Help:** Visit the official Kapruka Contact Us page",
+      si: "කප්රුක හි නිල 24/7 ක්ෂණික ඇමතුම් අංකය **+94 117 551 111** වේ. හදිසි ඇණවුම් හෝ බෙදාහැරීම් සඳහා, ඔබට ඇමතීමට හෝ 24/7 WhatsApp අංකය **+94 707 117 777** වෙත පණිවිඩයක් යැවිය හැක.\n\n**වැඩිදුර සහාය:**\n• දුරකථනයෙන් ඇණවුම්: 1337 අමතන්න\n• ග්ලෝබල් ෂොප්: WhatsApp +94 707 115 533\n• ප්‍රධාන කාර්යාලය: 147 පැරණි කොට්ටාව පාර, නුගේගොඩ",
+      tl: "Kapruka eke official 24/7 hotline eka **+94 117 551 111**. Urgent orders hari deliveries walata call karanna hari 24/7 WhatsApp message ekak danna **+94 707 117 777** ekata.\n\n**Wadi wistara:**\n• Phone eken order karanna: 1337\n• Global Shop Live Chat: WhatsApp +94 707 115 533\n• Head Office: 147 Old Kottawa Road, Nugegoda" }),
+      chips: ['Track my order', 'Shop something new'] }
+  }
+
   // --- help ---
   if (/^\s*(help|what can you|who are you|hi|hello|hey|ayubowan|ආයුබෝවන්|hari|start)\s*$/i.test(text) || /what.*do you do/i.test(text)) {
     return { lang, text: L(lang, {

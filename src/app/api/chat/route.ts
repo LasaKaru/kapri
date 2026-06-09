@@ -10,7 +10,7 @@ export type HistoryMessage = { role: 'user' | 'assistant'; text: string }
 // Tier 1 — Anthropic (claude-sonnet-4-6 + Kapruka MCP beta)
 // Anthropic's servers proxy MCP calls → works from any IP.
 // ═══════════════════════════════════════════════════════════
-async function callAnthropic(history: HistoryMessage[], cart: CartItem[]): Promise<NextResponse> {
+async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVimp?: string | null): Promise<NextResponse> {
   const Anthropic = (await import('@anthropic-ai/sdk')).default
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -23,7 +23,7 @@ async function callAnthropic(history: HistoryMessage[], cart: CartItem[]): Promi
   const response = await (client.beta.messages as any).create({
     model: 'claude-sonnet-4-6',
     max_tokens: 4096,
-    system: buildSystemPrompt(cart),
+    system: buildSystemPrompt(cart, lastVimp),
     messages,
     betas: ['mcp-client-2025-11-20'],
     mcp_servers: [{ type: 'url', url: 'https://mcp.kapruka.com/mcp', name: 'kapruka' }],
@@ -40,9 +40,9 @@ async function callAnthropic(history: HistoryMessage[], cart: CartItem[]): Promi
 // Direct HTTP to MCP; works on Vercel / local but NOT in
 // the Claude Code sandbox (IP not in allowlist).
 // ═══════════════════════════════════════════════════════════
-async function callGemini(history: HistoryMessage[], cart: CartItem[]): Promise<NextResponse> {
+async function callGemini(history: HistoryMessage[], cart: CartItem[], lastVimp?: string | null): Promise<NextResponse> {
   const { callGemini: geminiHandler } = await import('@/lib/gemini-route')
-  const result = await geminiHandler(history, cart)
+  const result = await geminiHandler(history, cart, lastVimp)
   return NextResponse.json(result)
 }
 
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     // — Tier 1: Anthropic —
     if (process.env.ANTHROPIC_API_KEY && hasHistory) {
       try {
-        return await callAnthropic(history, cart)
+        return await callAnthropic(history, cart, lastVimp)
       } catch (err) {
         console.error('[Tier1-Anthropic] failed, trying Gemini:', (err as Error).message)
       }
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
     // — Tier 2: Gemini —
     if (process.env.GOOGLE_GENERATIVE_AI_API_KEY && hasHistory) {
       try {
-        return await callGemini(history, cart)
+        return await callGemini(history, cart, lastVimp)
       } catch (err) {
         console.error('[Tier2-Gemini] failed, falling back to scripted:', (err as Error).message)
       }

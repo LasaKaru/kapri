@@ -121,8 +121,11 @@ interface CheckoutFlowProps {
 export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: CheckoutFlowProps) {
   const [step, setStep] = useState(0)
   const [f, setF] = useState({ name:'', phone:'', city:'Colombo', address:'', notes:'', date:'', sender:'', anon:false, msg: giftMessage || '' })
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [cityQuery, setCityQuery] = useState('')
+  
   const set = (k: string, v: string | boolean) => setF((p) => ({ ...p, [k]: v }))
+  const onBlur = (k: string) => setTouched(p => ({ ...p, [k]: true }))
 
   const cityObj = CITIES.find((c) => c.name === f.city) || CITIES[0]
   const lead = cityObj.slow ? 2 : 1
@@ -136,11 +139,17 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
 
   const avail = checkAvailability(cityObj, dates.find((d) => d.iso === f.date), hasPerishable)
 
+  const isPhoneValid = /^(?:0|\+94)7\d{8}$/.test(f.phone.replace(/[\s-]/g, ''))
+  const isNameValid = f.name.trim().length >= 2
+  const isAddressValid = f.address.trim().length >= 8
+  const isSenderValid = f.anon || f.sender.trim().length >= 2
+
   const steps = ['Recipient','Delivery','Gift','Review']
   const canNext = [
-    f.name.trim() && f.phone.trim().length >= 9,
-    f.address.trim().length >= 6 && !!f.date && !!(avail && avail.available),
-    true, true,
+    isNameValid && isPhoneValid,
+    isAddressValid && !!f.date && !!(avail && avail.available),
+    isSenderValid,
+    true,
   ][step]
 
   const place = () => {
@@ -182,8 +191,16 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
         <div className="scrollbar-hide" style={{ flex:1, overflowY:'auto', padding:18, display:'flex', flexDirection:'column', gap:16 }}>
           {step === 0 && (
             <>
-              <Field label="Recipient name" icon="user"><input value={f.name} onChange={(e) => set('name', e.target.value)} placeholder="Who is this for?" style={inp} /></Field>
-              <Field label="Recipient phone" icon="phone"><input value={f.phone} onChange={(e) => set('phone', e.target.value)} placeholder="07X XXX XXXX" inputMode="tel" style={inp} /></Field>
+              <Field label="Recipient name" icon="user">
+                <input value={f.name} onChange={(e) => set('name', e.target.value)} onBlur={() => onBlur('name')} placeholder="Who is this for?" 
+                  style={{ ...inp, borderColor: touched.name && !isNameValid ? '#e11d48' : 'var(--line)' }} />
+                {touched.name && !isNameValid && <p style={{ margin:'4px 0 0', fontSize:11, color:'#e11d48' }}>Please enter a valid name (at least 2 characters).</p>}
+              </Field>
+              <Field label="Recipient phone" icon="phone">
+                <input value={f.phone} onChange={(e) => set('phone', e.target.value)} onBlur={() => onBlur('phone')} placeholder="07X XXX XXXX" inputMode="tel" 
+                  style={{ ...inp, borderColor: touched.phone && !isPhoneValid ? '#e11d48' : 'var(--line)' }} />
+                {touched.phone && !isPhoneValid && <p style={{ margin:'4px 0 0', fontSize:11, color:'#e11d48' }}>Must be a valid Sri Lankan mobile number (e.g., 0771234567).</p>}
+              </Field>
               <p style={{ margin:0, fontSize:12, color:'var(--muted)', lineHeight:1.5 }}>We&apos;ll only use this to coordinate delivery — Sri Lankan numbers (07X… or +947X…).</p>
             </>
           )}
@@ -221,9 +238,10 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
               </div>
 
               <Field label="Delivery address" icon="bag">
-                <textarea value={f.address} onChange={(e) => set('address', e.target.value)} rows={2}
+                <textarea value={f.address} onChange={(e) => set('address', e.target.value)} onBlur={() => onBlur('address')} rows={2}
                   placeholder="House / building no, street, area" className="sinhala-text"
-                  style={{ ...inp, resize:'none' }} />
+                  style={{ ...inp, resize:'none', borderColor: touched.address && !isAddressValid ? '#e11d48' : 'var(--line)' }} />
+                {touched.address && !isAddressValid && <p style={{ margin:'4px 0 0', fontSize:11, color:'#e11d48' }}>Please enter a complete delivery address.</p>}
               </Field>
               <Field label="Delivery notes (optional)" icon="edit">
                 <input value={f.notes} onChange={(e) => set('notes', e.target.value)}
@@ -269,8 +287,9 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
           {step === 2 && (
             <>
               <Field label="From (sender name)" icon="user">
-                <input value={f.sender} onChange={(e) => set('sender', e.target.value)} placeholder="Your name"
-                  disabled={f.anon} style={{ ...inp, opacity: f.anon ? .5 : 1 }} />
+                <input value={f.sender} onChange={(e) => set('sender', e.target.value)} onBlur={() => onBlur('sender')} placeholder="Your name"
+                  disabled={f.anon} style={{ ...inp, opacity: f.anon ? .5 : 1, borderColor: !f.anon && touched.sender && !isSenderValid ? '#e11d48' : 'var(--line)' }} />
+                {!f.anon && touched.sender && !isSenderValid && <p style={{ margin:'4px 0 0', fontSize:11, color:'#e11d48' }}>Please enter your name, or choose to send anonymously.</p>}
               </Field>
               <label style={{ display:'flex', alignItems:'center', gap:9, cursor:'pointer', fontSize:13.5, color:'var(--ink)' }}>
                 <input type="checkbox" checked={f.anon} onChange={(e) => set('anon', e.target.checked)}

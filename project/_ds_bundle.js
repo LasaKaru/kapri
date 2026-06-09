@@ -7552,7 +7552,7 @@ function EmptyState({
   prompts,
   onPrompt
 }) {
-  const feats = [['🎁', 'Find gifts'], ['🎂', 'Order cakes'], ['🌹', 'Send flowers']];
+  const feats = [['🎁', ' gifts'], ['🎂', 'Order cakes'], ['🌹', 'Send flowers']];
   return /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
