@@ -1,0 +1,341 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "components/core/**",
+              "kapri-app/**",
+              "ui_kits/kapri/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Inter|Noto Sans Sinhala))/i]",
+        "message": "Font not provided by the design system. Available: Inter, Noto Sans Sinhala."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Badge'] > JSXAttribute > JSXIdentifier[name!=/^(?:tone|children|style|key|ref|className|style|children)$/]",
+        "message": "<Badge> doesn't accept that prop. Declared props: tone, children, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Badge'] > JSXAttribute[name.name='tone'] > Literal[value!=/^(?:neutral|purple|accent|success|warn|error|ink)$/]",
+        "message": "<Badge> tone must be one of 'neutral' | 'purple' | 'accent' | 'success' | 'warn' | 'error' | 'ink'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute > JSXIdentifier[name!=/^(?:variant|size|fullWidth|children|key|ref|className|style|children)$/]",
+        "message": "<Button> doesn't accept that prop. Declared props: variant, size, fullWidth, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:primary|secondary|ghost|yellow)$/]",
+        "message": "<Button> variant must be one of 'primary' | 'secondary' | 'ghost' | 'yellow'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='size'] > Literal[value!=/^(?:sm|md|lg)$/]",
+        "message": "<Button> size must be one of 'sm' | 'md' | 'lg'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='CategoryTile'] > JSXAttribute > JSXIdentifier[name!=/^(?:emoji|label|onClick|style|key|ref|className|style|children)$/]",
+        "message": "<CategoryTile> doesn't accept that prop. Declared props: emoji, label, onClick, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Chip'] > JSXAttribute > JSXIdentifier[name!=/^(?:children|selected|variant|onClick|style|key|ref|className|style|children)$/]",
+        "message": "<Chip> doesn't accept that prop. Declared props: children, selected, variant, onClick, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Chip'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:outline|tonal)$/]",
+        "message": "<Chip> variant must be one of 'outline' | 'tonal'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='DeliveryStatus'] > JSXAttribute > JSXIdentifier[name!=/^(?:city|date|available|rate|reason|nextAvailableDate|perishableWarning|style|key|ref|className|style|children)$/]",
+        "message": "<DeliveryStatus> doesn't accept that prop. Declared props: city, date, available, rate, reason, nextAvailableDate, perishableWarning, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Icon'] > JSXAttribute > JSXIdentifier[name!=/^(?:name|size|color|strokeWidth|style|key|ref|className|style|children)$/]",
+        "message": "<Icon> doesn't accept that prop. Declared props: name, size, color, strokeWidth, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='IconButton'] > JSXAttribute > JSXIdentifier[name!=/^(?:icon|variant|size|active|disabled|ariaLabel|onClick|key|ref|className|style|children)$/]",
+        "message": "<IconButton> doesn't accept that prop. Declared props: icon, variant, size, active, disabled, ariaLabel, onClick."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='IconButton'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:chrome|soft|solid|danger)$/]",
+        "message": "<IconButton> variant must be one of 'chrome' | 'soft' | 'solid' | 'danger'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='MessageBubble'] > JSXAttribute > JSXIdentifier[name!=/^(?:role|sinhala|children|style|key|ref|className|style|children)$/]",
+        "message": "<MessageBubble> doesn't accept that prop. Declared props: role, sinhala, children, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='MessageBubble'] > JSXAttribute[name.name='role'] > Literal[value!=/^(?:user|kapri)$/]",
+        "message": "<MessageBubble> role must be one of 'user' | 'kapri'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='KaprukaProductLite'] > JSXAttribute > JSXIdentifier[name!=/^(?:id|name|summary|price|compareAtPrice|image|category|inStock|lowStock|key|ref|className|style|children)$/]",
+        "message": "<KaprukaProductLite> doesn't accept that prop. Declared props: id, name, summary, price, compareAtPrice, image, category, inStock, lowStock."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {
+      "Badge": {
+        "replaces": []
+      },
+      "Button": {
+        "replaces": []
+      },
+      "CategoryTile": {
+        "replaces": []
+      },
+      "Chip": {
+        "replaces": []
+      },
+      "DeliveryStatus": {
+        "replaces": []
+      },
+      "Icon": {
+        "replaces": []
+      },
+      "IconButton": {
+        "replaces": []
+      },
+      "MessageBubble": {
+        "replaces": []
+      },
+      "KaprukaProductLite": {
+        "replaces": []
+      }
+    },
+    "tokens": [
+      "--accent",
+      "--accent-hover",
+      "--border-strong",
+      "--border-subtle",
+      "--brand",
+      "--brand-active",
+      "--brand-hover",
+      "--dur-base",
+      "--dur-fast",
+      "--dur-slow",
+      "--ease-out",
+      "--ease-spring",
+      "--error",
+      "--error-tint",
+      "--focus-ring",
+      "--font-mono",
+      "--font-sans",
+      "--font-sinhala",
+      "--ink",
+      "--leading-normal",
+      "--leading-relaxed",
+      "--leading-snug",
+      "--leading-tight",
+      "--line",
+      "--muted",
+      "--purple-100",
+      "--purple-200",
+      "--purple-300",
+      "--purple-400",
+      "--purple-50",
+      "--purple-500",
+      "--purple-600",
+      "--purple-700",
+      "--purple-800",
+      "--purple-900",
+      "--radius-2xl",
+      "--radius-full",
+      "--radius-lg",
+      "--radius-md",
+      "--radius-sm",
+      "--radius-xl",
+      "--shadow-card",
+      "--shadow-lg",
+      "--shadow-md",
+      "--shadow-sm",
+      "--shadow-xl",
+      "--space-0",
+      "--space-1",
+      "--space-10",
+      "--space-12",
+      "--space-16",
+      "--space-2",
+      "--space-3",
+      "--space-4",
+      "--space-5",
+      "--space-6",
+      "--space-8",
+      "--success",
+      "--success-tint",
+      "--surface",
+      "--surface-app",
+      "--surface-brand",
+      "--surface-card",
+      "--surface-muted",
+      "--surface-sunken",
+      "--text-2xl",
+      "--text-2xs",
+      "--text-3xl",
+      "--text-4xl",
+      "--text-base",
+      "--text-body",
+      "--text-lg",
+      "--text-muted",
+      "--text-on-accent",
+      "--text-on-brand",
+      "--text-sm",
+      "--text-xl",
+      "--text-xs",
+      "--tracking-normal",
+      "--tracking-tight",
+      "--tracking-wide",
+      "--warn",
+      "--warn-tint",
+      "--weight-bold",
+      "--weight-medium",
+      "--weight-regular",
+      "--weight-semibold",
+      "--white",
+      "--yellow-100",
+      "--yellow-200",
+      "--yellow-300",
+      "--yellow-400",
+      "--yellow-500",
+      "--yellow-600"
+    ],
+    "tokenKinds": {
+      "--purple-50": "color",
+      "--purple-100": "color",
+      "--purple-200": "color",
+      "--purple-300": "color",
+      "--purple-400": "color",
+      "--purple-500": "color",
+      "--purple-600": "color",
+      "--purple-700": "color",
+      "--purple-800": "color",
+      "--purple-900": "color",
+      "--yellow-100": "color",
+      "--yellow-200": "color",
+      "--yellow-300": "color",
+      "--yellow-400": "color",
+      "--yellow-500": "color",
+      "--yellow-600": "color",
+      "--ink": "color",
+      "--muted": "color",
+      "--line": "color",
+      "--surface": "color",
+      "--white": "color",
+      "--success": "color",
+      "--warn": "color",
+      "--error": "color",
+      "--success-tint": "color",
+      "--warn-tint": "color",
+      "--error-tint": "color",
+      "--brand": "color",
+      "--brand-hover": "color",
+      "--brand-active": "color",
+      "--accent": "color",
+      "--accent-hover": "color",
+      "--text-body": "font",
+      "--text-muted": "font",
+      "--text-on-brand": "font",
+      "--text-on-accent": "font",
+      "--surface-app": "color",
+      "--surface-card": "color",
+      "--surface-sunken": "color",
+      "--surface-brand": "color",
+      "--surface-muted": "color",
+      "--border-subtle": "color",
+      "--border-strong": "color",
+      "--focus-ring": "color",
+      "--font-sans": "font",
+      "--font-sinhala": "font",
+      "--font-mono": "font",
+      "--weight-regular": "font",
+      "--weight-medium": "font",
+      "--weight-semibold": "font",
+      "--weight-bold": "font",
+      "--text-2xs": "font",
+      "--text-xs": "font",
+      "--text-sm": "font",
+      "--text-base": "font",
+      "--text-lg": "font",
+      "--text-xl": "font",
+      "--text-2xl": "font",
+      "--text-3xl": "font",
+      "--text-4xl": "font",
+      "--leading-tight": "font",
+      "--leading-snug": "font",
+      "--leading-normal": "font",
+      "--leading-relaxed": "font",
+      "--tracking-tight": "font",
+      "--tracking-normal": "font",
+      "--tracking-wide": "font",
+      "--space-0": "spacing",
+      "--space-1": "spacing",
+      "--space-2": "spacing",
+      "--space-3": "spacing",
+      "--space-4": "spacing",
+      "--space-5": "spacing",
+      "--space-6": "spacing",
+      "--space-8": "spacing",
+      "--space-10": "spacing",
+      "--space-12": "spacing",
+      "--space-16": "spacing",
+      "--radius-sm": "radius",
+      "--radius-md": "radius",
+      "--radius-lg": "radius",
+      "--radius-xl": "radius",
+      "--radius-2xl": "radius",
+      "--radius-full": "radius",
+      "--shadow-sm": "shadow",
+      "--shadow-md": "shadow",
+      "--shadow-lg": "shadow",
+      "--shadow-card": "shadow",
+      "--shadow-xl": "shadow",
+      "--ease-out": "other",
+      "--ease-spring": "other",
+      "--dur-fast": "other",
+      "--dur-base": "other",
+      "--dur-slow": "other"
+    },
+    "fontFamilies": [
+      "Inter",
+      "Noto Sans Sinhala"
+    ]
+  }
+}

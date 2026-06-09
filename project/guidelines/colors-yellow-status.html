@@ -1,0 +1,38 @@
+<!-- @dsCard group="Colors" viewport="700x150" name="Yellow scale & status" subtitle="Accent ramp + functional status colors" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 20px; background: var(--surface-app); font-family: var(--font-sans); }
+  .tag { font-size: 10px; font-weight: 600; letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .scale { display: flex; border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: 16px; }
+  .step { flex: 1; height: 56px; display: flex; flex-direction: column; justify-content: flex-end; padding: 6px; }
+  .n { font-size: 11px; font-weight: 700; }
+  .h { font-family: var(--font-mono); font-size: 9px; opacity: .8; margin-top: 1px; }
+  .status { display: flex; gap: 12px; }
+  .st { flex: 1; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 22px; height: 22px; border-radius: var(--radius-full); flex-shrink: 0; }
+  .lbl { font-size: 12px; font-weight: 600; color: var(--ink); }
+  .sub { font-size: 10px; color: var(--muted); }
+</style>
+</head>
+<body>
+  <div class="tag">Yellow — accent / CTA</div>
+  <div class="scale">
+    <div class="step" style="background:var(--yellow-100); color:var(--ink)"><span class="n">100</span><span class="h">FEF8C8</span></div>
+    <div class="step" style="background:var(--yellow-200); color:var(--ink)"><span class="n">200</span><span class="h">FDEF8F</span></div>
+    <div class="step" style="background:var(--yellow-300); color:var(--ink)"><span class="n">300</span><span class="h">FCE552</span></div>
+    <div class="step" style="background:var(--yellow-400); color:var(--ink)"><span class="n">400</span><span class="h">F9DB09</span></div>
+    <div class="step" style="background:var(--yellow-500); color:var(--ink)"><span class="n">500</span><span class="h">E6C500</span></div>
+    <div class="step" style="background:var(--yellow-600); color:#fff"><span class="n">600</span><span class="h">C7AE00</span></div>
+  </div>
+  <div class="tag">Status — functional only, never decorative</div>
+  <div class="status">
+    <div class="st"><div class="dot" style="background:var(--success)"></div><div><div class="lbl">Success</div><div class="sub">#1F9D57 · delivery OK</div></div></div>
+    <div class="st"><div class="dot" style="background:var(--warn)"></div><div><div class="lbl">Warn</div><div class="sub">#D98A00 · advisory</div></div></div>
+    <div class="st"><div class="dot" style="background:var(--error)"></div><div><div class="lbl">Error</div><div class="sub">#D63B3B · unavailable</div></div></div>
+  </div>
+</body>
+</html>

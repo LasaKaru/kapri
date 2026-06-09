@@ -1,0 +1,50 @@
+<!-- @startingPoint section="Kapri" subtitle="Full-screen AI shopping concierge — end to end" viewport="460x820" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Kapri — AI Shopping Concierge by Kapruka</title>
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--surface);
+  }
+  .app {
+    width: 100vw; height: 100dvh;
+    background: var(--surface); overflow: hidden; position: relative;
+  }
+  #root { height: 100%; }
+
+  @media (min-width: 600px) {
+    .kapri-modal { height: min(720px, 92%) !important; border-radius: var(--radius-xl); }
+  }
+  @media (max-width: 560px) { .kapri-hide-sm { display: none !important; } }
+
+  @keyframes kapri-pop { from { transform: scale(0); } to { transform: scale(1); } }
+  @keyframes kapri-in-right { from { opacity: 0; transform: translate(14px, 6px); } to { opacity: 1; transform: none; } }
+  @keyframes kapri-in-left { from { opacity: 0; transform: translate(-14px, 6px); } to { opacity: 1; transform: none; } }
+  @keyframes kapri-bounce { 0%, 100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(-4px); opacity: 1; } }
+  @keyframes kapri-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+  @keyframes kapri-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+  @keyframes kapri-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+  @keyframes kapri-wave { from { transform: scaleY(0.3); } to { transform: scaleY(1.1); } }
+  @keyframes kapri-spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+</style>
+</head>
+<body>
+  <div class="app"><div id="root"></div></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="data.jsx"></script>
+  <script type="text/babel" src="ui.jsx"></script>
+  <script type="text/babel" src="genui.jsx"></script>
+  <script type="text/babel" src="checkout.jsx"></script>
+  <script type="text/babel" src="engine.jsx"></script>
+  <script type="text/babel" src="app.jsx"></script>
+</body>
+</html>

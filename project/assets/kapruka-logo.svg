@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 160">
+  <rect width="560" height="160" fill="#442A73"></rect>
+  
+  <text x="40" y="115" font-family="&#39;Trebuchet MS&#39;, &#39;Arial Rounded MT Bold&#39;, Arial, sans-serif" font-size="86" font-weight="900" fill="white" letter-spacing="-2">kapr</text>
+  
+  <text x="257" y="115" font-family="&#39;Trebuchet MS&#39;, &#39;Arial Rounded MT Bold&#39;, Arial, sans-serif" font-size="86" font-weight="900" fill="white" letter-spacing="-2">uka</text>
+  
+  <path d="M259 80 Q296 128 333 80" stroke="#F9DB09" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>

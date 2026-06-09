@@ -1,0 +1,30 @@
+<!-- @dsCard group="Brand" viewport="700x230" name="Logo" subtitle="The wordmark & its yellow smile" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 22px; background: var(--surface-card); font-family: var(--font-sans); }
+  .wrap { display: flex; gap: 22px; align-items: stretch; }
+  .panel { flex: 1; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; padding: 22px; border: 1px solid var(--line); }
+  .panel img { width: 100%; max-width: 230px; height: auto; display: block; }
+  .cap { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-top: 10px; text-align: center; }
+  .note { margin-top: 16px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .note strong { color: var(--ink); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div style="flex:1">
+      <div class="panel" style="background:var(--purple-700)"><img src="../assets/kapruka-logo.jpg" alt="Kapruka logo" /></div>
+      <div class="cap">On purple chrome (primary)</div>
+    </div>
+    <div style="flex:1">
+      <div class="panel" style="background:var(--surface)"><img src="../assets/kapruka-logo.svg" alt="Kapruka vector" /></div>
+      <div class="cap">Vector recreation (.svg)</div>
+    </div>
+  </div>
+  <div class="note"><strong>kapruka</strong> — always lowercase, rounded geometric sans. The "u" is a yellow upward arc: a literal <strong>smile</strong>. Never recolour it. The JPG ships with its own purple field, so place it directly inside purple-700 surfaces.</div>
+</body>
+</html>

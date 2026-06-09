@@ -1,0 +1,68 @@
+/* ============================================================
+   Kapruka — Color Tokens
+   Brand: Royal purple + electric yellow. White is the third pillar.
+   No green/orange in brand surfaces — those are reserved for status only.
+   ============================================================ */
+
+:root {
+  /* ---- Purple scale (primary brand) ---- */
+  --purple-50:  #F6F4FA;
+  --purple-100: #ECE7F3;
+  --purple-200: #D3C8E2;
+  --purple-300: #AE9BCB;
+  --purple-400: #8A72B5;
+  --purple-500: #6B4FA0;
+  --purple-600: #553A88;
+  --purple-700: #442A73; /* core brand purple */
+  --purple-800: #33205C;
+  --purple-900: #241544;
+
+  /* ---- Yellow scale (accent / CTA) ---- */
+  --yellow-100: #FEF8C8;
+  --yellow-200: #FDEF8F;
+  --yellow-300: #FCE552;
+  --yellow-400: #F9DB09; /* core brand yellow */
+  --yellow-500: #E6C500;
+  --yellow-600: #C7AE00;
+
+  /* ---- Neutral / ink ---- */
+  --ink:     #1B1230; /* body text — near-black plum */
+  --muted:   #6B6480; /* secondary text */
+  --line:    #E7E3EF; /* hairline borders */
+  --surface: #F6F4FA; /* app background (= purple-50) */
+  --white:   #FFFFFF;
+
+  /* ---- Status (functional only — never decorative) ---- */
+  --success: #1F9D57; /* delivery available, order confirmed */
+  --warn:    #D98A00; /* perishable / advisory notices */
+  --error:   #D63B3B; /* delivery unavailable, errors */
+
+  /* Soft status tints (card fills) */
+  --success-tint: #F0FDF4;
+  --warn-tint:    #FFFBEB;
+  --error-tint:   #FEF2F2;
+
+  /* ============================================================
+     Semantic aliases — reference these in components
+     ============================================================ */
+  --brand:            var(--purple-700);
+  --brand-hover:      var(--purple-600);
+  --brand-active:     var(--purple-800);
+  --accent:           var(--yellow-400);
+  --accent-hover:     var(--yellow-500);
+
+  --text-body:        var(--ink);
+  --text-muted:       var(--muted);
+  --text-on-brand:    var(--white);
+  --text-on-accent:   var(--purple-700);
+
+  --surface-app:      var(--surface);
+  --surface-card:     var(--white);
+  --surface-sunken:   var(--purple-50);
+  --surface-brand:    var(--purple-700);
+  --surface-muted:    var(--purple-100); /* agent message bubble */
+
+  --border-subtle:    var(--line);
+  --border-strong:    var(--purple-700);
+  --focus-ring:       rgba(68, 42, 115, 0.20);
+}

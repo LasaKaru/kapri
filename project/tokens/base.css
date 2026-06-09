@@ -1,0 +1,75 @@
+/* ============================================================
+   Kapruka — Base element styles & shared utilities
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-body);
+  background: var(--surface-app);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Sinhala / Tanglish text — needs extra line-height */
+.sinhala-text {
+  font-family: var(--font-sinhala);
+  line-height: var(--leading-relaxed);
+}
+
+/* Monospace product IDs / order refs */
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* Hide scrollbars on horizontal carousels & chat scroll */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Purple-tinted card shadows */
+.card-shadow    { box-shadow: var(--shadow-md); }
+.card-shadow-sm { box-shadow: var(--shadow-sm); }
+.card-shadow-lg { box-shadow: var(--shadow-lg); }
+
+/* Shimmer skeleton */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--purple-100) 0%,
+    var(--purple-50) 40%,
+    var(--purple-100) 100%
+  );
+  background-size: 200% 100%;
+  animation: kapruka-shimmer 1.6s infinite linear;
+}
+
+@keyframes kapruka-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes kapruka-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes kapruka-breathe {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%      { transform: scale(1.04); opacity: 0.9; }
+}
+
+@keyframes kapruka-waveform {
+  from { transform: scaleY(0.4); }
+  to   { transform: scaleY(1.2); }
+}

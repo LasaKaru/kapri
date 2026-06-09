@@ -1,0 +1,24 @@
+<!-- @dsCard group="Spacing" viewport="700x170" name="Shadows" subtitle="Purple-tinted, never neutral grey" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 28px 24px; background: var(--surface-app); font-family: var(--font-sans); }
+  .row { display: flex; gap: 26px; }
+  .item { text-align: center; }
+  .box { width: 120px; height: 70px; background: var(--white); border-radius: var(--radius-lg); }
+  .name { font-size: 12px; font-weight: 600; color: var(--ink); margin-top: 14px; }
+  .val { font-family: var(--font-mono); font-size: 10px; color: var(--muted); }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="item"><div class="box" style="box-shadow:var(--shadow-sm)"></div><div class="name">sm</div><div class="val">.06 alpha</div></div>
+    <div class="item"><div class="box" style="box-shadow:var(--shadow-md)"></div><div class="name">md</div><div class="val">.10 alpha</div></div>
+    <div class="item"><div class="box" style="box-shadow:var(--shadow-card)"></div><div class="name">card</div><div class="val">product lift</div></div>
+    <div class="item"><div class="box" style="box-shadow:var(--shadow-lg)"></div><div class="name">lg</div><div class="val">.16 alpha</div></div>
+  </div>
+</body>
+</html>

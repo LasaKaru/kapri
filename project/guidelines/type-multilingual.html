@@ -1,0 +1,31 @@
+<!-- @dsCard group="Type" viewport="700x210" name="Multilingual & weights" subtitle="English · සිංහල · Tanglish + Inter weights" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  body { margin: 0; padding: 24px; background: var(--surface-card); font-family: var(--font-sans); color: var(--ink); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 28px; }
+  .lbl { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+  .big { font-size: 19px; }
+  .weights { display: flex; gap: 22px; margin-top: 4px; }
+  .w span { display: block; font-size: 22px; }
+  .w small { font-size: 10px; color: var(--muted); font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div><div class="lbl">English · Inter</div><div class="big">A gift for my mother</div></div>
+    <div><div class="lbl">සිංහල · Noto Sans Sinhala</div><div class="big sinhala-text">අම්මට තෑග්ගක් — රු. 5000ට</div></div>
+    <div><div class="lbl">Tanglish · mixed stack</div><div class="big sinhala-text">Mata ammata cake ekak gannako</div></div>
+    <div><div class="lbl">Mono · IDs & refs</div><div class="big mono">CAKE-2291 · Rs. 4,500</div></div>
+  </div>
+  <div class="weights">
+    <div class="w"><span style="font-weight:400">Aa</span><small>400 Regular</small></div>
+    <div class="w"><span style="font-weight:500">Aa</span><small>500 Medium</small></div>
+    <div class="w"><span style="font-weight:600">Aa</span><small>600 Semibold</small></div>
+    <div class="w"><span style="font-weight:700">Aa</span><small>700 Bold</small></div>
+  </div>
+</body>
+</html>
