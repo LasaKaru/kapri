@@ -99,6 +99,34 @@ const KAPRUKA_SCHEMAS = {
       response_format: z.literal('json').optional().default('json'),
     }),
   },
+  kapruka_create_order: {
+    inputSchema: z.object({
+      cart: z.array(z.object({
+        product_id: z.string().describe('Product ID e.g. CAKE00KA001843'),
+        quantity: z.number().int().min(1).default(1),
+        icing_text: z.string().optional().describe('Icing message for cakes, max 120 chars'),
+      })).min(1).describe('Cart items to order'),
+      recipient: z.object({
+        name: z.string().min(1).describe('Recipient full name'),
+        phone: z.string().describe('Sri Lankan phone number e.g. 0771234567'),
+        email: z.string().email().optional().describe('Recipient email'),
+      }),
+      delivery: z.object({
+        city: z.string().describe('Canonical city name from list_delivery_cities'),
+        date: z.string().describe('Delivery date in YYYY-MM-DD format'),
+        address: z.string().min(1).describe('Full delivery address'),
+        type: z.enum(['residential', 'office', 'hotel']).optional().default('residential'),
+      }),
+      sender: z.object({
+        name: z.string().min(1).describe('Sender full name'),
+        phone: z.string().optional().describe('Sender phone number'),
+        email: z.string().email().optional().describe('Sender email for order updates'),
+        anonymous: z.boolean().optional().default(false).describe('Hide sender name from recipient'),
+      }),
+      gift_message: z.string().optional().describe('Gift message to include with the order'),
+      currency: z.string().optional().default('LKR'),
+    }),
+  },
   kapruka_track_order: {
     inputSchema: z.object({
       order_number: z.string().describe('VIMP tracking number from confirmation email'),

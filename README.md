@@ -27,48 +27,167 @@ Discover gifts, browse a real catalog, quote delivery to any Sri Lankan city, pe
 
 ---
 
-## 🏗️ Architecture
+## 🔌 Kapruka MCP Integration
+
+Kapri is powered by **[Kapruka's public MCP server](https://mcp.kapruka.com/mcp)** — a free, no-auth endpoint that exposes Sri Lanka's largest e-commerce platform to any LLM client.
+
+**Endpoint:** `https://mcp.kapruka.com/mcp` · Streamable HTTP · No auth required
+
+### Quick Start (for any MCP client)
+
+```json
+{
+  "mcpServers": {
+    "kapruka": {
+      "url": "https://mcp.kapruka.com/mcp"
+    }
+  }
+}
+```
+
+### 7 Available Tools
+
+```mermaid
+graph LR
+    subgraph Discovery ["🔍 Discovery"]
+        T1["kapruka_search_products"]
+        T2["kapruka_get_product"]
+        T3["kapruka_list_categories"]
+    end
+
+    subgraph Delivery ["🚚 Delivery"]
+        T4["kapruka_list_delivery_cities"]
+        T5["kapruka_check_delivery"]
+    end
+
+    subgraph Checkout ["🛒 Checkout"]
+        T6["kapruka_create_order"]
+    end
+
+    subgraph Tracking ["📦 Tracking"]
+        T7["kapruka_track_order"]
+    end
+
+    T1 --> T2
+    T3 --> T1
+    T4 --> T5
+    T5 --> T6
+    T6 --> T7
+
+    style Discovery fill:#e8f5e9,stroke:#2e7d32
+    style Delivery fill:#fff3e0,stroke:#e65100
+    style Checkout fill:#fce4ec,stroke:#c62828
+    style Tracking fill:#e3f2fd,stroke:#1565c0
+```
+
+| Tool | Purpose | Key Parameters |
+|---|---|---|
+| `kapruka_search_products` | Search catalog by keyword with filters | `q`, `category`, `min_price`, `max_price`, `in_stock_only`, `sort`, `limit`, `cursor`, `currency` |
+| `kapruka_get_product` | Full product details by ID | `product_id`, `currency` |
+| `kapruka_list_categories` | Top-level category names with browse URLs | `depth` |
+| `kapruka_list_delivery_cities` | Search delivery network by name or alias | `query`, `limit` |
+| `kapruka_check_delivery` | Check delivery availability, rate & perishable warnings | `city`, `delivery_date`, `product_id` |
+| `kapruka_create_order` | Create guest-checkout order → click-to-pay URL | `cart`, `recipient`, `delivery`, `sender`, `gift_message`, `currency` |
+| `kapruka_track_order` | Order status, items, and delivery progress | `order_number` |
+
+### Rate Limits
+
+| Limit | Value |
+|---|---|
+| All tools | **60 requests/min** per client IP |
+| `kapruka_create_order` | **30 orders/hour** per client IP (on top of per-min cap) |
+| Price lock | **60 minutes** from order creation |
+| Product/category cache | Up to **30 minutes** server-side |
+
+### ✅ Full Implementation Audit — All 7 Tools Across All 3 Tiers
+
+| MCP Tool | Tier 1 (Claude) | Tier 2 (Gemini) | Tier 3 (Engine) | UI Component |
+|---|---|---|---|---|
+| `kapruka_search_products` | ✅ Auto-discover | ✅ Zod schema | ✅ Keyword search | `<ProductCarousel>` |
+| `kapruka_get_product` | ✅ Auto-discover | ✅ Zod schema | — | `<ProductDetail>` |
+| `kapruka_list_categories` | ✅ Auto-discover | ✅ Zod schema | ✅ Static CATEGORIES | EmptyState carousels |
+| `kapruka_list_delivery_cities` | ✅ Auto-discover | ✅ Zod schema | ✅ Static CITIES | `<DeliveryStatus>` |
+| `kapruka_check_delivery` | ✅ Auto-discover | ✅ Zod schema | ✅ City lookup | `<DeliveryStatus>` |
+| `kapruka_create_order` | ✅ Auto-discover | ✅ Zod schema | ✅ Opens checkout flow | `<CheckoutCard>` + `<PaymentSheet>` |
+| `kapruka_track_order` | ✅ Auto-discover | ✅ Zod schema | ✅ VIMP regex | `<OrderTracker>` |
+
+---
+
+## 🏗️ System Architecture
 
 ```mermaid
 graph TB
-    subgraph Client ["Browser"]
-        UI["Next.js 14 App Router<br/>(React 18 Client Components)"]
-        LS["localStorage<br/>(Cart · Lang · Orders)"]
+    subgraph Client ["Browser — Client-Only Rendering"]
+        PAGE["page.tsx — dynamic import"]
+        APP["App.tsx — Root orchestrator"]
+        
+        subgraph UILayer ["UI Layer"]
+            HEADER["Header"]
+            SEASON["SeasonBanner"]
+            EMPTY["EmptyState"]
+            COMPOSER["Composer"]
+            BUBBLES["Bubbles"]
+        end
+
+        subgraph GenUI ["Generative UI Cards"]
+            PC["ProductCarousel"]
+            PD["ProductDetail"]
+            BC["BundleCard"]
+            DS["DeliveryStatus"]
+            OT["OrderTracker"]
+            CC["CheckoutCard"]
+            SK["SkeletonCarousel"]
+        end
+
+        subgraph Overlays ["Full-Screen Overlays"]
+            CART["CartDrawer"]
+            CHECKOUT["CheckoutFlow — 4-step accordion"]
+            PAY["PaymentSheet"]
+        end
+
+        LS["localStorage — cart, lang, gift msg, orders"]
     end
 
     subgraph Server ["Next.js API Routes"]
-        CHAT["/api/chat"]
-        IMG["/api/product-image"]
-        ORD["/api/orders"]
+        CHAT["/api/chat — 3-tier AI routing"]
+        IMG["/api/product-image — proxy + cache"]
+        ORDERS["/api/orders — save and fetch"]
     end
 
     subgraph AI ["AI Providers"]
-        T1["Tier 1: Claude<br/>via Anthropic SDK"]
-        T2["Tier 2: Gemini 2.5 Flash<br/>via @ai-sdk/mcp"]
-        T3["Tier 3: Scripted Engine<br/>(no API key needed)"]
+        T1["Tier 1: Claude — Anthropic SDK — MCP beta proxy"]
+        T2["Tier 2: Gemini 2.5 Flash — @ai-sdk/mcp — Static Zod schemas"]
+        T3["Tier 3: Scripted Engine — engine.ts — Keyword rules"]
     end
 
-    KV["Vercel KV<br/>(Order Storage)"]
-    MCP["Kapruka MCP Server<br/>mcp.kapruka.com/mcp"]
+    KV[("Vercel KV — Redis")]
+    MCP["Kapruka MCP Server"]
 
-    UI -- "POST /api/chat" --> CHAT
-    UI -- "GET /api/product-image" --> IMG
-    UI -- "POST/GET /api/orders" --> ORD
-    UI <--> LS
+    PAGE --> APP
+    APP --> UILayer
+    APP --> GenUI
+    APP --> Overlays
+    APP <--> LS
+
+    APP -- "POST /api/chat" --> CHAT
+    APP -- "GET /api/product-image" --> IMG
+    APP -- "POST/GET /api/orders" --> ORDERS
 
     CHAT -- "Try first" --> T1
     CHAT -. "Fallback" .-> T2
-    CHAT -. "Offline fallback" .-> T3
+    CHAT -. "Offline" .-> T3
 
-    T1 -- "MCP beta proxy" --> MCP
+    T1 -- "MCP beta" --> MCP
     T2 -- "Direct HTTP" --> MCP
 
-    ORD <--> KV
-    IMG -- "Proxy + cache" --> MCP
+    ORDERS <--> KV
 
     style Client fill:#f3f0fa,stroke:#442A73
     style Server fill:#fef9e7,stroke:#d4a017
     style AI fill:#e8f5e9,stroke:#2e7d32
+    style UILayer fill:#f0e6ff,stroke:#7c3aed
+    style GenUI fill:#ede9fe,stroke:#5b21b6
+    style Overlays fill:#fce7f3,stroke:#be185d
 ```
 
 > The browser never touches Anthropic, Google, or Kapruka directly — all calls are proxied through Next.js API routes to keep secrets server-side.
@@ -79,21 +198,25 @@ graph TB
 
 ```mermaid
 flowchart TD
-    REQ((Request)) --> CHECK1{ANTHROPIC_API_KEY<br/>set?}
+    REQ((Request)) --> CHECK1{ANTHROPIC_API_KEY set?}
 
-    CHECK1 -- YES --> T1["✅ Tier 1: Claude<br/>via Anthropic MCP beta"]
+    CHECK1 -- YES --> T1["Tier 1: Claude via Anthropic MCP beta"]
     CHECK1 -- NO --> CHECK2
 
-    T1 -- "Runtime error" --> CHECK2{GOOGLE_API_KEY<br/>set?}
+    T1 -- "Runtime error" --> CHECK2{GOOGLE_API_KEY set?}
+    T1 --> PARSE["parseClaudeResponse — Extract JSON, unwrap code fences, normalise MCP prices"]
 
-    CHECK2 -- YES --> T2["🔄 Tier 2: Gemini 2.5 Flash<br/>via @ai-sdk/mcp<br/>(static Zod schemas)"]
+    CHECK2 -- YES --> T2["Tier 2: Gemini 2.5 Flash via @ai-sdk/mcp with static Zod schemas"]
     CHECK2 -- NO --> T3
 
-    T2 -- "Runtime error" --> T3["🛡️ Tier 3: Scripted Engine<br/>(keyword rules, no network)"]
+    T2 -- "Runtime error" --> T3["Tier 3: Scripted Engine — keyword rules, no network"]
+    T2 --> UNWRAP["unwrapMCPResult — Peel MCP envelope, extract clean data"]
 
-    T3 --> RES((Response))
-    T1 --> RES
-    T2 --> RES
+    T3 --> ENG["engine.ts — Regex matching, CATALOG lookup, CITIES lookup, Bundle builder"]
+
+    PARSE --> RES((EngineResponse — text, card, chips, action))
+    UNWRAP --> RES
+    ENG --> RES
 
     style T1 fill:#d4edda,stroke:#28a745
     style T2 fill:#fff3cd,stroke:#856404
@@ -101,70 +224,125 @@ flowchart TD
     style RES fill:#f3f0fa,stroke:#442A73
 ```
 
-Set only the keys you have. The app degrades gracefully through all three tiers.
-
 ---
 
-## 🛒 End-to-End Shopping Workflow
+## 🛒 End-to-End User Journey
 
 ```mermaid
 sequenceDiagram
     actor User
-    participant Kapri as Kapri UI
+    participant UI as Kapri UI
     participant API as /api/chat
     participant MCP as Kapruka MCP
     participant KV as Vercel KV
 
-    Note over User,MCP: 1️⃣ Discovery
-    User->>Kapri: "chocolate birthday cake under Rs 3000"
-    Kapri->>API: POST { messages, cart }
+    Note over User,MCP: 1 — Welcome and Discovery
+    UI-->>User: EmptyState with category and occasion carousels
+    User->>UI: chocolate birthday cake under Rs 3000
+    UI->>UI: Show SkeletonCarousel loading
+    UI->>API: POST messages and cart
     API->>MCP: kapruka_search_products
     MCP-->>API: Product results
-    API-->>Kapri: EngineResponse { card: carousel }
-    Kapri-->>User: Renders <ProductCarousel>
+    API-->>UI: EngineResponse with carousel card
+    UI-->>User: ProductCarousel with images, prices, add-to-cart
 
-    Note over User,MCP: 2️⃣ Cart
-    User->>Kapri: Click "Add to cart"
-    Kapri->>Kapri: Save to localStorage
+    Note over User,UI: 2 — Product Detail and Cart
+    User->>UI: Tap product card
+    UI-->>User: ProductDetail overlay with variants
+    User->>UI: Click Add to cart
+    UI->>UI: Update cart state and localStorage
+    UI-->>User: Toast Added to cart and badge bounce
 
-    Note over User,MCP: 3️⃣ Delivery Check
-    User->>Kapri: "deliver to Kandy on Friday"
-    Kapri->>API: POST { messages, cart }
+    Note over User,MCP: 3 — Delivery Check
+    User->>UI: deliver to Kandy on Friday
+    UI->>API: POST messages and cart
     API->>MCP: kapruka_check_delivery
-    MCP-->>API: Rates & availability
-    API-->>Kapri: EngineResponse { card: delivery }
-    Kapri-->>User: Renders <DeliveryStatus>
+    MCP-->>API: Rates and availability
+    API-->>UI: EngineResponse with delivery card
+    UI-->>User: DeliveryStatus with fee and perishable warning
 
-    Note over User,KV: 4️⃣ Checkout & Payment
-    User->>Kapri: Complete <CheckoutFlow>
-    Kapri->>API: POST { messages, cart }
+    Note over User,UI: 4 — Multi-Step Checkout
+    User->>UI: Open CartDrawer then click Checkout
+    UI-->>User: CheckoutFlow overlay
+    User->>UI: Step 1 Recipient name and phone validation
+    User->>UI: Step 2 Delivery address city and date
+    User->>UI: Step 3 Sender name or anonymous
+    User->>UI: Step 4 Gift message plus AI enhance
+    UI->>API: POST messages and cart
     API->>MCP: kapruka_create_order
-    MCP-->>API: Order ref + pay link
-    API-->>Kapri: EngineResponse { card: checkout }
-    Kapri-->>User: <CheckoutCard> + <PaymentSheet>
-    User->>Kapri: Click "Pay Now"
-    Kapri->>KV: Store order (VIMP...)
+    MCP-->>API: Order ref and pay link
+    UI-->>User: CheckoutCard and PaymentSheet
 
-    Note over User,KV: 5️⃣ Tracking
-    User->>Kapri: "track VIMP34456"
-    Kapri->>KV: Lookup order
-    KV-->>Kapri: Order data
-    Kapri-->>User: <OrderTracker> timeline
+    Note over User,KV: 5 — Payment and Tracking
+    User->>UI: Click Pay Now and opens pay link
+    UI->>KV: POST /api/orders save VIMP number
+    UI-->>User: OrderTracker timeline
+    User->>UI: track VIMP34456
+    UI->>KV: GET /api/orders/VIMP34456
+    KV-->>UI: Order data or fallback to DEMO_ORDER
+    UI-->>User: OrderTracker with live progress stages
 ```
 
 ---
 
-## 🧩 ToolRenderer Dispatch Table
+## 🧩 Component Hierarchy
+
+```mermaid
+graph TD
+    PAGE["page.tsx — dynamic, ssr: false"] --> APP["App.tsx"]
+
+    APP --> HEADER["Header"]
+    APP --> SEASON["SeasonBanner"]
+    APP --> SCROLL["Chat Scroll Area"]
+    APP --> COMPOSER["Composer"]
+    APP --> OVERLAYS["Overlays"]
+
+    SCROLL --> EMPTY["EmptyState — when no messages"]
+    SCROLL --> MSGS["Message List — when messages exist"]
+
+    EMPTY --> SROW1["ScrollRow: 10 Categories"]
+    EMPTY --> SROW2["ScrollRow: 6 Occasions"]
+    EMPTY --> PROMPTS["Prompt Suggestions"]
+
+    MSGS --> UB["UserBubble"]
+    MSGS --> KR["KapriRow"]
+    KR --> KT["KapriText"]
+    KR --> CARD["renderCard"]
+    KR --> CHIPS["Chip suggestions"]
+
+    CARD --> PC["ProductCarousel"]
+    CARD --> BC["BundleCard"]
+    CARD --> DS["DeliveryStatus"]
+    CARD --> OT["OrderTracker"]
+    CARD --> CHK["CheckoutCard"]
+
+    PC --> PCARD["ProductCard"]
+    PCARD --> PD["ProductDetail overlay"]
+
+    OVERLAYS --> CARTD["CartDrawer"]
+    OVERLAYS --> CHKF["CheckoutFlow — 4-step accordion"]
+    OVERLAYS --> PAYS["PaymentSheet"]
+
+    style PAGE fill:#f3f0fa,stroke:#442A73
+    style APP fill:#ede9fe,stroke:#5b21b6
+    style CARD fill:#fef3c7,stroke:#d97706
+    style OVERLAYS fill:#fce7f3,stroke:#be185d
+    style EMPTY fill:#ecfdf5,stroke:#059669
+```
+
+---
+
+## 🗂️ ToolRenderer Dispatch Table
 
 `App.tsx → renderCard()` maps `CardData.type` to the appropriate component:
 
-| `CardData.type` | Component | Description |
-|---|---|---|
-| `carousel` | `<ProductCarousel>` | Horizontal scroll grid of product cards with add-to-cart |
-| `bundle` | `<BundleCard>` | AI gift bundle (cake + flowers + card by theme/budget) |
-| `delivery` | `<DeliveryStatus>` | Delivery city/date validation with perishable warnings |
-| `tracker` | `<OrderTracker>` | Post-payment progress timeline with delivery stages |
-| `checkout` | `<CheckoutCard>` | Order summary with price-lock countdown + pay button |
+| `CardData.type` | Component | MCP Tool | Description |
+|---|---|---|---|
+| `carousel` | `<ProductCarousel>` | `kapruka_search_products` | Horizontal scroll grid of product cards with add-to-cart |
+| `bundle` | `<BundleCard>` | — (AI-curated) | Gift bundle (cake + flowers + card) by theme/budget |
+| `delivery` | `<DeliveryStatus>` | `kapruka_check_delivery` | City/date validation with flat fee and perishable warnings |
+| `tracker` | `<OrderTracker>` | `kapruka_track_order` | Progress timeline with delivery stages |
+| `checkout` | `<CheckoutCard>` | `kapruka_create_order` | Order summary with price-lock countdown and pay button |
 
 Loading state: `<SkeletonCarousel>` renders while `searchPending` is true.
 
