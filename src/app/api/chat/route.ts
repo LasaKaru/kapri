@@ -21,7 +21,7 @@ async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVi
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const response = await (client.beta.messages as any).create({
-    model: 'claude-sonnet-4-6',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: 4096,
     system: buildSystemPrompt(cart, lastVimp),
     messages,
