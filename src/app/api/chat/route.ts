@@ -27,6 +27,9 @@ async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVi
     messages,
     betas: ['mcp-client-2025-11-20'],
     mcp_servers: [{ type: 'url', url: 'https://mcp.kapruka.com/mcp', name: 'kapruka' }],
+    // mcp-client-2025-11-20 requires every server in mcp_servers to be
+    // referenced by exactly one mcp_toolset in tools
+    tools: [{ type: 'mcp_toolset', mcp_server_name: 'kapruka' }],
   })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

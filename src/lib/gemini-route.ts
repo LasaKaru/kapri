@@ -56,81 +56,101 @@ export function unwrapMCPResult(result: unknown): unknown {
 }
 
 /** Static Zod schemas for each Kapruka MCP tool.
- *  Gemini requires explicit schemas at startup — cannot use 'automatic'. */
+ *  Gemini requires explicit schemas at startup — cannot use 'automatic'.
+ *
+ *  The Kapruka server (FastMCP) declares every tool with a single required
+ *  `params` object — flat arguments are rejected with a Pydantic
+ *  "params Field required" validation error, so each schema below wraps
+ *  its fields in `params`. Field names/enums mirror the live server schema
+ *  (additionalProperties: false — unknown fields are rejected).
+ */
 const KAPRUKA_SCHEMAS = {
   kapruka_search_products: {
     inputSchema: z.object({
-      q: z.string().min(1).describe('Search query in English'),
-      category: z.string().optional(),
-      min_price: z.number().optional(),
-      max_price: z.number().optional(),
-      in_stock_only: z.boolean().optional(),
-      sort: z.enum(['relevance', 'price_asc', 'price_desc', 'newest', 'bestseller']).optional(),
-      limit: z.number().int().min(1).max(50).optional().default(8),
-      cursor: z.string().optional(),
-      response_format: z.literal('json').optional().default('json'),
+      params: z.object({
+        q: z.string().min(3).describe('Search query in English, min 3 chars'),
+        category: z.string().optional(),
+        min_price: z.number().optional(),
+        max_price: z.number().optional(),
+        in_stock_only: z.boolean().optional(),
+        sort: z.enum(['relevance', 'price_asc', 'price_desc', 'newest', 'bestseller']).optional(),
+        limit: z.number().int().min(1).max(50).optional().default(8),
+        cursor: z.string().optional(),
+        response_format: z.literal('json').optional().default('json'),
+      }),
     }),
   },
   kapruka_get_product: {
     inputSchema: z.object({
-      product_id: z.string().describe('Product ID e.g. CAKE00KA001843'),
-      currency: z.string().optional().default('LKR'),
-      response_format: z.literal('json').optional().default('json'),
+      params: z.object({
+        product_id: z.string().describe('Product ID e.g. CAKE00KA001843'),
+        currency: z.string().optional().default('LKR'),
+        response_format: z.literal('json').optional().default('json'),
+      }),
     }),
   },
   kapruka_list_categories: {
     inputSchema: z.object({
-      depth: z.number().int().min(1).max(2).optional().default(1),
-      response_format: z.literal('json').optional().default('json'),
+      params: z.object({
+        depth: z.number().int().min(1).max(2).optional().default(1),
+        response_format: z.literal('json').optional().default('json'),
+      }),
     }),
   },
   kapruka_list_delivery_cities: {
     inputSchema: z.object({
-      query: z.string().min(1).describe('City name or partial name to search'),
-      limit: z.number().int().min(1).max(50).optional().default(25),
-      response_format: z.literal('json').optional().default('json'),
+      params: z.object({
+        query: z.string().min(1).describe('City name or partial name to search'),
+        limit: z.number().int().min(1).max(50).optional().default(25),
+        response_format: z.literal('json').optional().default('json'),
+      }),
     }),
   },
   kapruka_check_delivery: {
     inputSchema: z.object({
-      city: z.string().describe('Canonical city name from list_delivery_cities'),
-      delivery_date: z.string().describe('Date in YYYY-MM-DD format'),
-      product_id: z.string().optional().describe('Product ID for perishable check'),
-      response_format: z.literal('json').optional().default('json'),
+      params: z.object({
+        city: z.string().describe('Canonical city name from list_delivery_cities'),
+        delivery_date: z.string().optional().describe('Date in YYYY-MM-DD format (defaults to today)'),
+        product_id: z.string().optional().describe('Product ID for perishable check'),
+        response_format: z.literal('json').optional().default('json'),
+      }),
     }),
   },
   kapruka_create_order: {
     inputSchema: z.object({
-      cart: z.array(z.object({
-        product_id: z.string().describe('Product ID e.g. CAKE00KA001843'),
-        quantity: z.number().int().min(1).default(1),
-        icing_text: z.string().optional().describe('Icing message for cakes, max 120 chars'),
-      })).min(1).describe('Cart items to order'),
-      recipient: z.object({
-        name: z.string().min(1).describe('Recipient full name'),
-        phone: z.string().describe('Sri Lankan phone number e.g. 0771234567'),
-        email: z.string().email().optional().describe('Recipient email'),
+      params: z.object({
+        cart: z.array(z.object({
+          product_id: z.string().describe('Product ID e.g. CAKE00KA001843'),
+          quantity: z.number().int().min(1).max(99).default(1),
+          icing_text: z.string().max(120).optional().describe('Icing message for cakes, max 120 chars'),
+        })).min(1).max(30).describe('Cart items to order'),
+        recipient: z.object({
+          name: z.string().min(1).describe('Recipient full name'),
+          phone: z.string().describe('Sri Lankan phone number e.g. 0771234567 or +94771234567'),
+        }),
+        delivery: z.object({
+          address: z.string().min(3).describe('Full delivery address'),
+          city: z.string().describe('Canonical city name from list_delivery_cities'),
+          date: z.string().describe('Delivery date in YYYY-MM-DD format (today or future)'),
+          location_type: z.enum(['house', 'apartment', 'office', 'other']).optional().default('house'),
+          instructions: z.string().max(250).optional().describe('Free-form delivery instructions'),
+        }),
+        sender: z.object({
+          name: z.string().min(1).describe('Sender name on the gift card'),
+          anonymous: z.boolean().optional().default(false).describe('Hide sender name from recipient'),
+        }),
+        gift_message: z.string().max(300).optional().describe('Gift message to include with the order'),
+        currency: z.string().optional().default('LKR'),
+        response_format: z.literal('json').optional().default('json'),
       }),
-      delivery: z.object({
-        city: z.string().describe('Canonical city name from list_delivery_cities'),
-        date: z.string().describe('Delivery date in YYYY-MM-DD format'),
-        address: z.string().min(1).describe('Full delivery address'),
-        type: z.enum(['residential', 'office', 'hotel']).optional().default('residential'),
-      }),
-      sender: z.object({
-        name: z.string().min(1).describe('Sender full name'),
-        phone: z.string().optional().describe('Sender phone number'),
-        email: z.string().email().optional().describe('Sender email for order updates'),
-        anonymous: z.boolean().optional().default(false).describe('Hide sender name from recipient'),
-      }),
-      gift_message: z.string().optional().describe('Gift message to include with the order'),
-      currency: z.string().optional().default('LKR'),
     }),
   },
   kapruka_track_order: {
     inputSchema: z.object({
-      order_number: z.string().describe('VIMP tracking number from confirmation email'),
-      response_format: z.literal('json').optional().default('json'),
+      params: z.object({
+        order_number: z.string().describe('VIMP tracking number from confirmation email'),
+        response_format: z.literal('json').optional().default('json'),
+      }),
     }),
   },
 }

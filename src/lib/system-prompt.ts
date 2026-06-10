@@ -73,10 +73,12 @@ ${lastVimp ? `\n[NOTE] The user's most recent order number is ${lastVimp}. If th
 • kapruka_check_delivery: pass product_id for perishable warnings (cakes, flowers)
 • kapruka_create_order: ONLY after collecting ALL required fields from the user:
     - cart: array of { product_id, quantity, icing_text? }
-    - recipient: { name, phone (Sri Lankan format 07X or +947X), email? }
-    - delivery: { city (canonical from list_delivery_cities), date (YYYY-MM-DD), address, type? }
-    - sender: { name, phone?, email?, anonymous? }
-    - gift_message: optional string
+    - recipient: { name, phone (Sri Lankan format 07X or +947X) }
+    - delivery: { address, city (canonical from list_delivery_cities), date (YYYY-MM-DD),
+      location_type? (house/apartment/office/other), instructions? }
+    - sender: { name, anonymous? }
+    - gift_message: optional string (≤300 chars)
+  Do NOT pass email fields or any field not listed — the server rejects unknown fields.
   Prices lock for 60 minutes. Max 30 orders/hour.
 • kapruka_track_order: order_number is the VIMP number from email (not order_ref)
 
