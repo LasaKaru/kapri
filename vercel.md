@@ -117,9 +117,9 @@ Click **"Environment Variables"** and add:
 
 If you want order tracking to persist across deploys:
 
-1. Go to **Vercel Dashboard → Storage → Create Database → KV**
-2. Name it `kapri-orders`
-3. Click **"Connect to Project"** → select your Kapri project
+1. Go to **Vercel Dashboard → Storage → Create Database**
+2. Under "Marketplace Database Providers", select **Upstash** (this is what powers Vercel KV)
+3. Click **Add Integration** / **Connect to Project** → select your Kapri project
 4. Vercel auto-injects `KV_REST_API_URL` and `KV_REST_API_TOKEN` environment variables
 5. Redeploy: `vercel --prod` or push a new commit
 
