@@ -33,14 +33,14 @@ export function Composer({ value, onChange, onSend, onMic, recording, lang }: Co
             background: recording ? 'var(--error)' : 'var(--purple-100)',
             color: recording ? '#fff' : 'var(--purple-700)',
             animation: recording ? 'kapri-pulse 1s infinite' : 'none' }}>
-          <Ico name="mic" size={18} />
+          <Ico name="mic" size={18} sw={2.5} />
         </button>
         <button type="submit" disabled={!value.trim()} aria-label="Send"
           style={{ width:44, height:44, flexShrink:0, borderRadius:'var(--radius-lg)', border:'none',
             display:'flex', alignItems:'center', justifyContent:'center',
             cursor: value.trim() ? 'pointer' : 'not-allowed',
             background:'var(--purple-700)', color:'#fff', opacity: value.trim() ? 1 : 0.45 }}>
-          <Ico name="send" size={18} />
+          <Ico name="send" size={18} sw={2.5} />
         </button>
       </form>
       {recording && (

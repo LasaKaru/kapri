@@ -62,11 +62,11 @@ export function EmptyState({ prompts, onPrompt, categories, occasions, onCategor
       minHeight:'100%', width: '100%', overflowX: 'hidden' }}>
       <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:20, padding:'24px 0', margin: 'auto 0', width: '100%', textAlign:'center' }}>
       <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12, animation:'kapri-breathe 3.5s ease-in-out infinite' }}>
-        <div style={{ background:'var(--purple-700)', borderRadius:'var(--radius-lg)', padding:'14px 26px', boxShadow:'var(--shadow-lg)' }}>
+        <div style={{ width: 85, height: 85, borderRadius: '50%', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', border: '3px solid #fff', background: '#fff' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/kapruka-logo.jpg" alt="Kapruka" style={{ height:42, width:'auto', borderRadius:5 }} />
+          <img src="/kapri-avatar.png" alt="Kapri Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.6)', transformOrigin: 'center 20%' }} />
         </div>
-        <span style={{ padding:'5px 13px', borderRadius:999, background:'var(--yellow-400)', color:'var(--purple-700)',
+        <span style={{ margin: '8px 0', padding:'5px 13px', borderRadius:999, background:'var(--yellow-400)', color:'var(--purple-700)',
           fontSize:12, fontWeight:700, boxShadow:'var(--shadow-sm)' }}>
           Kapri — AI Shopping Concierge
         </span>
