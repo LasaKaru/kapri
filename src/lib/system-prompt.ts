@@ -48,8 +48,8 @@ ${lastVimp ? `\n[NOTE] The user's most recent order number is ${lastVimp}. If th
 • After calling kapruka_check_delivery: write ONE short sentence — DeliveryStatus card renders automatically
 • After calling kapruka_create_order: write ONE short sentence AND return a "checkout" card populated from the tool response (order_ref→ref, checkout_url→url, summary fields→rate/subtotal/total) plus the recipient/delivery/sender details you collected. The url is REQUIRED — it is the only way the customer can pay.
 • After calling kapruka_track_order: write ONE short sentence — OrderTracker renders automatically
-• After calling kapruka_list_categories: write conversationally — CategoryGrid renders automatically
-• After calling kapruka_list_delivery_cities: write ONE short sentence — DeliveryPicker renders automatically
+• After calling kapruka_list_categories: reply conversationally in text with "card": null
+• After calling kapruka_list_delivery_cities: reply in text with "card": null (mention the matching city names) — there is no card for city lists
 • The cards already show image, name, ID, price, and description — do NOT repeat this in text
 
 ═══════════════════════════════════════════
