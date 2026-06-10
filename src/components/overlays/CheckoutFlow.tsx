@@ -122,7 +122,7 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
   const [step, setStep] = useState(0)
   const [f, setF] = useState({ name:'', phone:'', city:'Colombo', address:'', notes:'', date:'', sender:'', anon:false, msg: giftMessage || '' })
   const [touched, setTouched] = useState<Record<string, boolean>>({})
-  const [cityQuery, setCityQuery] = useState('')
+  const [cityQuery, setCityQuery] = useState('Colombo')
   
   const set = (k: string, v: string | boolean) => setF((p) => ({ ...p, [k]: v }))
   const onBlur = (k: string) => setTouched(p => ({ ...p, [k]: true }))
@@ -133,7 +133,7 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
   const hasPerishable = items.some((i) => i.p.perishable)
   const subtotal = items.reduce((s, i) => s + i.p.price * i.qty, 0)
 
-  const cityMatches = cityQuery.trim()
+  const cityMatches = cityQuery.trim() && cityQuery !== f.city
     ? CITIES.filter((c) => c.name.toLowerCase().includes(cityQuery.trim().toLowerCase())).slice(0, 6)
     : []
 
@@ -211,7 +211,8 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
                 <div style={{ position:'relative' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:8, ...inp, padding:'0 12px' }}>
                     <Ico name="search" size={15} color="var(--muted)" />
-                    <input value={cityQuery || f.city} onChange={(e) => setCityQuery(e.target.value)}
+                    <input value={cityQuery} onChange={(e) => setCityQuery(e.target.value)}
+                      onBlur={() => { if (cityQuery !== f.city) setCityQuery(f.city) }}
                       placeholder="Search a Sri Lankan city…"
                       style={{ flex:1, border:'none', outline:'none', padding:'11px 0', fontSize:14, background:'transparent', fontFamily:'var(--font-sans)' }} />
                     <span style={{ fontSize:12, fontWeight:700, color:'var(--purple-700)', whiteSpace:'nowrap' }}>{LKR(cityObj.rate)}</span>
@@ -220,7 +221,7 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
                     <div style={{ position:'absolute', top:'100%', left:0, right:0, marginTop:4, background:'#fff',
                       border:'1px solid var(--line)', borderRadius:'var(--radius-md)', boxShadow:'var(--shadow-lg)', zIndex:5, overflow:'hidden' }}>
                       {cityMatches.map((c) => (
-                        <button key={c.name} onClick={() => { set('city', c.name); set('date', ''); setCityQuery('') }}
+                        <button key={c.name} type="button" onMouseDown={(e) => { e.preventDefault(); set('city', c.name); set('date', ''); setCityQuery(c.name) }}
                           style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between',
                             padding:'10px 13px', border:'none', borderBottom:'1px solid var(--line)', background:'#fff',
                             cursor:'pointer', fontFamily:'var(--font-sans)', fontSize:13.5, color:'var(--ink)' }}>

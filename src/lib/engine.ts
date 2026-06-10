@@ -340,7 +340,7 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
   }
 
   // ─── 5. Category browsing ─────────────────────────────
-  if (/what.*categor|show.*categor|list.*categor|browse|categories|monawada thiyen|mokak.*thiyen|what.*have|what.*sell|what.*offer/i.test(text)) {
+  if (/what.*categor|show.*categor|list.*categor|browse|categories|monawada thiyen|mokak.*thiyen|what.*have|what.*sell|what.*offer|go back|back to start|start over/i.test(text)) {
     const catList = CATEGORIES.map(c => `${c.emoji} ${c.name}`).join(', ')
     return { lang, text: L(lang, {
       en: `Here's what I can help you with! 🗂️ We have: ${catList}. Just tell me a category or describe what you're looking for!`,
@@ -508,14 +508,14 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
       tl: `${budgetText ? budgetText + ' ' : ''}${occText ? occText + ' ' : ''}lassana picks tikak mehe${cat ? ' ' + cat + ' walin' : ''} 🎁 — cart ekata danna Add eka press karanna:`,
     })
 
-    const chips = []
+    const chips = ['Start over']
     if (!budget.max) chips.push('Under Rs. 5,000')
     if (!cat) chips.push('Show me cakes')
     if (items.length >= 6) chips.push('Show me more')
     chips.push('Make it a hamper')
     if (cartCount > 0) chips.push('Checkout')
 
-    return { lang, text: bridge, card: { type: 'carousel', items }, chips: chips.slice(0, 4) }
+    return { lang, text: bridge, card: { type: 'carousel', items }, chips: chips.slice(0, 5) }
   }
 
   // ─── 17. Fallback — always show something ─────────────
