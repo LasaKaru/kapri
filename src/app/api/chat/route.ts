@@ -20,7 +20,7 @@ async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVi
   }))
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const response = await (client.beta.messages as any).create({
+  let response = await (client.beta.messages as any).create({
     model: 'claude-sonnet-4-6',
     max_tokens: 4096,
     system: buildSystemPrompt(cart, lastVimp),
@@ -32,9 +32,27 @@ async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVi
     tools: [{ type: 'mcp_toolset', mcp_server_name: 'kapruka' }],
   })
 
+  // The server-side MCP tool loop pauses after ~10 iterations with
+  // stop_reason 'pause_turn' — re-send with the assistant turn appended
+  // so it resumes where it left off.
+  for (let i = 0; i < 3 && response.stop_reason === 'pause_turn'; i++) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    response = await (client.beta.messages as any).create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4096,
+      system: buildSystemPrompt(cart, lastVimp),
+      messages: [...messages, { role: 'assistant', content: response.content }],
+      betas: ['mcp-client-2025-11-20'],
+      mcp_servers: [{ type: 'url', url: 'https://mcp.kapruka.com/mcp', name: 'kapruka' }],
+      tools: [{ type: 'mcp_toolset', mcp_server_name: 'kapruka' }],
+    })
+  }
+
+  // Tool-use turns interleave text blocks ("Let me check…") with tool calls;
+  // the JSON reply the UI needs is in the LAST text block, not the first.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const textBlock = response.content?.find((c: any) => c.type === 'text')
-  const result = parseClaudeResponse(textBlock?.text ?? '')
+  const textBlocks = (response.content ?? []).filter((c: any) => c.type === 'text')
+  const result = parseClaudeResponse(textBlocks.at(-1)?.text ?? '')
   return NextResponse.json(result)
 }
 

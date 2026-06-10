@@ -65,6 +65,15 @@ export function CheckoutCard({ order, paid, onPay }: CheckoutCardProps) {
             background:'var(--success-tint)', color:'var(--success)', fontWeight:700, fontSize:15, border:'1px solid var(--success)' }}>
             <Ico name="check-circle" size={18} color="var(--success)" /> Payment received — thank you! 🎉
           </div>
+        ) : order.url ? (
+          // Real Kapruka order (MCP tier) — open the live click-to-pay link
+          <a href={order.url} target="_blank" rel="noopener noreferrer"
+            onClick={() => onPay?.(order)}
+            style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:14, borderRadius:'var(--radius-md)',
+              background:'var(--yellow-400)', color:'var(--purple-700)', fontWeight:700, fontSize:16, border:'none',
+              cursor:'pointer', fontFamily:'var(--font-sans)', textDecoration:'none' }}>
+            Pay Now on Kapruka <Ico name="arrow-right" size={16} />
+          </a>
         ) : (
           <button onClick={() => onPay?.(order)}
             style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:14, borderRadius:'var(--radius-md)',

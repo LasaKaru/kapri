@@ -44,6 +44,10 @@ export interface OrderData {
   subtotal: number
   total: number
   perishable: boolean
+  /** Real Kapruka click-to-pay URL returned by kapruka_create_order (MCP tier).
+   *  When present, the CheckoutCard "Pay Now" button opens this instead of the
+   *  simulated client-side payment used by the scripted demo flow. */
+  url?: string
 }
 
 export interface OrderItem {

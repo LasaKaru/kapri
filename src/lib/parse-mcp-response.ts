@@ -46,6 +46,34 @@ function normalise(obj: Record<string, any>): EngineResponse {
     card: obj.card ?? undefined,
   }
 
+  // Normalise checkout cards. The model builds these after kapruka_create_order,
+  // so the fields may arrive with MCP names (order_ref, checkout_url, grand_total).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (result.card?.type === 'checkout' && (result.card as any).order) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const o = (result.card as any).order
+    result.card = {
+      type: 'checkout',
+      order: {
+        ref: String(o.ref ?? o.order_ref ?? ''),
+        city: String(o.city ?? ''),
+        date: o.date ?? undefined,
+        rate: parsePrice(o.rate ?? o.delivery_fee),
+        recipient: String(o.recipient ?? ''),
+        phone: String(o.phone ?? ''),
+        address: String(o.address ?? ''),
+        notes: String(o.notes ?? ''),
+        sender: String(o.sender ?? ''),
+        msg: String(o.msg ?? o.gift_message ?? ''),
+        items: Array.isArray(o.items) ? o.items : [],
+        subtotal: parsePrice(o.subtotal ?? o.items_total),
+        total: parsePrice(o.total ?? o.grand_total),
+        perishable: Boolean(o.perishable),
+        url: o.url ?? o.checkout_url ?? undefined,
+      },
+    }
+  }
+
   // Normalise carousel items from MCP data shapes
   if (result.card?.type === 'carousel' && Array.isArray(result.card.items)) {
     result.card = {
