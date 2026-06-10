@@ -28,21 +28,57 @@ function Summary({ l, v }: { l: string; v: string }) {
 }
 
 const GIFT_REWRITES = {
-  warm: {
-    en: "Thinking of you today and always. This little something is sent with all my love — enjoy every bite and every moment. 💜",
-    si: "අද සහ හැමදාම ඔබ ගැන හිතනවා. මේ පුංචි තෑග්ග මගේ සියලු ආදරයෙන් එවනවා. 💜",
-    tl: "Adath, hetath, hamadama oba gæna hithanawa. Mehe punchi dheyak — mage siyalu adarayen. Bohoma snehayen! 💜",
-  },
-  witty: {
-    en: "Warning: contents may cause excessive smiling and at least one happy dance. No regifting allowed. 😄🎁",
-    si: "අවවාදයයි: මේ තෑග්ග වැඩිපුර හිනා වෙන්න සහ පොඩි නැටුමක් දාන්න හේතු වෙන්න පුළුවන්! 😄",
-    tl: "Warning eka: meka open kaloth wadipura hinawenna puluwan, podi natumak ekka! Re-gift karanna epa hari? 😄🎁",
-  },
-  formal: {
-    en: "With warm wishes and heartfelt regards on this special occasion. May it bring you joy and good fortune.",
-    si: "මෙම විශේෂ අවස්ථාවේදී සුබ පැතුම් සහ හෘදයාංගම ආචාර. සතුට සහ සශ්‍රීකත්වය ළඟා වේවා.",
-    tl: "Me vishesha avasthawe subha pætum. Satutai sashreekathwayai oba veta lægavewa.",
-  },
+  warm: [
+    {
+      en: "Thinking of you today and always. This little something is sent with all my love — enjoy every bite and every moment. 💜",
+      si: "අද සහ හැමදාම ඔබ ගැන හිතනවා. මේ පුංචි තෑග්ග මගේ සියලු ආදරයෙන් එවනවා. 💜",
+      tl: "Adath, hetath, hamadama oba gæna hithanawa. Mehe punchi dheyak — mage siyalu adarayen. Bohoma snehayen! 💜",
+    },
+    {
+      en: "Just a small token to brighten your day! Sending you lots of love and warm hugs. Hope you love it! 💜",
+      si: "ඔබේ දවස ලස්සන කරන්න පුංචි තෑග්ගක්! ගොඩක් ආදරේ සහ උණුසුම් වැළඳගැනීම්. 💜",
+      tl: "Oyage dawasa lassana karanna punchi thæggak! Godak adarei saha unusum hugs. 💜",
+    },
+    {
+      en: "Because you deserve the best today and every day. Wishing you endless happiness and joy with this gift. 💜",
+      si: "ඔබ හැමදාම හොඳම දේ ලැබිය යුතු නිසා. මේ තෑග්ගෙන් ඔබට නිමක් නැති සතුටක් ලැබේවා. 💜",
+      tl: "Obata hamadama hondama de labiya yuthu nisa. Me thæggen oyata nimak næthi sathutak labewa. 💜",
+    }
+  ],
+  witty: [
+    {
+      en: "Warning: contents may cause excessive smiling and at least one happy dance. No regifting allowed. 😄🎁",
+      si: "අවවාදයයි: මේ තෑග්ග වැඩිපුර හිනා වෙන්න සහ පොඩි නැටුමක් දාන්න හේතු වෙන්න පුළුවන්! 😄",
+      tl: "Warning eka: meka open kaloth wadipura hinawenna puluwan, podi natumak ekka! Re-gift karanna epa hari? 😄🎁",
+    },
+    {
+      en: "I was going to get you something expensive, but then I remembered my presence is a present. Here’s a little something anyway! 😉",
+      si: "ගණන් වැඩි දෙයක් ගන්න හිටියේ, ඒත් මාව ලැබුණු එකම ලොකු තෑග්ගක් නේ. කොහොම වුණත් මේක තියාගන්න! 😉",
+      tl: "Ganan wædi deyak ganna hitiye, eeth mawa labunu ekama loku thæggak ne. Kohoma unath meka thiyaganna! 😉",
+    },
+    {
+      en: "If this isn’t exactly what you wanted, please pretend enthusiastically. Just kidding, I know you’ll love it! 😂🎉",
+      si: "මේක ඔයාට හරියටම ඕනෙ කරපු දේ නෙමෙයි නම්, බොරුවට හරි සතුටු වෙන්න. විහිළුවක් කළේ, මම දන්නවා ඔයා මේකට කැමති වෙයි කියලා! 😂🎉",
+      tl: "Meka oyata hariyatama oney karapu de nemei nam, boruwata hari sathutu venna. Vihiluwak kale, mama dannawa oya mekata kæmathi wei kiyala! 😂🎉",
+    }
+  ],
+  formal: [
+    {
+      en: "With warm wishes and heartfelt regards on this special occasion. May it bring you joy and good fortune.",
+      si: "මෙම විශේෂ අවස්ථාවේදී සුබ පැතුම් සහ හෘදයාංගම ආචාර. සතුට සහ සශ්‍රීකත්වය ළඟා වේවා.",
+      tl: "Me vishesha avasthawe subha pætum. Satutai sashreekathwayai oba veta lægavewa.",
+    },
+    {
+      en: "Please accept this gift as a token of my sincere appreciation and respect. Wishing you all the very best.",
+      si: "මාගේ අවංක ඇගයීම සහ ගෞරවයේ සංකේතයක් ලෙස කරුණාකර මෙම තෑග්ග භාරගන්න. ඔබට සියලු සුබ පැතුම්.",
+      tl: "Mage avanka agayeema saha gourawaye sankethayak lesa karunakara mema thægga bhara ganna. Obata siyalu subha pætum.",
+    },
+    {
+      en: "Sending you our sincerest congratulations and best wishes for continued success and happiness.",
+      si: "ඔබගේ අඛණ්ඩ සාර්ථකත්වය සහ සතුට වෙනුවෙන් අපගේ හෘදයාංගම සුබ පැතුම් මෙයින් ගෙන එන්නෙමු.",
+      tl: "Obage akhanda sarthakathwaya saha sathuta venuwen apage hrudayangama subha pætum meyin gena ennemu.",
+    }
+  ],
 }
 
 function GiftMessageEditor({ value, lang, onChange }: { value: string; lang: Lang; onChange: (v: string) => void }) {
@@ -53,9 +89,11 @@ function GiftMessageEditor({ value, lang, onChange }: { value: string; lang: Lan
     setBusy(true)
     setTimeout(() => {
       const rewrites = GIFT_REWRITES[tone]
-      onChange(rewrites[lang as keyof typeof rewrites] || rewrites.en)
+      const options = rewrites.filter(r => r[lang as keyof typeof r] !== value && r.en !== value)
+      const selected = options[Math.floor(Math.random() * options.length)] || rewrites[0]
+      onChange(selected[lang as keyof typeof selected] || selected.en)
       setBusy(false)
-    }, 700)
+    }, 600)
   }
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
