@@ -49,22 +49,22 @@ Kapri is powered by **[Kapruka's public MCP server](https://mcp.kapruka.com/mcp)
 
 ```mermaid
 graph LR
-    subgraph Discovery ["🔍 Discovery"]
+    subgraph Discovery ["Discovery"]
         T1["kapruka_search_products"]
         T2["kapruka_get_product"]
         T3["kapruka_list_categories"]
     end
 
-    subgraph Delivery ["🚚 Delivery"]
+    subgraph Delivery ["Delivery"]
         T4["kapruka_list_delivery_cities"]
         T5["kapruka_check_delivery"]
     end
 
-    subgraph Checkout ["🛒 Checkout"]
+    subgraph Checkout ["Checkout"]
         T6["kapruka_create_order"]
     end
 
-    subgraph Tracking ["📦 Tracking"]
+    subgraph Tracking ["Tracking"]
         T7["kapruka_track_order"]
     end
 
@@ -119,9 +119,9 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph Client ["Browser — Client-Only Rendering"]
-        PAGE["page.tsx — dynamic import"]
-        APP["App.tsx — Root orchestrator"]
+    subgraph Client ["Browser - Client-Only Rendering"]
+        PAGE["page.tsx - dynamic import"]
+        APP["App.tsx - Root orchestrator"]
         
         subgraph UILayer ["UI Layer"]
             HEADER["Header"]
@@ -143,31 +143,31 @@ graph TB
 
         subgraph Overlays ["Full-Screen Overlays"]
             CART["CartDrawer"]
-            CHECKOUT["CheckoutFlow — 4-step accordion"]
-            PAY["PaymentSheet — simulated fallback"]
-            FRAME["PaymentFrame — REAL Kapruka pay page in iframe"]
+            CHECKOUT["CheckoutFlow - 4-step accordion"]
+            PAY["PaymentSheet - simulated fallback"]
+            FRAME["PaymentFrame - REAL Kapruka pay page in iframe"]
         end
 
-        LS["localStorage — cart, lang, gift msg, orders"]
+        LS["localStorage - cart, lang, gift msg, orders"]
     end
 
     subgraph Server ["Next.js API Routes"]
-        CHAT["/api/chat — 3-tier AI routing"]
-        CREATE["/api/orders/create — real order via raw MCP"]
-        IMG["/api/product-image — proxy + cache"]
-        ORDERS["/api/orders — save and fetch"]
+        CHAT["/api/chat - 3-tier AI routing"]
+        CREATE["/api/orders/create - real order via raw MCP"]
+        IMG["/api/product-image - proxy + cache"]
+        ORDERS["/api/orders - save and fetch"]
     end
 
     subgraph AI ["AI Providers"]
-        T1["Tier 1: Claude Haiku 4.5 — Anthropic MCP connector"]
-        T2["Tier 2: Gemini 2.5 Flash — @ai-sdk/mcp — Static Zod schemas"]
-        T3["Tier 3: Scripted Engine — engine.ts — Keyword rules"]
+        T1["Tier 1: Claude Haiku 4.5 - Anthropic MCP connector"]
+        T2["Tier 2: Gemini 2.5 Flash - @ai-sdk/mcp - Static Zod schemas"]
+        T3["Tier 3: Scripted Engine - engine.ts - Keyword rules"]
     end
 
-    RAWMCP["kapruka-mcp.ts — raw Streamable-HTTP client"]
-    KV[("Vercel KV — Redis")]
+    RAWMCP["kapruka-mcp.ts - raw Streamable-HTTP client"]
+    KV[("Vercel KV - Redis")]
     MCP["Kapruka MCP Server"]
-    KPAY["Kapruka Secure Payment — kapruka.com"]
+    KPAY["Kapruka Secure Payment - kapruka.com"]
 
     PAGE --> APP
     APP --> UILayer
@@ -175,21 +175,21 @@ graph TB
     APP --> Overlays
     APP <--> LS
 
-    APP -- "POST /api/chat" --> CHAT
-    APP -- "POST /api/orders/create" --> CREATE
-    APP -- "GET /api/product-image" --> IMG
-    APP -- "POST/GET /api/orders" --> ORDERS
+    APP --"POST /api/chat"--> CHAT
+    APP --"POST /api/orders/create"--> CREATE
+    APP --"GET /api/product-image"--> IMG
+    APP --"POST/GET /api/orders"--> ORDERS
 
-    CHAT -- "Try first" --> T1
-    CHAT -. "Fallback" .-> T2
-    CHAT -. "Offline" .-> T3
+    CHAT --"Try first"--> T1
+    CHAT -."Fallback".-> T2
+    CHAT -."Offline".-> T3
 
-    T1 -- "MCP connector beta" --> MCP
-    T2 -- "Direct HTTP" --> MCP
+    T1 --"MCP connector beta"--> MCP
+    T2 --"Direct HTTP"--> MCP
     CREATE --> RAWMCP
-    RAWMCP -- "tools/call kapruka_create_order" --> MCP
+    RAWMCP --"tools/call kapruka_create_order"--> MCP
 
-    FRAME -- "iframe loads checkout_url" --> KPAY
+    FRAME --"iframe loads checkout_url"--> KPAY
 
     ORDERS <--> KV
 
@@ -209,23 +209,23 @@ graph TB
 
 ```mermaid
 flowchart TD
-    REQ((Request)) --> CHECK1{ANTHROPIC_API_KEY set?}
+    REQ(("Request")) --> CHECK1{"ANTHROPIC_API_KEY set?"}
 
-    CHECK1 -- YES --> T1["Tier 1: Claude Haiku 4.5 via Anthropic MCP connector — streaming, 120s timeout, sequential tool calls, pause_turn continuation"]
+    CHECK1 -- YES --> T1["Tier 1: Claude Haiku 4.5 via Anthropic MCP connector - streaming, 120s timeout, sequential tool calls, pause_turn continuation"]
     CHECK1 -- NO --> CHECK2
 
-    T1 -- "Runtime error / timeout" --> CHECK2{GOOGLE_API_KEY set?}
-    T1 --> PARSE["parseClaudeResponse — read LAST text block, extract JSON, normalise carousel/checkout/tracker cards"]
+    T1 --"Runtime error / timeout"--> CHECK2{"GOOGLE_API_KEY set?"}
+    T1 --> PARSE["parseClaudeResponse - read LAST text block, extract JSON, normalise carousel/checkout/tracker cards"]
 
     CHECK2 -- YES --> T2["Tier 2: Gemini 2.5 Flash via @ai-sdk/mcp with static Zod schemas"]
     CHECK2 -- NO --> T3
 
-    T2 -- "Runtime error" --> T3["Tier 3: Scripted Engine — keyword rules, no network"]
-    T2 --> UNWRAP["unwrapMCPResult — Peel MCP envelope, extract clean data"]
+    T2 --"Runtime error"--> T3["Tier 3: Scripted Engine - keyword rules, no network"]
+    T2 --> UNWRAP["unwrapMCPResult - Peel MCP envelope, extract clean data"]
 
-    T3 --> ENG["engine.ts — Regex matching, CATALOG lookup, CITIES lookup, Bundle builder"]
+    T3 --> ENG["engine.ts - Regex matching, CATALOG lookup, CITIES lookup, Bundle builder"]
 
-    PARSE --> RES((EngineResponse — text, card, chips, action))
+    PARSE --> RES(("EngineResponse: text, card, chips, action"))
     UNWRAP --> RES
     ENG --> RES
 
@@ -248,31 +248,31 @@ surfaces (real `PaymentFrame` & simulated `PaymentSheet` fallback).
 
 ```mermaid
 flowchart TD
-    subgraph PathA ["🗨️ Path A — Conversational (chat)"]
-        A1["User confirms order in chat"] --> A2["/api/chat → Tier 1 Claude Haiku 4.5"]
-        A2 --> A3["Claude calls kapruka_check_delivery then kapruka_create_order (sequential — parallel calls deadlock the MCP session)"]
+    subgraph PathA ["Path A - Conversational (chat)"]
+        A1["User confirms order in chat"] --> A2["/api/chat to Tier 1 Claude Haiku 4.5"]
+        A2 --> A3["Claude calls kapruka_check_delivery then kapruka_create_order (sequential - parallel calls deadlock the MCP session)"]
         A3 --> A4["Model returns JSON 'checkout' card: ref + checkout_url + totals"]
     end
 
-    subgraph PathB ["🛒 Path B — Cart form (CheckoutFlow)"]
-        B1["User fills 4-step form: Recipient → Delivery → Gift → Review"] --> B2["POST /api/orders/create"]
-        B2 --> B3["kapruka-mcp.ts raw client: initialize → initialized → tools/call kapruka_create_order"]
+    subgraph PathB ["Path B - Cart form (CheckoutFlow)"]
+        B1["User fills 4-step form: Recipient to Delivery to Gift to Review"] --> B2["POST /api/orders/create"]
+        B2 --> B3["kapruka-mcp.ts raw client: initialize to initialized to tools/call kapruka_create_order"]
         B3 --> B4{"Order created?"}
         B4 -- yes --> B5["onPlaced(order with real url)"]
-        B4 -- "no (network / 429 / invalid)" --> B6["Fallback: simulated order (no url) — demo never breaks"]
+        B4 --"no (network / 429 / invalid)"--> B6["Fallback: simulated order (no url) - demo never breaks"]
     end
 
-    A4 --> CC["CheckoutCard in chat — Items / Delivery / Total + 60-min price-lock countdown"]
+    A4 --> CC["CheckoutCard in chat - Items / Delivery / Total + 60-min price-lock countdown"]
     B5 --> CC
     B6 --> CC
 
-    CC --> PAYBTN{"User clicks 'Pay Now on Kapruka' — does order.url exist?"}
-    PAYBTN -- "yes → REAL order" --> PF["PaymentFrame — in-app sandboxed iframe loads the real checkout_url"]
-    PAYBTN -- "no → simulated fallback" --> PS["PaymentSheet — demo card UI (4242…), fake VIMP"]
+    CC --> PAYBTN{"User clicks 'Pay Now on Kapruka' - does order.url exist?"}
+    PAYBTN --"yes - REAL order"--> PF["PaymentFrame - in-app sandboxed iframe loads the real checkout_url"]
+    PAYBTN --"no - simulated fallback"--> PS["PaymentSheet - demo card UI (4242...), fake VIMP"]
 
-    PF --> KP["Kapruka Secure Payment (kapruka.com) — card / other methods"]
-    KP --> EMAIL["Kapruka emails the customer a real VIMP… tracking number"]
-    EMAIL --> TRACK["User pastes VIMP… in chat → kapruka_track_order → live OrderTracker"]
+    PF --> KP["Kapruka Secure Payment (kapruka.com) - card / other methods"]
+    KP --> EMAIL["Kapruka emails the customer a real VIMP... tracking number"]
+    EMAIL --> TRACK["User pastes VIMP... in chat to kapruka_track_order to live OrderTracker"]
 
     style PathA fill:#ede9fe,stroke:#5b21b6
     style PathB fill:#fef3c7,stroke:#d97706
@@ -288,23 +288,25 @@ sequenceDiagram
     actor User
     participant CC as CheckoutCard
     participant APP as App.tsx
-    participant PF as PaymentFrame (modal)
-    participant KP as kapruka.com (iframe)
+    participant PF as PaymentFrame modal
+    participant KP as kapruka.com iframe
 
-    User->>CC: Click "Pay Now on Kapruka"
+    User->>CC: Click Pay Now on Kapruka
     CC->>APP: onPay(order)
     APP->>APP: order.url exists?
     alt Real Kapruka order (has checkout_url)
-        APP->>PF: setFrameOrder(order) — open in-app modal
+        APP->>PF: setFrameOrder(order) - open in-app modal
         PF->>KP: iframe src = checkout_url (continue_order.jsp)
-        KP-->>PF: Renders Item → Cart → Delivery → Pay stepper
-        Note over PF,KP: sandbox = allow-scripts allow-forms allow-same-origin allow-popups<br/>(NO allow-top-navigation → page cannot hijack the app)
+        KP-->>PF: Renders Item to Cart to Delivery to Pay stepper
+        Note over PF,KP: sandbox allows scripts, forms, same-origin, popups
+        Note over PF,KP: no allow-top-navigation, so the page cannot hijack the app
         User->>KP: Enters card details on Kapruka's page
         KP-->>User: Payment processed by Kapruka Payments
-        Note over User: VIMP… tracking number arrives by email
+        Note over User: VIMP... tracking number arrives by email
     else Simulated fallback order (no url)
-        APP->>APP: setPayOrder(order) — open demo PaymentSheet
-        Note over APP: Fake card UI, generates demo VIMP,<br/>saves to Vercel KV for the tracking demo
+        APP->>APP: setPayOrder(order) - open demo PaymentSheet
+        Note over APP: Fake card UI, generates demo VIMP
+        Note over APP: saves to Vercel KV for the tracking demo
     end
 ```
 
@@ -313,18 +315,18 @@ sequenceDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> Drafting: cart filled / chat details collected
-    Drafting --> Created: kapruka_create_order → ORD-YYYYMMDD-XXXX + checkout_url
+    Drafting --> Created: kapruka_create_order to ORD-YYYYMMDD-XXXX + checkout_url
     note right of Created
         Price locked for 60 minutes
         grand_total = items_total + delivery_fee + addons_total
-        Trust summary.grand_total — Kapruka may add
+        Trust summary.grand_total - Kapruka may add
         small handling on top of list price
     end note
     Created --> Paying: PaymentFrame opens checkout_url
-    Created --> Expired: 60 min pass without payment → link dies (nothing to clean up)
+    Created --> Expired: 60 min pass without payment, link dies (nothing to clean up)
     Paying --> Paid: customer completes payment on kapruka.com
-    Paid --> Tracked: Kapruka emails VIMP… number
-    Tracked --> Delivered: kapruka_track_order shows progress (stage 0→3)
+    Paid --> Tracked: Kapruka emails VIMP... number
+    Tracked --> Delivered: kapruka_track_order shows progress (stage 0 to 3)
     Expired --> [*]
     Delivered --> [*]
 ```
@@ -355,7 +357,7 @@ sequenceDiagram
     participant MCP as Kapruka MCP
     participant KV as Vercel KV
 
-    Note over User,MCP: 1 — Welcome and Discovery
+    Note over User,MCP: 1 - Welcome and Discovery
     UI-->>User: EmptyState with category and occasion carousels
     User->>UI: chocolate birthday cake under Rs 3000
     UI->>UI: Show SkeletonCarousel loading
@@ -365,14 +367,14 @@ sequenceDiagram
     API-->>UI: EngineResponse with carousel card
     UI-->>User: ProductCarousel with images, prices, add-to-cart
 
-    Note over User,UI: 2 — Product Detail and Cart
+    Note over User,UI: 2 - Product Detail and Cart
     User->>UI: Tap product card
     UI-->>User: ProductDetail overlay with variants
     User->>UI: Click Add to cart
     UI->>UI: Update cart state and localStorage
     UI-->>User: Toast Added to cart and badge bounce
 
-    Note over User,MCP: 3 — Delivery Check
+    Note over User,MCP: 3 - Delivery Check
     User->>UI: deliver to Kandy on Friday
     UI->>API: POST messages and cart
     API->>MCP: kapruka_check_delivery
@@ -380,7 +382,7 @@ sequenceDiagram
     API-->>UI: EngineResponse with delivery card
     UI-->>User: DeliveryStatus with fee and perishable warning
 
-    Note over User,UI: 4 — Multi-Step Checkout (real order)
+    Note over User,UI: 4 - Multi-Step Checkout (real order)
     User->>UI: Open CartDrawer then click Checkout
     UI-->>User: CheckoutFlow overlay
     User->>UI: Step 1 Recipient name and phone validation
@@ -390,19 +392,19 @@ sequenceDiagram
     UI->>API: POST /api/orders/create (cart, recipient, delivery, sender)
     API->>MCP: tools/call kapruka_create_order (raw MCP client)
     MCP-->>API: order_ref + checkout_url + summary totals
-    API-->>UI: { ok, order }
+    API-->>UI: ok plus order payload
     UI-->>User: CheckoutCard with real totals and price-lock timer
 
-    Note over User,MCP: 5 — Payment and Tracking
-    User->>UI: Click "Pay Now on Kapruka"
-    UI-->>User: PaymentFrame modal — real Kapruka pay page in sandboxed iframe
+    Note over User,MCP: 5 - Payment and Tracking
+    User->>UI: Click Pay Now on Kapruka
+    UI-->>User: PaymentFrame modal - real Kapruka pay page in sandboxed iframe
     User->>UI: Completes payment on kapruka.com (card details never touch Kapri)
-    Note over User: Kapruka emails the real VIMP… tracking number
+    Note over User: Kapruka emails the real VIMP... tracking number
     User->>UI: track VIMP34456CB2
     UI->>API: POST /api/chat
     API->>MCP: kapruka_track_order
     MCP-->>API: status, recipient, amount, progress timeline
-    API-->>UI: enriched tracker card (statusDisplay, stage 0–3, live)
+    API-->>UI: enriched tracker card with statusDisplay, stage, live
     UI-->>User: OrderTracker with LIVE Kapruka progress
 ```
 
@@ -412,7 +414,7 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    PAGE["page.tsx — dynamic, ssr: false"] --> APP["App.tsx"]
+    PAGE["page.tsx - dynamic, ssr: false"] --> APP["App.tsx"]
 
     APP --> HEADER["Header"]
     APP --> SEASON["SeasonBanner"]
@@ -420,8 +422,8 @@ graph TD
     APP --> COMPOSER["Composer"]
     APP --> OVERLAYS["Overlays"]
 
-    SCROLL --> EMPTY["EmptyState — when no messages"]
-    SCROLL --> MSGS["Message List — when messages exist"]
+    SCROLL --> EMPTY["EmptyState - when no messages"]
+    SCROLL --> MSGS["Message List - when messages exist"]
 
     EMPTY --> SROW1["ScrollRow: 10 Categories"]
     EMPTY --> SROW2["ScrollRow: 6 Occasions"]
@@ -443,9 +445,9 @@ graph TD
     PCARD --> PD["ProductDetail overlay"]
 
     OVERLAYS --> CARTD["CartDrawer"]
-    OVERLAYS --> CHKF["CheckoutFlow — 4-step accordion"]
-    OVERLAYS --> PAYS["PaymentSheet — simulated fallback"]
-    OVERLAYS --> PAYF["PaymentFrame — real Kapruka iframe"]
+    OVERLAYS --> CHKF["CheckoutFlow - 4-step accordion"]
+    OVERLAYS --> PAYS["PaymentSheet - simulated fallback"]
+    OVERLAYS --> PAYF["PaymentFrame - real Kapruka iframe"]
 
     style PAGE fill:#f3f0fa,stroke:#442A73
     style APP fill:#ede9fe,stroke:#5b21b6
