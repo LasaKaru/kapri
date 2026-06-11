@@ -87,6 +87,7 @@ export default function App() {
     try { setLang((localStorage.getItem('kapri_lang') as Lang) || 'en') } catch {}
     try { setGiftMessage(localStorage.getItem('kapri_gift') || '') } catch {}
     try { setSessionOrders(JSON.parse(localStorage.getItem('kapri_orders') || '[]')) } catch {}
+    try { setMsgs(JSON.parse(localStorage.getItem('kapri_chat') || '[]')) } catch {}
   }, [])
 
   // Load the live category list from Kapruka (falls back to the static CATEGORIES on error)
@@ -109,6 +110,7 @@ export default function App() {
   useEffect(() => { try { localStorage.setItem('kapri_lang', lang) } catch {} }, [lang])
   useEffect(() => { try { localStorage.setItem('kapri_gift', giftMessage) } catch {} }, [giftMessage])
   useEffect(() => { try { localStorage.setItem('kapri_orders', JSON.stringify(sessionOrders)) } catch {} }, [sessionOrders])
+  useEffect(() => { try { localStorage.setItem('kapri_chat', JSON.stringify(msgs)) } catch {} }, [msgs])
 
   // Auto-scroll on new messages
   useEffect(() => {
