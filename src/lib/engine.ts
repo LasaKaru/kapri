@@ -100,7 +100,7 @@ const CAT_KEYS: Record<string, string[]> = {
   'Soft Toys': ['soft toy','soft toys','teddy','toy','plush','bear','stuffed','cuddly','doll'],
   Cosmetics:   ['cosmetic','cosmetics','makeup','skincare','lipstick','foundation','moisturizer','cream','lotion','serum'],
   'Kids & Toys':['kids','children','baby','infant','toddler','newborn','baby gift'],
-  Liquor:      ['liquor','wine','whisky','whiskey','beer','champagne','vodka','rum','brandy','gin','arrack'],
+  //Liquor:      ['liquor','wine','whisky','whiskey','beer','champagne','vodka','rum','brandy','gin','arrack'],
   Books:       ['book','books','novel','reading','storybook','cookbook','diary','journal','planner'],
 }
 

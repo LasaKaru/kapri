@@ -158,6 +158,7 @@ interface CheckoutFlowProps {
 
 export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: CheckoutFlowProps) {
   const [step, setStep] = useState(0)
+  const [placing, setPlacing] = useState(false)
   const [f, setF] = useState({ name:'', phone:'', city:'Colombo', address:'', notes:'', date:'', sender:'', anon:false, msg: giftMessage || '' })
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [cityQuery, setCityQuery] = useState('Colombo')
@@ -190,14 +191,65 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
     true,
   ][step]
 
-  const place = () => {
-    onPlaced({
-      ref: 'ORD-' + Math.floor(1000 + Math.random() * 8999) + '-KP',
-      city: f.city, date: dates.find((d) => d.iso === f.date), rate: cityObj.rate,
-      recipient: f.name, phone: f.phone, address: f.address, notes: f.notes,
-      sender: f.anon ? 'Anonymous' : f.sender, msg: f.msg,
-      items, subtotal, total: subtotal + cityObj.rate, perishable: hasPerishable,
-    })
+  // Build the simulated order (used as a fallback when a real Kapruka order
+  // can't be placed — e.g. offline catalog IDs, non-deliverable city).
+  const simulatedOrder = (): OrderData => ({
+    ref: 'ORD-' + Math.floor(1000 + Math.random() * 8999) + '-KP',
+    city: f.city, date: dates.find((d) => d.iso === f.date), rate: cityObj.rate,
+    recipient: f.name, phone: f.phone, address: f.address, notes: f.notes,
+    sender: f.anon ? 'Anonymous' : f.sender, msg: f.msg,
+    items, subtotal, total: subtotal + cityObj.rate, perishable: hasPerishable,
+  })
+
+  const place = async () => {
+    if (placing) return
+    setPlacing(true)
+    try {
+      // Bare "Colombo" isn't a canonical Kapruka delivery city — default to a zone.
+      const mcpCity = f.city === 'Colombo' ? 'Colombo 03' : f.city
+      const res = await fetch('/api/orders/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cart: items.map((i) => ({
+            product_id: i.p.id,
+            quantity: i.qty,
+            ...(i.icing ? { icing_text: i.icing } : {}),
+          })),
+          recipient: { name: f.name, phone: f.phone },
+          delivery: { address: f.address, city: mcpCity, date: f.date, location_type: 'house', ...(f.notes ? { instructions: f.notes } : {}) },
+          sender: { name: f.anon ? 'Anonymous' : f.sender, anonymous: f.anon },
+          ...(f.msg ? { gift_message: f.msg } : {}),
+          currency: 'LKR',
+        }),
+      })
+      const data = await res.json()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const o = data?.order as any
+      if (data?.ok && o?.checkout_url) {
+        onPlaced({
+          ref: o.order_ref ?? simulatedOrder().ref,
+          url: o.checkout_url,
+          city: f.city, date: dates.find((d) => d.iso === f.date),
+          rate: o.summary?.delivery_fee ?? cityObj.rate,
+          recipient: f.name, phone: f.phone, address: f.address, notes: f.notes,
+          sender: f.anon ? 'Anonymous' : f.sender, msg: f.msg,
+          items,
+          subtotal: o.summary?.items_total ?? subtotal,
+          total: o.summary?.grand_total ?? (subtotal + cityObj.rate),
+          perishable: hasPerishable,
+        })
+        return
+      }
+      // Real order failed — fall back to the simulated flow so the demo always completes.
+      console.warn('[checkout] real order failed, using simulated order:', data?.error)
+      onPlaced(simulatedOrder())
+    } catch (err) {
+      console.warn('[checkout] order request error, using simulated order:', err)
+      onPlaced(simulatedOrder())
+    } finally {
+      setPlacing(false)
+    }
   }
 
   const selDate = dates.find((d) => d.iso === f.date)
@@ -383,11 +435,12 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
               Continue <Ico name="arrow-right" size={16} />
             </button>
           ) : (
-            <button onClick={place}
+            <button onClick={place} disabled={placing}
               style={{ width:'100%', padding:'14px', borderRadius:'var(--radius-md)', border:'none',
                 background:'var(--yellow-400)', color:'var(--purple-700)', fontWeight:700, fontSize:16,
-                cursor:'pointer', fontFamily:'var(--font-sans)', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-              <Ico name="check-circle" size={18} /> Place order — {LKR(subtotal + cityObj.rate)}
+                cursor: placing ? 'wait' : 'pointer', opacity: placing ? .6 : 1,
+                fontFamily:'var(--font-sans)', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+              <Ico name="check-circle" size={18} /> {placing ? 'Placing order…' : `Place order — ${LKR(subtotal + cityObj.rate)}`}
             </button>
           )}
         </div>

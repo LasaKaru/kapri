@@ -7,31 +7,62 @@ import type { CartItem } from '@/lib/types'
 export type HistoryMessage = { role: 'user' | 'assistant'; text: string }
 
 // ═══════════════════════════════════════════════════════════
-// Tier 1 — Anthropic (claude-sonnet-4-6 + Kapruka MCP beta)
+// Tier 1 — Anthropic (claude-haiku-4-5 + Kapruka MCP beta)
 // Anthropic's servers proxy MCP calls → works from any IP.
 // ═══════════════════════════════════════════════════════════
 async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVimp?: string | null): Promise<NextResponse> {
   const Anthropic = (await import('@anthropic-ai/sdk')).default
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  // Hard 120s timeout: a stuck request should fail fast and fall through to
+  // Tier 2/3 rather than hang the user's chat for minutes.
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 120000, maxRetries: 1 })
+
+  const MODEL = 'claude-haiku-4-5-20251001'
 
   const messages = history.slice(-12).map((m) => ({
     role: m.role as 'user' | 'assistant',
     content: m.text,
   }))
 
+  // Stream instead of a plain create: the server-side MCP tool loop can run
+  // for a long time (city lookup → delivery check → create order), and a
+  // non-streaming connection sits idle the whole while — observed hanging
+  // for minutes. Streaming keeps bytes flowing; finalMessage() returns the
+  // same complete Message object.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const response = await (client.beta.messages as any).create({
-    model: 'claude-haiku-4-5-20251001',
+  const requestParams = (extraMessages: any[] = []): any => ({
+    model: MODEL,
     max_tokens: 4096,
     system: buildSystemPrompt(cart, lastVimp),
-    messages,
+    messages: [...messages, ...extraMessages],
     betas: ['mcp-client-2025-11-20'],
     mcp_servers: [{ type: 'url', url: 'https://mcp.kapruka.com/mcp', name: 'kapruka' }],
+    // mcp-client-2025-11-20 requires every server in mcp_servers to be
+    // referenced by exactly one mcp_toolset in tools
+    tools: [{ type: 'mcp_toolset', mcp_server_name: 'kapruka' }],
+    // The Kapruka MCP server deadlocks on concurrent calls within one
+    // session (one call stalls until the connector's 300s timeout), so
+    // force tool calls to run one at a time.
+    tool_choice: { type: 'auto', disable_parallel_tool_use: true },
   })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const textBlock = response.content?.find((c: any) => c.type === 'text')
-  const result = parseClaudeResponse(textBlock?.text ?? '')
+  let response = await (client.beta.messages as any).stream(requestParams()).finalMessage()
+
+  // The server-side MCP tool loop pauses after ~10 iterations with
+  // stop_reason 'pause_turn' — re-send with the assistant turn appended
+  // so it resumes where it left off.
+  for (let i = 0; i < 3 && response.stop_reason === 'pause_turn'; i++) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    response = await (client.beta.messages as any)
+      .stream(requestParams([{ role: 'assistant', content: response.content }]))
+      .finalMessage()
+  }
+
+  // Tool-use turns interleave text blocks ("Let me check…") with tool calls;
+  // the JSON reply the UI needs is in the LAST text block, not the first.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const textBlocks = (response.content ?? []).filter((c: any) => c.type === 'text')
+  const result = parseClaudeResponse(textBlocks.at(-1)?.text ?? '')
   return NextResponse.json(result)
 }
 

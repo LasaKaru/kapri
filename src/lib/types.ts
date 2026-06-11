@@ -44,6 +44,10 @@ export interface OrderData {
   subtotal: number
   total: number
   perishable: boolean
+  /** Real Kapruka click-to-pay URL returned by kapruka_create_order (MCP tier).
+   *  When present, the CheckoutCard "Pay Now" button opens this instead of the
+   *  simulated client-side payment used by the scripted demo flow. */
+  url?: string
 }
 
 export interface OrderItem {
@@ -71,7 +75,7 @@ export type CardData =
   | { type: 'carousel'; items: Product[] }
   | { type: 'bundle'; key: string }
   | { type: 'delivery'; city: string; rate: number; slow?: boolean; available?: boolean; date?: string; reason?: string | null; nextDate?: string | null; perishableWarning?: string | null }
-  | { type: 'tracker'; number?: string }
+  | { type: 'tracker'; number?: string; statusDisplay?: string; stage?: number; live?: boolean; orderDate?: string; deliveryDate?: string; recipient?: string; amount?: number; items?: OrderItem[] }
   | { type: 'checkout'; order: OrderData }
 
 export interface Message {

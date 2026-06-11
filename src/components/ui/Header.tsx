@@ -8,16 +8,20 @@ interface HeaderProps {
   onCart: () => void
   lang: Lang
   onLang: () => void
+  onLogoClick?: () => void
 }
 
-export function Header({ count, onCart, lang, onLang }: HeaderProps) {
+export function Header({ count, onCart, lang, onLang, onLogoClick }: HeaderProps) {
   return (
     <header style={{ display:'flex', justifyContent:'center', padding:'11px 16px', background:'var(--purple-700)',
       boxShadow:'var(--shadow-lg)', zIndex:20, flexShrink:0, position:'relative' }}>
       <div style={{ width:'100%', maxWidth:1180, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/kapruka-logo.jpg" alt="Kapruka" style={{ height:30, width:'auto', borderRadius:5 }} />
+          <button onClick={() => { if(onLogoClick) onLogoClick(); else window.location.href='https://www.kapruka.com/'; }} 
+            style={{ background:'none', border:'none', padding:0, cursor:'pointer', display:'flex' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/kapruka-logo.jpg" alt="Kapruka" style={{ height:30, width:'auto', borderRadius:5 }} />
+          </button>
           <div style={{ width:1, height:22, background:'rgba(255,255,255,0.2)' }} />
           <div>
             <div style={{ fontSize:12.5, color:'var(--yellow-400)', fontWeight:700, lineHeight:1 }}>Kapri</div>
