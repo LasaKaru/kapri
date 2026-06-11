@@ -159,7 +159,8 @@ export async function callGemini(
   history: HistoryMessage[],
   cart: CartItem[],
   lastVimp?: string | null,
-  favorites: Product[] = []
+  favorites: Product[] = [],
+  lang: 'en' | 'si' = 'en'
 ): Promise<Record<string, unknown>> {
   const mcpClient = await createMCPClient({
     transport: { type: 'http', url: 'https://mcp.kapruka.com/mcp' },
@@ -183,7 +184,7 @@ export async function callGemini(
 
     const { text } = await generateText({
       model: google('gemini-2.5-flash'),
-      system: buildSystemPrompt(cart, lastVimp, favorites),
+      system: buildSystemPrompt(cart, lastVimp, favorites, lang),
       messages,
       tools,
       stopWhen: stepCountIs(6),

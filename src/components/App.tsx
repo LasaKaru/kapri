@@ -182,7 +182,7 @@ export default function App() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history, cart, lastVimp: lastOrder?.number, favorites }),
+        body: JSON.stringify({ messages: history, cart, lastVimp: lastOrder?.number, favorites, lang }),
       })
       const data: { lang?: Lang; text?: string; card?: CardData; chips?: string[]; action?: string } = await res.json()
       if (data.lang) setLang(data.lang)
