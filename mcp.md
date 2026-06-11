@@ -679,12 +679,18 @@ Card TypeScript shapes live in `src/lib/types.ts` (`CardData`).
 
 ## 7. Known gaps / future work
 
-- **UI checkout form (`CheckoutFlow.tsx`) is not wired to MCP.** Adding items
-  to the cart and using the multi-step form runs a **client-side simulation**
-  (`onPlaced` → fake VIMP) and never calls `kapruka_create_order`. Only the
-  **chat** path creates real Kapruka orders. To make the form place real
-  orders, POST its collected fields to a server route that calls
-  `kapruka_create_order` and return the real `checkout_url`.
+- **UI checkout form** *(now wired to MCP)* — `CheckoutFlow.place()` POSTs to
+  **`/api/orders/create`** (`src/app/api/orders/create/route.ts`), which calls
+  `kapruka_create_order` via the raw-MCP helper `src/lib/kapruka-mcp.ts` and
+  returns the real `checkout_url`. The resulting `checkout` card opens the live
+  pay link; the simulated `PaymentSheet` is skipped when `order.url` is present.
+  If the order can't be placed (genuine network/rate-limit failure), the form
+  falls back to the original client-side simulation so the demo never breaks.
+  - Caveat: the Kapruka server is lenient about unknown `product_id`s, so a
+    cart built from the **offline** Tier-3 catalog (`CAKE-2291`-style IDs) may
+    still produce an order. Prefer carts whose items came from live MCP search.
+  - Bare `"Colombo"` from the form's offline city list is mapped to
+    `"Colombo 03"` before the call (it isn't a canonical Kapruka city).
 - **`track_order` items** are usually `[]` from the server, so the tracker
   card's item list falls back to placeholder data.
 - **Tier 2 (Gemini)** schemas were aligned to the `params` wrapper but require

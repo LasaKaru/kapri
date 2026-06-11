@@ -206,7 +206,10 @@ export default function App() {
   const onPlaced = useCallback((order: OrderData) => {
     setCheckoutOpen(false)
     setCart([])
-    setPayOrder(order)
+    // Real Kapruka orders carry a live checkout_url — the customer pays in the
+    // browser via the CheckoutCard button, so skip the simulated PaymentSheet.
+    // Simulated (fallback) orders have no url → keep the demo payment sheet.
+    if (!order.url) setPayOrder(order)
     // Add checkout card to chat
     const checkoutMsg: Message = { role: 'kapri', card: { type: 'checkout', order } }
     setMsgs(prev => [...prev, checkoutMsg])
