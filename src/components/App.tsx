@@ -16,6 +16,7 @@ import { ProductDetail } from './cards/ProductDetail'
 import { CartDrawer } from './overlays/CartDrawer'
 import { CheckoutFlow } from './overlays/CheckoutFlow'
 import { PaymentSheet } from './overlays/PaymentSheet'
+import { PaymentFrame } from './overlays/PaymentFrame'
 import { CATALOG, BUNDLES, CATEGORIES, OCCASIONS, SEASON } from '@/lib/data'
 
 import type { Message, CartItem, Lang, Product, OrderData, PlacedOrder, CardData } from '@/lib/types'
@@ -61,6 +62,7 @@ export default function App() {
   const [cartOpen, setCartOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [payOrder, setPayOrder] = useState<OrderData | null>(null)
+  const [frameOrder, setFrameOrder] = useState<OrderData | null>(null)
   const [detail, setDetail] = useState<Product | null>(null)
   const [giftMessage, setGiftMessage] = useState('')
   const [recording, setRecording] = useState(false)
@@ -329,7 +331,7 @@ export default function App() {
             key={idx}
             order={card.order}
             paid={paidOrders.has(card.order.ref)}
-            onPay={(o) => setPayOrder(o)}
+            onPay={(o) => o.url ? setFrameOrder(o) : setPayOrder(o)}
           />
         )
       default:
@@ -433,6 +435,13 @@ export default function App() {
           order={payOrder}
           onClose={() => setPayOrder(null)}
           onPaid={onPaid}
+        />
+      )}
+
+      {frameOrder && (
+        <PaymentFrame
+          order={frameOrder}
+          onClose={() => setFrameOrder(null)}
         />
       )}
 
