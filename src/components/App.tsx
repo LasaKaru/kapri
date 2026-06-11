@@ -75,6 +75,7 @@ export default function App() {
   // then replace with the live Kapruka category list fetched from /api/categories.
   const [categories, setCategories] = useState<Category[]>(CATEGORIES)
   const [occasions, setOccasions] = useState<Category[]>(OCCASIONS)
+  const [imageInput, setImageInput] = useState<string | null>(null)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -154,18 +155,20 @@ export default function App() {
   }, [])
 
   const send = useCallback(async (text: string) => {
-    if (!text.trim()) return
-    const userMsg: Message = { role: 'user', text }
+    if (!text.trim() && !imageInput) return
+    const userMsg: Message = { role: 'user', text, image: imageInput || undefined }
     setMsgs(prev => [...prev, userMsg])
     setTyping(true)
     setSearchPending(true)
+    setImageInput(null)
 
     try {
-      // Build conversation history for Claude (text only — no card/chips data)
+      // Build conversation history for Claude (text + image)
       const history = [...msgs, userMsg].map(m => ({
         role: (m.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
         text: m.text || '',
-      })).filter(m => m.text.trim())
+        image: m.image
+      })).filter(m => m.text.trim() || m.image)
 
       const lastOrder = sessionOrders.length > 0 ? sessionOrders[sessionOrders.length - 1] : null;
 
@@ -201,7 +204,7 @@ export default function App() {
       setTyping(false)
       setSearchPending(false)
     }
-  }, [msgs, cart])
+  }, [msgs, cart, imageInput, sessionOrders, showToast])
 
   const onMic = useCallback(() => {
     if (recording) {
@@ -399,7 +402,7 @@ export default function App() {
             {msgs.map((msg, i) => {
               const extMsg = msg as Message & { _placedOrder?: PlacedOrder }
               if (msg.role === 'user') {
-                return <UserBubble key={i}>{msg.text || ''}</UserBubble>
+                return <UserBubble key={i} image={msg.image}>{msg.text || ''}</UserBubble>
               }
               return (
                 <KapriRow key={i}>
@@ -431,8 +434,10 @@ export default function App() {
         recording={recording}
         value={input}
         onChange={setInput}
-        onSend={() => { if (input.trim()) { send(input); setInput('') } }}
+        onSend={() => { if (input.trim() || imageInput) { send(input); setInput('') } }}
         onMic={onMic}
+        image={imageInput}
+        onImage={setImageInput}
       />
 
       {/* Overlays */}

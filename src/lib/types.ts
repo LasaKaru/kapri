@@ -81,6 +81,7 @@ export type CardData =
 export interface Message {
   role: 'user' | 'kapri'
   text?: string
+  image?: string // Data URI for visual search
   card?: CardData
   chips?: string[]
   lang?: Lang

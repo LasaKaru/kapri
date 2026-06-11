@@ -4,7 +4,7 @@ import { parseClaudeResponse } from '@/lib/parse-mcp-response'
 import { respond } from '@/lib/engine'
 import type { CartItem } from '@/lib/types'
 
-export type HistoryMessage = { role: 'user' | 'assistant'; text: string }
+export type HistoryMessage = { role: 'user' | 'assistant'; text: string; image?: string }
 
 // ═══════════════════════════════════════════════════════════
 // Tier 1 — Anthropic (claude-haiku-4-5 + Kapruka MCP beta)
@@ -18,10 +18,25 @@ async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVi
 
   const MODEL = 'claude-haiku-4-5-20251001'
 
-  const messages = history.slice(-12).map((m) => ({
-    role: m.role as 'user' | 'assistant',
-    content: m.text,
-  }))
+  const messages = history.slice(-12).map((m) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let content: any = m.text
+    if (m.image) {
+      const match = m.image.match(/^data:(image\/[a-z]+);base64,(.*)$/)
+      if (match) {
+        content = []
+        if (m.text) content.push({ type: 'text', text: m.text })
+        content.push({
+          type: 'image',
+          source: { type: 'base64', media_type: match[1], data: match[2] }
+        })
+      }
+    }
+    return {
+      role: m.role as 'user' | 'assistant',
+      content,
+    }
+  })
 
   // Stream instead of a plain create: the server-side MCP tool loop can run
   // for a long time (city lookup → delivery check → create order), and a

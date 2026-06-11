@@ -11,14 +11,22 @@ export function Avatar() {
   )
 }
 
-export function UserBubble({ children }: { children: React.ReactNode }) {
+export function UserBubble({ children, image }: { children: React.ReactNode; image?: string }) {
   return (
-    <div style={{ display:'flex', justifyContent:'flex-end', animation:'kapri-in-right .3s var(--ease-out)' }}>
-      <div className="sinhala-text" style={{ maxWidth:'82%', padding:'10px 15px', fontSize:14, color:'#fff',
-        background:'var(--purple-700)', borderRadius:'var(--radius-lg)', borderTopRightRadius:'var(--radius-sm)',
-        boxShadow:'var(--shadow-sm)', whiteSpace:'pre-wrap' }}>
-        {children}
-      </div>
+    <div style={{ display:'flex', justifyContent:'flex-end', animation:'kapri-in-right .3s var(--ease-out)', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+      {image && (
+        <div style={{ padding: '6px', background: 'var(--line)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={image} alt="User upload" style={{ maxWidth: 200, borderRadius: 'var(--radius-md)', objectFit: 'cover' }} />
+        </div>
+      )}
+      {children && (
+        <div className="sinhala-text" style={{ maxWidth:'82%', padding:'10px 15px', fontSize:14, color:'#fff',
+          background:'var(--purple-700)', borderRadius:'var(--radius-lg)', borderTopRightRadius:(image ? 'var(--radius-lg)' : 'var(--radius-sm)'),
+          boxShadow:'var(--shadow-sm)', whiteSpace:'pre-wrap' }}>
+          {children}
+        </div>
+      )}
     </div>
   )
 }
