@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { callKaprukaTool } from '@/lib/kapruka-mcp'
-import { toCategoryTiles, type RawCategory } from '@/lib/category-meta'
+import { splitCategories, type RawCategory } from '@/lib/category-meta'
 import type { Category } from '@/lib/types'
 
 /**
@@ -13,7 +13,7 @@ import type { Category } from '@/lib/types'
  * appear automatically on the next cache refresh.
  */
 
-let cache: { tiles: Category[]; ts: number } | null = null
+let cache: { categories: Category[]; occasions: Category[]; ts: number } | null = null
 const TTL = 30 * 60 * 1000 // 30 minutes
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,24 +34,25 @@ function extractRaw(data: any): RawCategory[] {
 }
 
 export async function GET() {
-  if (cache && Date.now() - cache.ts < TTL) {
-    return NextResponse.json({ ok: true, categories: cache.tiles, cached: true })
+  const isDev = process.env.NODE_ENV === 'development'
+  if (!isDev && cache && Date.now() - cache.ts < TTL) {
+    return NextResponse.json({ ok: true, categories: cache.categories, occasions: cache.occasions, cached: true })
   }
 
   const result = await callKaprukaTool('kapruka_list_categories', { depth: 1, response_format: 'json' })
   if (!result.ok) {
     // Serve stale cache if we have it; otherwise signal failure so the client keeps its static list.
-    if (cache) return NextResponse.json({ ok: true, categories: cache.tiles, cached: true, stale: true })
+    if (cache) return NextResponse.json({ ok: true, categories: cache.categories, occasions: cache.occasions, cached: true, stale: true })
     return NextResponse.json({ ok: false, error: result.error }, { status: 502 })
   }
 
   const raw = extractRaw(result.data)
   if (raw.length === 0) {
-    if (cache) return NextResponse.json({ ok: true, categories: cache.tiles, cached: true, stale: true })
+    if (cache) return NextResponse.json({ ok: true, categories: cache.categories, occasions: cache.occasions, cached: true, stale: true })
     return NextResponse.json({ ok: false, error: 'No categories returned' }, { status: 502 })
   }
 
-  const tiles = toCategoryTiles(raw)
-  cache = { tiles, ts: Date.now() }
-  return NextResponse.json({ ok: true, categories: tiles })
+  const { categories, occasions } = splitCategories(raw)
+  cache = { categories, occasions, ts: Date.now() }
+  return NextResponse.json({ ok: true, categories, occasions })
 }

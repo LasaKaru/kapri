@@ -123,7 +123,7 @@ export function EmptyState({ prompts, onPrompt, categories, occasions, onCategor
           fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
         <Ico name="package" size={15} color="var(--purple-700)" /> Track an order
       </button>
-      <p style={{ margin:0, fontSize:11, color:'var(--purple-200)' }}>Powered by Kapruka × Lasa</p>
+      <p style={{ margin:0, fontSize:11, color:'var(--purple-200)' }}>Powered by Kapruka</p>
       </div>
     </div>
   )

@@ -61,6 +61,7 @@ export default function App() {
   const [typing, setTyping] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
+  const [exitConfirmOpen, setExitConfirmOpen] = useState(false)
   const [payOrder, setPayOrder] = useState<OrderData | null>(null)
   const [frameOrder, setFrameOrder] = useState<OrderData | null>(null)
   const [detail, setDetail] = useState<Product | null>(null)
@@ -73,6 +74,7 @@ export default function App() {
   // "Shop by Category" tiles — start with the static list (instant, offline-safe),
   // then replace with the live Kapruka category list fetched from /api/categories.
   const [categories, setCategories] = useState<Category[]>(CATEGORIES)
+  const [occasions, setOccasions] = useState<Category[]>(OCCASIONS)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -92,12 +94,13 @@ export default function App() {
     let cancelled = false
     fetch('/api/categories')
       .then(r => r.json())
-      .then((d: { ok?: boolean; categories?: Category[] }) => {
-        if (!cancelled && d?.ok && Array.isArray(d.categories) && d.categories.length) {
-          setCategories(d.categories)
+      .then((d: { ok?: boolean; categories?: Category[]; occasions?: Category[] }) => {
+        if (!cancelled && d?.ok) {
+          if (Array.isArray(d.categories) && d.categories.length) setCategories(d.categories)
+          if (Array.isArray(d.occasions) && d.occasions.length) setOccasions(d.occasions)
         }
       })
-      .catch(() => { /* keep static CATEGORIES */ })
+      .catch(() => { /* keep static CATEGORIES and OCCASIONS */ })
     return () => { cancelled = true }
   }, [])
 
@@ -367,6 +370,10 @@ export default function App() {
         count={cartCount}
         onLang={() => setLang(l => l === 'en' ? 'si' : 'en')}
         onCart={() => setCartOpen(true)}
+        onLogoClick={() => {
+          if (msgs.length > 0) setExitConfirmOpen(true)
+          else window.location.href = 'https://www.kapruka.com/'
+        }}
       />
 
       {season && <SeasonBanner season={season} onShop={(q) => { send(q) }} />}
@@ -380,7 +387,7 @@ export default function App() {
             prompts={PROMPTS}
             onPrompt={send}
             categories={categories}
-            occasions={OCCASIONS}
+            occasions={occasions}
             onCategory={send}
             lang={lang}
           />
@@ -453,6 +460,31 @@ export default function App() {
           onClose={() => setPayOrder(null)}
           onPaid={onPaid}
         />
+      )}
+
+      {exitConfirmOpen && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:999,
+          display:'flex', alignItems:'center', justifyContent:'center', padding:20, backdropFilter:'blur(4px)' }}>
+          <div style={{ background:'#fff', padding:'24px 28px', borderRadius:'var(--radius-xl)', maxWidth:360, width:'100%',
+            boxShadow:'var(--shadow-xl)', animation:'kapri-pop .3s var(--ease-spring)', textAlign:'center' }}>
+            <h3 className="sinhala-text" style={{ margin:'0 0 12px', color:'var(--purple-700)', fontSize:20, fontWeight:700 }}>Exit Chat?</h3>
+            <p className="sinhala-text" style={{ margin:'0 0 24px', fontSize:14.5, color:'var(--muted)', lineHeight:1.5 }}>
+              Are you sure you want to leave Kapri and return to the main Kapruka homepage? Your current chat will be cleared.
+            </p>
+            <div style={{ display:'flex', gap:12 }}>
+              <button onClick={() => setExitConfirmOpen(false)}
+                style={{ flex:1, padding:'12px 0', background:'var(--line)', color:'var(--ink)',
+                  border:'none', borderRadius:999, fontWeight:600, fontSize:14, cursor:'pointer' }}>
+                Cancel
+              </button>
+              <button onClick={() => window.location.href='https://www.kapruka.com/'}
+                style={{ flex:1, padding:'12px 0', background:'var(--error)', color:'#fff',
+                  border:'none', borderRadius:999, fontWeight:600, fontSize:14, cursor:'pointer', boxShadow:'var(--shadow-sm)' }}>
+                Exit
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {frameOrder && (

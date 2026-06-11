@@ -52,7 +52,7 @@ export const CATEGORIES: Category[] = [
   { name:'Electronics', emoji:'📱', q:'Electronic',  img:IMG('photo-1572569511254-d8f925fe2cbb') },
   { name:'Cosmetics',   emoji:'🧴', q:'Cosmetics',   img:IMG('photo-1620916566398-39f1143ab7be') },
   { name:'Kids & Toys', emoji:'🧸', q:'KidsToys',    img:IMG('photo-1559454403-b8fb88521f11') },
-  { name:'Liquor',      emoji:'🍷', q:'Liquor',      img:IMG('photo-1569529465841-dfecdab7503b') },
+  //{ name:'Liquor',      emoji:'🍷', q:'Liquor',      img:IMG('photo-1569529465841-dfecdab7503b') },
   { name:'Books',       emoji:'📚', q:'Books',       img:IMG('photo-1544947950-fa07a98d237f') },
 ]
 
