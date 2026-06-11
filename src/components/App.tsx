@@ -14,6 +14,7 @@ import { OrderTracker } from './cards/OrderTracker'
 import { CheckoutCard } from './cards/CheckoutCard'
 import { ProductDetail } from './cards/ProductDetail'
 import { CartDrawer } from './overlays/CartDrawer'
+import { FavoritesDrawer } from './overlays/FavoritesDrawer'
 import { CheckoutFlow } from './overlays/CheckoutFlow'
 import { PaymentSheet } from './overlays/PaymentSheet'
 import { PaymentFrame } from './overlays/PaymentFrame'
@@ -71,25 +72,25 @@ export default function App() {
   const [toast, setToast] = useState<string | null>(null)
   const [paidOrders, setPaidOrders] = useState<Set<string>>(new Set())
   const [searchPending, setSearchPending] = useState(false)
-  // "Shop by Category" tiles — start with the static list (instant, offline-safe),
-  // then replace with the live Kapruka category list fetched from /api/categories.
   const [categories, setCategories] = useState<Category[]>(CATEGORIES)
   const [occasions, setOccasions] = useState<Category[]>(OCCASIONS)
+  const [imageInput, setImageInput] = useState<string | null>(null)
+  const [favorites, setFavorites] = useState<Product[]>([])
+  const [favoritesOpen, setFavoritesOpen] = useState(false)
 
   const scrollRef = useRef<HTMLDivElement>(null)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Hydrate from localStorage on mount
   useEffect(() => {
     setCart(loadCart())
     try { setLang((localStorage.getItem('kapri_lang') as Lang) || 'en') } catch {}
     try { setGiftMessage(localStorage.getItem('kapri_gift') || '') } catch {}
     try { setSessionOrders(JSON.parse(localStorage.getItem('kapri_orders') || '[]')) } catch {}
+    try { setMsgs(JSON.parse(localStorage.getItem('kapri_chat') || '[]')) } catch {}
+    try { setFavorites(JSON.parse(localStorage.getItem('kapri_favs') || '[]')) } catch {}
   }, [])
 
-  // Load the live category list from Kapruka (falls back to the static CATEGORIES on error)
   useEffect(() => {
     let cancelled = false
     fetch('/api/categories')
@@ -100,17 +101,17 @@ export default function App() {
           if (Array.isArray(d.occasions) && d.occasions.length) setOccasions(d.occasions)
         }
       })
-      .catch(() => { /* keep static CATEGORIES and OCCASIONS */ })
+      .catch(() => { })
     return () => { cancelled = true }
   }, [])
 
-  // Persist cart
   useEffect(() => { saveCart(cart) }, [cart])
   useEffect(() => { try { localStorage.setItem('kapri_lang', lang) } catch {} }, [lang])
   useEffect(() => { try { localStorage.setItem('kapri_gift', giftMessage) } catch {} }, [giftMessage])
   useEffect(() => { try { localStorage.setItem('kapri_orders', JSON.stringify(sessionOrders)) } catch {} }, [sessionOrders])
+  useEffect(() => { try { localStorage.setItem('kapri_chat', JSON.stringify(msgs)) } catch {} }, [msgs])
+  useEffect(() => { try { localStorage.setItem('kapri_favs', JSON.stringify(favorites)) } catch {} }, [favorites])
 
-  // Auto-scroll on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
@@ -122,6 +123,16 @@ export default function App() {
     if (toastTimer.current) clearTimeout(toastTimer.current)
     toastTimer.current = setTimeout(() => setToast(null), 2800)
   }, [])
+
+  const toggleFavorite = useCallback((p: Product) => {
+    setFavorites(prev => {
+      if (prev.some(f => f.id === p.id)) {
+        return prev.filter(f => f.id !== p.id)
+      }
+      showToast(`${p.name.split('—')[0].trim()} saved to favorites ❤️`)
+      return [...prev, p]
+    })
+  }, [showToast])
 
   const addToCart = useCallback((p: Product, qty = 1, icing = '') => {
     setCart(prev => {
@@ -152,25 +163,26 @@ export default function App() {
   }, [])
 
   const send = useCallback(async (text: string) => {
-    if (!text.trim()) return
-    const userMsg: Message = { role: 'user', text }
+    if (!text.trim() && !imageInput) return
+    const userMsg: Message = { role: 'user', text, image: imageInput || undefined }
     setMsgs(prev => [...prev, userMsg])
     setTyping(true)
     setSearchPending(true)
+    setImageInput(null)
 
     try {
-      // Build conversation history for Claude (text only — no card/chips data)
       const history = [...msgs, userMsg].map(m => ({
         role: (m.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
         text: m.text || '',
-      })).filter(m => m.text.trim())
+        image: m.image
+      })).filter(m => m.text.trim() || m.image)
 
       const lastOrder = sessionOrders.length > 0 ? sessionOrders[sessionOrders.length - 1] : null;
 
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history, cart, lastVimp: lastOrder?.number }),
+        body: JSON.stringify({ messages: history, cart, lastVimp: lastOrder?.number, favorites, lang }),
       })
       const data: { lang?: Lang; text?: string; card?: CardData; chips?: string[]; action?: string } = await res.json()
       if (data.lang) setLang(data.lang)
@@ -185,7 +197,6 @@ export default function App() {
       }
       setMsgs(prev => [...prev, kapriMsg])
 
-      // Automatically open the cart drawer when the user wants to checkout
       if (data.action === 'checkout') {
         if (cart.length > 0) {
           setCartOpen(true)
@@ -199,7 +210,7 @@ export default function App() {
       setTyping(false)
       setSearchPending(false)
     }
-  }, [msgs, cart])
+  }, [msgs, cart, imageInput, sessionOrders, showToast, favorites])
 
   const onMic = useCallback(() => {
     if (recording) {
@@ -207,7 +218,6 @@ export default function App() {
       setRecording(false)
       return
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const w = window as any
     const SR = w.SpeechRecognition || w.webkitSpeechRecognition
     if (!SR) { showToast('Voice input not supported in this browser'); return }
@@ -228,11 +238,7 @@ export default function App() {
   const onPlaced = useCallback((order: OrderData) => {
     setCheckoutOpen(false)
     setCart([])
-    // Real Kapruka orders carry a live checkout_url — the customer pays in the
-    // browser via the CheckoutCard button, so skip the simulated PaymentSheet.
-    // Simulated (fallback) orders have no url → keep the demo payment sheet.
     if (!order.url) setPayOrder(order)
-    // Add checkout card to chat
     const checkoutMsg: Message = { role: 'kapri', card: { type: 'checkout', order } }
     setMsgs(prev => [...prev, checkoutMsg])
   }, [])
@@ -240,7 +246,6 @@ export default function App() {
   const onPaid = useCallback((order: OrderData) => {
     setPayOrder(null)
     setPaidOrders(prev => new Set([...prev, order.ref]))
-    // Generate a tracker
     const trackerOrder: PlacedOrder = {
       number: `VIMP${Math.floor(10000 + Math.random() * 89999)}`,
       statusDisplay: 'Order Confirmed · Processing',
@@ -259,10 +264,8 @@ export default function App() {
       chips: ['Buy more gifts', 'Shop for another occasion', 'View all categories']
     }
     
-    // Save to local storage for immediate offline access
     setSessionOrders(prev => [...prev, trackerOrder])
     
-    // Save to Vercel KV database
     fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -270,7 +273,6 @@ export default function App() {
     }).catch(console.error)
 
     setMsgs(prev => {
-      // Attach the PlacedOrder data alongside the tracker card so OrderTracker renders correctly
       return [...prev, { ...trackerMsg, _placedOrder: trackerOrder } as Message & { _placedOrder: PlacedOrder }]
     })
     showToast('Order placed! 🎁 Tracking number on its way to your inbox.')
@@ -289,6 +291,8 @@ export default function App() {
             cartIds={cartIds}
             onAdd={(p) => addToCart(p)}
             onOpen={setDetail}
+            favorites={favorites.map(f => f.id)}
+            onToggleFavorite={toggleFavorite}
           />
         )
       case 'bundle': {
@@ -308,7 +312,6 @@ export default function App() {
         )
       }
       case 'delivery': {
-        // Claude returns the full delivery check result
         const dc = card as CardData & { available?: boolean; date?: string; reason?: string | null; nextDate?: string | null; perishableWarning?: string | null }
         return (
           <DeliveryStatus
@@ -328,8 +331,6 @@ export default function App() {
         const placedOrder = msg._placedOrder || sessionOrders.find(o => o.number === trackerCard.number)
         let order = placedOrder || DEMO_ORDER
         if (!placedOrder && trackerCard.number) {
-          // Prefer the live kapruka_track_order data carried on the card;
-          // fall back to DEMO_ORDER only for fields the card didn't provide.
           order = {
             ...order,
             number: trackerCard.number,
@@ -368,17 +369,19 @@ export default function App() {
       <Header
         lang={lang}
         count={cartCount}
+        favoritesCount={favorites.length}
         onLang={() => setLang(l => l === 'en' ? 'si' : 'en')}
         onCart={() => setCartOpen(true)}
+        onFavorites={() => setFavoritesOpen(true)}
         onLogoClick={() => {
           if (msgs.length > 0) setExitConfirmOpen(true)
           else window.location.href = 'https://www.kapruka.com/'
         }}
+        onBack={msgs.length > 0 ? () => setMsgs([]) : undefined}
       />
 
       {season && <SeasonBanner season={season} onShop={(q) => { send(q) }} />}
 
-      {/* Chat scroll area */}
       <div ref={scrollRef} className="scrollbar-hide"
         style={{ flex: 1, overflowY: 'auto', padding: '12px 0 8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
@@ -396,7 +399,7 @@ export default function App() {
             {msgs.map((msg, i) => {
               const extMsg = msg as Message & { _placedOrder?: PlacedOrder }
               if (msg.role === 'user') {
-                return <UserBubble key={i}>{msg.text || ''}</UserBubble>
+                return <UserBubble key={i} image={msg.image}>{msg.text || ''}</UserBubble>
               }
               return (
                 <KapriRow key={i}>
@@ -404,6 +407,7 @@ export default function App() {
                   {msg.card && renderCard(msg.card, extMsg, i)}
                   {msg.chips && msg.chips.length > 0 && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                      <Chip onClick={() => setMsgs([])}>‹ Back</Chip>
                       {msg.chips.map((c, ci) => (
                         <Chip key={ci} onClick={() => send(c)}>{c}</Chip>
                       ))}
@@ -427,11 +431,20 @@ export default function App() {
         recording={recording}
         value={input}
         onChange={setInput}
-        onSend={() => { if (input.trim()) { send(input); setInput('') } }}
+        onSend={() => { if (input.trim() || imageInput) { send(input); setInput('') } }}
         onMic={onMic}
+        image={imageInput}
+        onImage={setImageInput}
       />
 
-      {/* Overlays */}
+      <FavoritesDrawer
+        open={favoritesOpen}
+        favorites={favorites}
+        onClose={() => setFavoritesOpen(false)}
+        onRemove={toggleFavorite}
+        onAddToCart={(p) => { addToCart(p); setFavoritesOpen(false); }}
+        lang={lang}
+      />
       <CartDrawer
         open={cartOpen}
         items={cart}
@@ -500,10 +513,11 @@ export default function App() {
           inCart={cart.some(i => i.p.id === detail.id)}
           onClose={() => setDetail(null)}
           onAdd={(p, qty, icing) => { addToCart(p, qty, icing); setDetail(null) }}
+          isFavorite={favorites.some(f => f.id === detail.id)}
+          onToggleFavorite={toggleFavorite}
         />
       )}
 
-      {/* Toast */}
       {toast && (
         <div style={{ position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)',
           background: 'var(--purple-700)', color: '#fff', padding: '10px 18px', borderRadius: 'var(--radius-md)',

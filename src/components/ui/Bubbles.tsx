@@ -4,21 +4,29 @@ import { Ico } from './Icons'
 
 export function Avatar() {
   return (
-    <div style={{ width:30, height:30, flexShrink:0, marginTop:2, borderRadius:999, background:'var(--purple-700)',
-      display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, boxShadow:'var(--shadow-sm)' }}>
-      🛍️
+    <div style={{ width:30, height:30, flexShrink:0, marginTop:2, borderRadius:999, background:'#fff',
+      display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'var(--shadow-sm)', overflow:'hidden' }}>
+      <img src="/kapri-avatar.png" alt="Kapri" style={{ width:'100%', height:'100%', objectFit:'cover', transform:'scale(1.35) translateY(2px)' }} />
     </div>
   )
 }
 
-export function UserBubble({ children }: { children: React.ReactNode }) {
+export function UserBubble({ children, image }: { children: React.ReactNode; image?: string }) {
   return (
-    <div style={{ display:'flex', justifyContent:'flex-end', animation:'kapri-in-right .3s var(--ease-out)' }}>
-      <div className="sinhala-text" style={{ maxWidth:'82%', padding:'10px 15px', fontSize:14, color:'#fff',
-        background:'var(--purple-700)', borderRadius:'var(--radius-lg)', borderTopRightRadius:'var(--radius-sm)',
-        boxShadow:'var(--shadow-sm)', whiteSpace:'pre-wrap' }}>
-        {children}
-      </div>
+    <div style={{ display:'flex', justifyContent:'flex-end', animation:'kapri-in-right .3s var(--ease-out)', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+      {image && (
+        <div style={{ padding: '6px', background: 'var(--line)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={image} alt="User upload" style={{ maxWidth: 200, borderRadius: 'var(--radius-md)', objectFit: 'cover' }} />
+        </div>
+      )}
+      {children && (
+        <div className="sinhala-text" style={{ maxWidth:'82%', padding:'10px 15px', fontSize:14, color:'#fff',
+          background:'var(--purple-700)', borderRadius:'var(--radius-lg)', borderTopRightRadius:(image ? 'var(--radius-lg)' : 'var(--radius-sm)'),
+          boxShadow:'var(--shadow-sm)', whiteSpace:'pre-wrap' }}>
+          {children}
+        </div>
+      )}
     </div>
   )
 }

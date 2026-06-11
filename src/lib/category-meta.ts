@@ -63,6 +63,10 @@ const STATIC_IMAGES: Record<string, string> = {
   youandme: IMG('photo-1591969851586-adbbd4accf81'),
   combopack: IMG('photo-1737999183056-20bf6b8952e6'),
   softtoy: IMG('photo-1615486363973-f79d875780cf'),
+  liquor: IMG('photo-1569529465841-dfecdab7503b'),
+  'personalized gifts': IMG('photo-1549465220-1a8b9238cd48'),
+  personalizedgifts: IMG('photo-1549465220-1a8b9238cd48'),
+  fathersday: IMG('photo-1506506200949-df8644f002d1'),
 }
 
 CATEGORIES.forEach(c => {
@@ -187,13 +191,20 @@ export function splitCategories(raw: RawCategory[]): { categories: Category[], o
   const catRaw: RawCategory[] = []
   const occRaw: RawCategory[] = []
   
-  for (const r of raw) {
-    if (r?.name) {
-      if (OCCASION_KEYS.has(r.name.toLowerCase())) {
-        occRaw.push(r)
-      } else {
-        catRaw.push(r)
-      }
+  const seen = new Set<string>()
+  const uniqueRaw = raw.filter(r => {
+    if (!r?.name) return false
+    const key = r.name.toLowerCase().trim()
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+  
+  for (const r of uniqueRaw) {
+    if (OCCASION_KEYS.has(r.name.toLowerCase())) {
+      occRaw.push(r)
+    } else {
+      catRaw.push(r)
     }
   }
 

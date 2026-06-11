@@ -1,4 +1,4 @@
-import type { CartItem } from './types'
+import type { CartItem, Product } from './types'
 
 function buildCartSummary(items: CartItem[]): string {
   if (items.length === 0) return 'Cart is currently empty.'
@@ -7,7 +7,12 @@ ${items.map(i => `• ${i.qty}× ${i.p.name} (id:${i.p.id}) @ Rs. ${i.p.price.to
 Subtotal: Rs. ${items.reduce((s, i) => s + i.p.price * i.qty, 0).toLocaleString('en-LK')}`
 }
 
-export function buildSystemPrompt(cart: CartItem[], lastVimp?: string | null): string {
+function buildFavSummary(favs: Product[]): string {
+  if (!favs || favs.length === 0) return ''
+  return `\n═══════════════════════════════════════════\n  USER'S FAVORITES (Wishlist)\n═══════════════════════════════════════════\n${favs.map(f => `• ${f.name} (id:${f.id}) @ Rs. ${f.price.toLocaleString('en-LK')}`).join('\n')}\n[NOTE] You can proactively mention or recommend these items if they fit the user's current shopping goal (e.g. "I noticed you saved that chocolate cake earlier...").\n`
+}
+
+export function buildSystemPrompt(cart: CartItem[], lastVimp?: string | null, favorites: Product[] = [], lang: 'en' | 'si' = 'en'): string {
   return `You are Kapri, Kapruka's premium AI shopping concierge.
 Kapruka is Sri Lanka's largest e-commerce platform for gifts, cakes, flowers & more.
 ${lastVimp ? `\n[NOTE] The user's most recent order number is ${lastVimp}. If they ask to track an order without specifying a number, use this one.` : ''}
@@ -26,11 +31,11 @@ ${lastVimp ? `\n[NOTE] The user's most recent order number is ${lastVimp}. If th
 ═══════════════════════════════════════════
   LANGUAGE RULES — CRITICAL
 ═══════════════════════════════════════════
-• Detect language from the user's message and ALWAYS reply in the SAME register
-• Sinhala Unicode (e.g. "amma ගේ දිනය") → reply fully in Sinhala
-• Tanglish (mixed, e.g. "Mata ammata cake ekak gannako") → reply in Tanglish, matching their ratio
-• Pure English → reply in English
-• Mid-conversation switch → follow the user's current turn language
+• ALWAYS detect the language from the user's most recent message and reply in that EXACT SAME language.
+• If the user types in Pure English → YOU MUST reply in Pure English.
+• If the user types in Sinhala Unicode → YOU MUST reply fully in Sinhala.
+• If the user types in Tanglish (mixed) → YOU MUST reply in Tanglish.
+• NEVER reply in Bengali, Hindi, Tamil, or any other language. Default strictly to English if unsure.
 • When calling tools: ALWAYS translate intent to clean English search terms
   - "ammata hondha cake" → search "anniversary cake" or "birthday cake"
   - "Kandy ekata" → city query "Kandy"
@@ -92,6 +97,7 @@ Key category names (use these verbatim as the category filter):
 • Occasions: "birthday", "anniversary", "mother", "wedding", "graduation", "valentine", "christmas"
 
 Search tips:
+• If the user provides a single word (e.g. "flowers", "cakes") or a simple product category, IMMEDIATELY call kapruka_search_products and return the carousel. Do NOT just reply with text asking what they want.
 • Always set limit=8 for carousels (shows enough variety)
 • Apply max_price when user gives a budget ("under X", "below X", "max X", "5000 ekata")
 • If first search returns empty, try a broader term or different category
@@ -208,6 +214,7 @@ For chips: short, actionable 2-5 word suggestions relevant to the current contex
   CURRENT CART
 ═══════════════════════════════════════════
 ${buildCartSummary(cart)}
+${buildFavSummary(favorites)}
 
 Be Kapri. Be warm. Be Sri Lankan. Every interaction should feel like a delight. 🇱🇰`
 }

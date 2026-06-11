@@ -25,9 +25,11 @@ export interface ProductCardProps {
   inCart: boolean
   onAdd: (p: Product) => void
   onOpen: (p: Product) => void
+  isFavorite?: boolean
+  onToggleFavorite?: (p: Product) => void
 }
 
-export function ProductCard({ p, inCart, onAdd, onOpen }: ProductCardProps) {
+export function ProductCard({ p, inCart, onAdd, onOpen, isFavorite, onToggleFavorite }: ProductCardProps) {
   const [hover, setHover] = useState(false)
   const [imgErr, setImgErr] = useState(false)
   const [added, setAdded] = useState(false)
@@ -58,7 +60,13 @@ export function ProductCard({ p, inCart, onAdd, onOpen }: ProductCardProps) {
               style={{ width:'100%', height:'100%', objectFit:'cover',
                 transform: hover ? 'scale(1.05)' : 'none', transition:'transform .4s var(--ease-out)' }} />
           : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:46 }}>🎁</div>}
-        <span style={{ position:'absolute', top:8, left:8 }}><Pill tone="purple">{p.cat}</Pill></span>
+        <div style={{ position:'absolute', top:8, left:8, display:'flex', gap:6, alignItems:'flex-start' }}>
+          <Pill tone="purple">{p.cat}</Pill>
+          <button onClick={(e) => { e.stopPropagation(); if(onToggleFavorite) onToggleFavorite(p) }} aria-label="Toggle favorite"
+            style={{ display:'flex', alignItems:'center', justifyContent:'center', width:26, height:26, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(255,255,255,0.85)', color: isFavorite ? 'var(--error)' : 'var(--muted)', boxShadow:'var(--shadow-sm)', transition:'transform .2s', transform: isFavorite ? 'scale(1.1)' : 'none' }}>
+            <Ico name={isFavorite ? 'heart-filled' : 'heart'} size={14} />
+          </button>
+        </div>
         <div style={{ position:'absolute', top:8, right:8, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
           {lowStock && <Pill tone="warn">Low Stock</Pill>}
           {hasDisc && <Pill tone="success">-{pct}%</Pill>}

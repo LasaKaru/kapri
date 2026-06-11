@@ -11,9 +11,9 @@ import { createMCPClient } from '@ai-sdk/mcp'
 import { z } from 'zod'
 import { buildSystemPrompt } from './system-prompt'
 import { parseClaudeResponse } from './parse-mcp-response'
-import type { CartItem } from './types'
+import type { CartItem, Product } from './types'
 
-export type HistoryMessage = { role: 'user' | 'assistant'; text: string }
+export type HistoryMessage = { role: 'user' | 'assistant'; text: string; image?: string }
 
 /** Unwrap @ai-sdk/mcp tool result envelope.
  *  Shape: { type:'content', value:[{type:'text', text:'{...json}'}] }
@@ -158,7 +158,9 @@ const KAPRUKA_SCHEMAS = {
 export async function callGemini(
   history: HistoryMessage[],
   cart: CartItem[],
-  lastVimp?: string | null
+  lastVimp?: string | null,
+  favorites: Product[] = [],
+  lang: 'en' | 'si' = 'en'
 ): Promise<Record<string, unknown>> {
   const mcpClient = await createMCPClient({
     transport: { type: 'http', url: 'https://mcp.kapruka.com/mcp' },
@@ -168,14 +170,21 @@ export async function callGemini(
     // Use our static Zod schemas — makes Gemini happy while keeping real MCP execution
     const tools = await mcpClient.tools({ schemas: KAPRUKA_SCHEMAS })
 
-    const messages = history.map((m) => ({
-      role: m.role as 'user' | 'assistant',
-      content: m.text,
-    }))
+    const messages = history.map((m) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const content: any[] = [{ type: 'text', text: m.text }]
+      if (m.image) {
+        content.push({ type: 'image', image: m.image })
+      }
+      return {
+        role: m.role as 'user' | 'assistant',
+        content,
+      }
+    })
 
     const { text } = await generateText({
       model: google('gemini-2.5-flash'),
-      system: buildSystemPrompt(cart, lastVimp),
+      system: buildSystemPrompt(cart, lastVimp, favorites, lang),
       messages,
       tools,
       stopWhen: stepCountIs(6),

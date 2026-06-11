@@ -10,17 +10,47 @@ interface ComposerProps {
   onMic: () => void
   recording: boolean
   lang: Lang
+  image: string | null
+  onImage: (img: string | null) => void
 }
 
-export function Composer({ value, onChange, onSend, onMic, recording, lang }: ComposerProps) {
+export function Composer({ value, onChange, onSend, onMic, recording, lang, image, onImage }: ComposerProps) {
   const placeholder = lang === 'en'
     ? 'Type in English, Sinhala, or Tanglish…'
     : 'සිංහලෙන්, English, හෝ Tanglish ලියන්න…'
 
   return (
     <div style={{ flexShrink:0, padding:'12px 16px', background:'#fff', borderTop:'1px solid var(--line)', zIndex:10 }}>
+      {image && (
+        <div style={{ maxWidth: 780, margin: '0 auto 8px', display: 'flex' }}>
+          <div style={{ position: 'relative', display: 'inline-block', animation: 'kapri-pop .2s var(--ease-spring)' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={image} alt="Upload preview" style={{ height: 60, borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', objectFit: 'cover' }} />
+            <button type="button" onClick={() => onImage(null)} aria-label="Remove image"
+              style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Ico name="x" size={12} sw={2.5} />
+            </button>
+          </div>
+        </div>
+      )}
       <form onSubmit={(e) => { e.preventDefault(); onSend() }}
         style={{ display:'flex', alignItems:'flex-end', gap:8, maxWidth:780, margin:'0 auto' }}>
+        <input type="file" accept="image/*" hidden id="kapri-camera" onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) {
+            // Downscale logic can be done here or in App.tsx. Simple reader for now.
+            const reader = new FileReader()
+            reader.onload = (e) => onImage(e.target?.result as string)
+            reader.readAsDataURL(file)
+          }
+          e.target.value = ''
+        }} />
+        <label htmlFor="kapri-camera" title="Upload image"
+          style={{ width:44, height:44, flexShrink:0, borderRadius:'var(--radius-lg)', border:'none',
+            display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
+            background: 'var(--purple-50)', color: 'var(--purple-700)', transition: 'background .2s' }}>
+          <Ico name="camera" size={18} sw={2.5} />
+        </label>
         <input value={value} onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder} className="sinhala-text"
           style={{ flex:1, borderRadius:'var(--radius-lg)', border:'1px solid var(--line)', padding:'12px 16px',
@@ -35,11 +65,11 @@ export function Composer({ value, onChange, onSend, onMic, recording, lang }: Co
             animation: recording ? 'kapri-pulse 1s infinite' : 'none' }}>
           <Ico name="mic" size={18} sw={2.5} />
         </button>
-        <button type="submit" disabled={!value.trim()} aria-label="Send"
+        <button type="submit" disabled={!value.trim() && !image} aria-label="Send"
           style={{ width:44, height:44, flexShrink:0, borderRadius:'var(--radius-lg)', border:'none',
             display:'flex', alignItems:'center', justifyContent:'center',
-            cursor: value.trim() ? 'pointer' : 'not-allowed',
-            background:'var(--purple-700)', color:'#fff', opacity: value.trim() ? 1 : 0.45 }}>
+            cursor: (value.trim() || image) ? 'pointer' : 'not-allowed',
+            background:'var(--purple-700)', color:'#fff', opacity: (value.trim() || image) ? 1 : 0.45 }}>
           <Ico name="send" size={18} sw={2.5} />
         </button>
       </form>

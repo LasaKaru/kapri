@@ -9,9 +9,11 @@ interface ProductCarouselProps {
   cartIds: string[]
   onAdd: (p: Product) => void
   onOpen: (p: Product) => void
+  favorites?: string[]
+  onToggleFavorite?: (p: Product) => void
 }
 
-export function ProductCarousel({ products, cartIds, onAdd, onOpen }: ProductCarouselProps) {
+export function ProductCarousel({ products, cartIds, onAdd, onOpen, favorites, onToggleFavorite }: ProductCarouselProps) {
   const [sort, setSort] = useState<'rel'|'asc'|'desc'>('rel')
   const scrollRef = useRef<HTMLDivElement>(null)
   const [edges, setEdges] = useState({ left: false, right: false })
@@ -67,7 +69,7 @@ export function ProductCarousel({ products, cartIds, onAdd, onOpen }: ProductCar
         <div ref={scrollRef} onScroll={updateEdges} className="scrollbar-hide"
           style={{ display:'flex', gap:12, overflowX:'auto', paddingBottom:6, scrollSnapType:'x proximity' }}>
           {list.map((p) => (
-            <ProductCard key={p.id} p={p} inCart={cartIds.includes(p.id)} onAdd={onAdd} onOpen={onOpen} />
+            <ProductCard key={p.id} p={p} inCart={cartIds.includes(p.id)} onAdd={onAdd} onOpen={onOpen} isFavorite={favorites?.includes(p.id)} onToggleFavorite={onToggleFavorite} />
           ))}
         </div>
       </div>
