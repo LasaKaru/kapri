@@ -9,14 +9,20 @@ interface HeaderProps {
   lang: Lang
   onLang: () => void
   onLogoClick?: () => void
+  onBack?: () => void
 }
 
-export function Header({ count, onCart, lang, onLang, onLogoClick }: HeaderProps) {
+export function Header({ count, onCart, lang, onLang, onLogoClick, onBack }: HeaderProps) {
   return (
     <header style={{ display:'flex', justifyContent:'center', padding:'11px 16px', background:'var(--purple-700)',
       boxShadow:'var(--shadow-lg)', zIndex:20, flexShrink:0, position:'relative' }}>
       <div style={{ width:'100%', maxWidth:1180, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          {onBack && (
+            <button onClick={onBack} aria-label="Go back" style={{ background:'rgba(255,255,255,0.15)', border:'none', width:32, height:32, borderRadius:'50%', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', transition:'background .2s', marginRight: -4 }} onMouseEnter={(e) => e.currentTarget.style.background='rgba(255,255,255,0.25)'} onMouseLeave={(e) => e.currentTarget.style.background='rgba(255,255,255,0.15)'}>
+              <Ico name="chevron-left" size={18} />
+            </button>
+          )}
           <button onClick={() => { if(onLogoClick) onLogoClick(); else window.location.href='https://www.kapruka.com/'; }} 
             style={{ background:'none', border:'none', padding:0, cursor:'pointer', display:'flex' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}

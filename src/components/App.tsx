@@ -374,6 +374,7 @@ export default function App() {
           if (msgs.length > 0) setExitConfirmOpen(true)
           else window.location.href = 'https://www.kapruka.com/'
         }}
+        onBack={msgs.length > 0 ? () => setMsgs([]) : undefined}
       />
 
       {season && <SeasonBanner season={season} onShop={(q) => { send(q) }} />}
@@ -404,6 +405,7 @@ export default function App() {
                   {msg.card && renderCard(msg.card, extMsg, i)}
                   {msg.chips && msg.chips.length > 0 && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                      <Chip onClick={() => setMsgs([])}>‹ Back</Chip>
                       {msg.chips.map((c, ci) => (
                         <Chip key={ci} onClick={() => send(c)}>{c}</Chip>
                       ))}
