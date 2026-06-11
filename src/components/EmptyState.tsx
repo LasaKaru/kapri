@@ -50,12 +50,12 @@ const ScrollRow = ({ title, items, onClick }: { title: string, items: (Category|
   }
 
   return (
-    <div style={{ width:'100%', maxWidth:380, marginTop:12, position: 'relative' }}>
+    <div style={{ width:'100%', maxWidth:640, marginTop:12, position: 'relative', padding: '0 20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <p style={{ margin:0, fontSize:11, color:'var(--muted)', fontWeight:600, letterSpacing:'.06em', textTransform:'uppercase', textAlign:'left' }}>
           {title}
         </p>
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div className="hide-on-mobile" style={{ display: 'flex', gap: 6 }}>
           <button onClick={() => scroll('left')} style={{ background: 'var(--purple-100)', color: 'var(--purple-700)', border: 'none', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background .15s ease' }} onMouseEnter={(e) => e.currentTarget.style.background = 'var(--purple-200)'} onMouseLeave={(e) => e.currentTarget.style.background = 'var(--purple-100)'}>
             <Ico name="chevron-left" size={14} />
           </button>
@@ -78,30 +78,25 @@ export function EmptyState({ prompts, onPrompt, categories, occasions, onCategor
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center',
       minHeight:'100%', width: '100%', overflowX: 'hidden' }}>
       <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:20, padding:'24px 0', margin: 'auto 0', width: '100%', textAlign:'center' }}>
-      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12, animation:'kapri-breathe 3.5s ease-in-out infinite' }}>
-        <div style={{ width: 85, height: 85, borderRadius: '50%', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', border: '3px solid #fff', background: '#fff' }}>
+      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12, animation:'kapri-breathe 3.5s ease-in-out 3' }}>
+        <div style={{ width: 64, height: 64, borderRadius: '50%', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', border: '3px solid #fff', background: '#fff' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/kapri-avatar.png" alt="Kapri Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.6)', transformOrigin: 'center 20%' }} />
         </div>
-        <span style={{ margin: '8px 0', padding:'5px 13px', borderRadius:999, background:'var(--yellow-400)', color:'var(--purple-700)',
-          fontSize:12, fontWeight:700, boxShadow:'var(--shadow-sm)' }}>
-          Kapri — AI Shopping Concierge
-        </span>
       </div>
-      <div>
+      <div style={{ padding: '0 20px' }}>
         <h1 className="sinhala-text" style={{ margin:0, fontSize:25, fontWeight:700, color:'var(--purple-700)' }}>
           ආයුබෝවන්! I&#39;m Kapri 👋
         </h1>
         <p className="sinhala-text" style={{ margin:'7px auto 0', maxWidth:330, fontSize:14, color:'var(--muted)', lineHeight:1.6 }}>
-          Your shopping concierge for Kapruka.lk — Sri Lanka&#39;s #1 gifting platform.
-          Chat in <strong style={{ color:'var(--ink)' }}>English</strong>, <strong style={{ color:'var(--ink)' }}>සිංහල</strong>, or <strong style={{ color:'var(--ink)' }}>Tanglish</strong>!
+          Chat in <strong style={{ color:'var(--ink)' }}>English</strong>, <strong style={{ color:'var(--ink)' }}>සිංහල</strong>, or <strong style={{ color:'var(--ink)' }}>Tanglish</strong> — I&#39;ll find it, deliver it, and gift-wrap the message.
         </p>
       </div>
       
       <ScrollRow title="Shop by Category" items={categories} onClick={onCategory} />
       <ScrollRow title="Shop by Occasion" items={occasions} onClick={onCategory} />
 
-      <div style={{ width:'100%', maxWidth:380, display:'flex', flexDirection:'column', gap:8, marginTop: 8 }}>
+      <div style={{ width:'100%', maxWidth:420, display:'flex', flexDirection:'column', gap:8, marginTop: 8, padding: '0 20px' }}>
         <p style={{ margin:0, fontSize:11, color:'var(--muted)', fontWeight:600, letterSpacing:'.06em', textTransform:'uppercase', textAlign:'left' }}>Try saying…</p>
         {prompts.map((p) => (
           <button key={p.text} onClick={() => onPrompt(p.text)} className="sinhala-text"
