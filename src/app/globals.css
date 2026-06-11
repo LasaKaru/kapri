@@ -98,4 +98,9 @@ body {
 @keyframes kapri-wave       { from { transform: scaleY(0.3); } to { transform: scaleY(1.1); } }
 @keyframes kapri-spin       { to { transform: rotate(360deg); } }
 
+@keyframes kapri-neon-border {
+  0%, 100% { border-color: var(--purple-500); box-shadow: 0 0 10px var(--purple-200); }
+  50%      { border-color: var(--purple-400); box-shadow: 0 0 18px var(--purple-300); }
+}
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }

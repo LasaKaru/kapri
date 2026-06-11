@@ -79,7 +79,7 @@ export function EmptyState({ prompts, onPrompt, categories, occasions, onCategor
       minHeight:'100%', width: '100%', overflowX: 'hidden' }}>
       <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:20, padding:'24px 0', margin: 'auto 0', width: '100%', textAlign:'center' }}>
       <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12, animation:'kapri-breathe 3.5s ease-in-out 3' }}>
-        <div style={{ width: 64, height: 64, borderRadius: '50%', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', border: '3px solid #fff', background: '#fff' }}>
+        <div style={{ width: 64, height: 64, borderRadius: '50%', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', border: '2px solid var(--purple-200)', background: '#fff', animation: 'kapri-neon-border 3s infinite alternate ease-in-out' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/kapri-avatar.png" alt="Kapri Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.6)', transformOrigin: 'center 20%' }} />
         </div>
