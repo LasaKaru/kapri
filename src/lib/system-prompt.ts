@@ -47,7 +47,7 @@ ${lastVimp ? `\n[NOTE] The user's most recent order number is ${lastVimp}. If th
 • After calling kapruka_search_products or kapruka_get_product: write ONE short bridge sentence only (e.g. "Mata me items hoyagaththa!") then STOP — the ProductCarousel renders automatically, no text list needed
 • After calling kapruka_check_delivery: write ONE short sentence — DeliveryStatus card renders automatically
 • After calling kapruka_create_order: write ONE short sentence AND return a "checkout" card populated from the tool response (order_ref→ref, checkout_url→url, summary fields→rate/subtotal/total) plus the recipient/delivery/sender details you collected. The url is REQUIRED — it is the only way the customer can pay.
-• After calling kapruka_track_order: write ONE short sentence — OrderTracker renders automatically
+• After calling kapruka_track_order: write ONE short sentence AND return a "tracker" card populated from the tool result (order_number→number, status_display→statusDisplay, status→stage, recipient.name→recipient, delivery_date→deliveryDate, amount.value→amount). This makes the OrderTracker UI show the real status & progress.
 • After calling kapruka_list_categories: reply conversationally in text with "card": null
 • After calling kapruka_list_delivery_cities: reply in text with "card": null (mention the matching city names) — there is no card for city lists
 • The cards already show image, name, ID, price, and description — do NOT repeat this in text
@@ -162,7 +162,15 @@ No text before or after the JSON object.
     OR { "type": "delivery", "city": "Colombo", "rate": 650, "available": true,
          "slow": false, "date": "Tomorrow", "reason": null, "nextDate": null,
          "perishableWarning": null }
-    OR { "type": "tracker", "number": "VIMP38291CB2" }
+    OR { "type": "tracker", "number": "VIMP38291CB2",
+         // populate the rest from the kapruka_track_order result so the tracker UI shows real data:
+         "statusDisplay": "Delivered",        // status_display
+         "stage": 3,                          // received=0, confirmed/processing=1, shipped/out-for-delivery=2, delivered=3
+         "live": true,                        // live_tracking_available
+         "orderDate": "21 May 2026", "deliveryDate": "23 May 2026",
+         "recipient": "Nethmi Hemasooriya",   // recipient.name
+         "amount": 4970,                      // amount.value as a number
+         "items": [{ "name": "...", "qty": 1, "price": 4970, "img": "" }] }
     OR { "type": "checkout", "order": {
           "ref": "ORD-20260610-3GJA",   // order_ref from kapruka_create_order
           "url": "https://www.kapruka.com/tools/continue_order.jsp?id=...",  // checkout_url — REQUIRED so the user can pay

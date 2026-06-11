@@ -303,7 +303,20 @@ export default function App() {
         const placedOrder = msg._placedOrder || sessionOrders.find(o => o.number === trackerCard.number)
         let order = placedOrder || DEMO_ORDER
         if (!placedOrder && trackerCard.number) {
-          order = { ...order, number: trackerCard.number }
+          // Prefer the live kapruka_track_order data carried on the card;
+          // fall back to DEMO_ORDER only for fields the card didn't provide.
+          order = {
+            ...order,
+            number: trackerCard.number,
+            statusDisplay: trackerCard.statusDisplay ?? order.statusDisplay,
+            stage: trackerCard.stage ?? order.stage,
+            live: trackerCard.live ?? order.live,
+            orderDate: trackerCard.orderDate ?? order.orderDate,
+            deliveryDate: trackerCard.deliveryDate ?? order.deliveryDate,
+            recipient: trackerCard.recipient ?? order.recipient,
+            amount: trackerCard.amount ?? order.amount,
+            items: trackerCard.items && trackerCard.items.length ? trackerCard.items : order.items,
+          }
         }
         return <OrderTracker key={idx} order={order} />
       }
