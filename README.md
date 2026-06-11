@@ -4,9 +4,9 @@
 
 **A full-screen, multilingual (English · සිංහල · Tanglish) AI shopping agent built on the public Kapruka MCP server.**
 
-Discover gifts, browse a real catalog, quote delivery to any Sri Lankan city, personalise a cake, write a gift message, and place a real guest-checkout order — all inside one immersive conversation.
+Discover gifts, browse a real catalog, quote delivery to any Sri Lankan city, personalise a cake, write a gift message, place a **real guest-checkout order**, and pay on Kapruka's secure page **without leaving the app** — all inside one immersive conversation.
 
-`Next.js 14` · `React 18` · `Vercel AI SDK 6` · `Anthropic Claude` · `Gemini 2.5 Flash (fallback)` · `Kapruka MCP` · `Vercel KV` · `Zod`
+`Next.js 14` · `React 18` · `Vercel AI SDK 6` · `Claude Haiku 4.5 (MCP connector)` · `Gemini 2.5 Flash (fallback)` · `Kapruka MCP` · `Vercel KV` · `Zod`
 
 </div>
 
@@ -19,8 +19,8 @@ Discover gifts, browse a real catalog, quote delivery to any Sri Lankan city, pe
 - **True multi-item cart** — persistent cart (localStorage-backed), visible badge, drawer with quantity controls.
 - **Delivery validation** — city autocomplete, date picker, live perishable warnings for cakes/flowers, flat-fee display.
 - **Gift message enhancer** — AI-rewritten gift messages in English or Sinhala.
-- **End-to-end checkout** — collects recipient, sender, delivery details, and calls `kapruka_create_order` for a real pay link.
-- **Order tracking** — paste a `VIMP…` order number to get a live progress timeline.
+- **Real end-to-end checkout** — both the **chat** and the **cart form** call `kapruka_create_order` and return a live click-to-pay link; payment happens on Kapruka's secure page inside an in-app modal.
+- **Real order tracking** — paste a `VIMP…` order number and the tracker card renders the **live** Kapruka status, recipient, amount, and progress stage.
 - **Voice input** — Web Speech API with `si-LK` locale for Sinhala voice prompts.
 - **Seasonal banners** — auto-detects Avurudu, Wesak, Poson, Deepavali, Christmas, and Valentine's Day.
 - **Graceful fallback** — three-tier AI chain ensures the app always responds even without API keys.
@@ -108,8 +108,10 @@ graph LR
 | `kapruka_list_categories` | ✅ Auto-discover | ✅ Zod schema | ✅ Static CATEGORIES | EmptyState carousels |
 | `kapruka_list_delivery_cities` | ✅ Auto-discover | ✅ Zod schema | ✅ Static CITIES | `<DeliveryStatus>` |
 | `kapruka_check_delivery` | ✅ Auto-discover | ✅ Zod schema | ✅ City lookup | `<DeliveryStatus>` |
-| `kapruka_create_order` | ✅ Auto-discover | ✅ Zod schema | ✅ Opens checkout flow | `<CheckoutCard>` + `<PaymentSheet>` |
+| `kapruka_create_order` | ✅ Auto-discover | ✅ Zod schema | ✅ Opens checkout flow | `<CheckoutCard>` + `<PaymentFrame>` |
 | `kapruka_track_order` | ✅ Auto-discover | ✅ Zod schema | ✅ VIMP regex | `<OrderTracker>` |
+
+> 🧾 **Server quirk to know:** every Kapruka tool wraps its arguments in a required `params` object, and `kapruka_create_order` rejects unknown fields (`additionalProperties: false`). Both tiers honour this. Full request/response samples for all 7 tools (markdown **and** JSON), error shapes, and reliability notes live in **[`mcp.md`](./mcp.md)** — the developer reference for this integration.
 
 ---
 
@@ -142,7 +144,8 @@ graph TB
         subgraph Overlays ["Full-Screen Overlays"]
             CART["CartDrawer"]
             CHECKOUT["CheckoutFlow — 4-step accordion"]
-            PAY["PaymentSheet"]
+            PAY["PaymentSheet — simulated fallback"]
+            FRAME["PaymentFrame — REAL Kapruka pay page in iframe"]
         end
 
         LS["localStorage — cart, lang, gift msg, orders"]
@@ -150,18 +153,21 @@ graph TB
 
     subgraph Server ["Next.js API Routes"]
         CHAT["/api/chat — 3-tier AI routing"]
+        CREATE["/api/orders/create — real order via raw MCP"]
         IMG["/api/product-image — proxy + cache"]
         ORDERS["/api/orders — save and fetch"]
     end
 
     subgraph AI ["AI Providers"]
-        T1["Tier 1: Claude — Anthropic SDK — MCP beta proxy"]
+        T1["Tier 1: Claude Haiku 4.5 — Anthropic MCP connector"]
         T2["Tier 2: Gemini 2.5 Flash — @ai-sdk/mcp — Static Zod schemas"]
         T3["Tier 3: Scripted Engine — engine.ts — Keyword rules"]
     end
 
+    RAWMCP["kapruka-mcp.ts — raw Streamable-HTTP client"]
     KV[("Vercel KV — Redis")]
     MCP["Kapruka MCP Server"]
+    KPAY["Kapruka Secure Payment — kapruka.com"]
 
     PAGE --> APP
     APP --> UILayer
@@ -170,6 +176,7 @@ graph TB
     APP <--> LS
 
     APP -- "POST /api/chat" --> CHAT
+    APP -- "POST /api/orders/create" --> CREATE
     APP -- "GET /api/product-image" --> IMG
     APP -- "POST/GET /api/orders" --> ORDERS
 
@@ -177,8 +184,12 @@ graph TB
     CHAT -. "Fallback" .-> T2
     CHAT -. "Offline" .-> T3
 
-    T1 -- "MCP beta" --> MCP
+    T1 -- "MCP connector beta" --> MCP
     T2 -- "Direct HTTP" --> MCP
+    CREATE --> RAWMCP
+    RAWMCP -- "tools/call kapruka_create_order" --> MCP
+
+    FRAME -- "iframe loads checkout_url" --> KPAY
 
     ORDERS <--> KV
 
@@ -200,11 +211,11 @@ graph TB
 flowchart TD
     REQ((Request)) --> CHECK1{ANTHROPIC_API_KEY set?}
 
-    CHECK1 -- YES --> T1["Tier 1: Claude via Anthropic MCP beta"]
+    CHECK1 -- YES --> T1["Tier 1: Claude Haiku 4.5 via Anthropic MCP connector — streaming, 120s timeout, sequential tool calls, pause_turn continuation"]
     CHECK1 -- NO --> CHECK2
 
-    T1 -- "Runtime error" --> CHECK2{GOOGLE_API_KEY set?}
-    T1 --> PARSE["parseClaudeResponse — Extract JSON, unwrap code fences, normalise MCP prices"]
+    T1 -- "Runtime error / timeout" --> CHECK2{GOOGLE_API_KEY set?}
+    T1 --> PARSE["parseClaudeResponse — read LAST text block, extract JSON, normalise carousel/checkout/tracker cards"]
 
     CHECK2 -- YES --> T2["Tier 2: Gemini 2.5 Flash via @ai-sdk/mcp with static Zod schemas"]
     CHECK2 -- NO --> T3
@@ -223,6 +234,114 @@ flowchart TD
     style T3 fill:#f8d7da,stroke:#721c24
     style RES fill:#f3f0fa,stroke:#442A73
 ```
+
+---
+
+## 💳 Payment Handling — Real Money, Done Safely
+
+Kapri creates **real Kapruka guest-checkout orders** and lets the customer pay on
+**Kapruka's own secure payment page** — the app never sees, touches, or stores card
+data. There are two ways an order gets created (chat & cart form), and two payment
+surfaces (real `PaymentFrame` & simulated `PaymentSheet` fallback).
+
+### The two order paths
+
+```mermaid
+flowchart TD
+    subgraph PathA ["🗨️ Path A — Conversational (chat)"]
+        A1["User confirms order in chat"] --> A2["/api/chat → Tier 1 Claude Haiku 4.5"]
+        A2 --> A3["Claude calls kapruka_check_delivery then kapruka_create_order (sequential — parallel calls deadlock the MCP session)"]
+        A3 --> A4["Model returns JSON 'checkout' card: ref + checkout_url + totals"]
+    end
+
+    subgraph PathB ["🛒 Path B — Cart form (CheckoutFlow)"]
+        B1["User fills 4-step form: Recipient → Delivery → Gift → Review"] --> B2["POST /api/orders/create"]
+        B2 --> B3["kapruka-mcp.ts raw client: initialize → initialized → tools/call kapruka_create_order"]
+        B3 --> B4{"Order created?"}
+        B4 -- yes --> B5["onPlaced(order with real url)"]
+        B4 -- "no (network / 429 / invalid)" --> B6["Fallback: simulated order (no url) — demo never breaks"]
+    end
+
+    A4 --> CC["CheckoutCard in chat — Items / Delivery / Total + 60-min price-lock countdown"]
+    B5 --> CC
+    B6 --> CC
+
+    CC --> PAYBTN{"User clicks 'Pay Now on Kapruka' — does order.url exist?"}
+    PAYBTN -- "yes → REAL order" --> PF["PaymentFrame — in-app sandboxed iframe loads the real checkout_url"]
+    PAYBTN -- "no → simulated fallback" --> PS["PaymentSheet — demo card UI (4242…), fake VIMP"]
+
+    PF --> KP["Kapruka Secure Payment (kapruka.com) — card / other methods"]
+    KP --> EMAIL["Kapruka emails the customer a real VIMP… tracking number"]
+    EMAIL --> TRACK["User pastes VIMP… in chat → kapruka_track_order → live OrderTracker"]
+
+    style PathA fill:#ede9fe,stroke:#5b21b6
+    style PathB fill:#fef3c7,stroke:#d97706
+    style PF fill:#d4edda,stroke:#28a745
+    style PS fill:#f8d7da,stroke:#721c24
+    style KP fill:#e3f2fd,stroke:#1565c0
+```
+
+### Payment sequence — what actually happens on "Pay Now"
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant CC as CheckoutCard
+    participant APP as App.tsx
+    participant PF as PaymentFrame (modal)
+    participant KP as kapruka.com (iframe)
+
+    User->>CC: Click "Pay Now on Kapruka"
+    CC->>APP: onPay(order)
+    APP->>APP: order.url exists?
+    alt Real Kapruka order (has checkout_url)
+        APP->>PF: setFrameOrder(order) — open in-app modal
+        PF->>KP: iframe src = checkout_url (continue_order.jsp)
+        KP-->>PF: Renders Item → Cart → Delivery → Pay stepper
+        Note over PF,KP: sandbox = allow-scripts allow-forms allow-same-origin allow-popups<br/>(NO allow-top-navigation → page cannot hijack the app)
+        User->>KP: Enters card details on Kapruka's page
+        KP-->>User: Payment processed by Kapruka Payments
+        Note over User: VIMP… tracking number arrives by email
+    else Simulated fallback order (no url)
+        APP->>APP: setPayOrder(order) — open demo PaymentSheet
+        Note over APP: Fake card UI, generates demo VIMP,<br/>saves to Vercel KV for the tracking demo
+    end
+```
+
+### Order lifecycle & states
+
+```mermaid
+stateDiagram-v2
+    [*] --> Drafting: cart filled / chat details collected
+    Drafting --> Created: kapruka_create_order → ORD-YYYYMMDD-XXXX + checkout_url
+    note right of Created
+        Price locked for 60 minutes
+        grand_total = items_total + delivery_fee + addons_total
+        Trust summary.grand_total — Kapruka may add
+        small handling on top of list price
+    end note
+    Created --> Paying: PaymentFrame opens checkout_url
+    Created --> Expired: 60 min pass without payment → link dies (nothing to clean up)
+    Paying --> Paid: customer completes payment on kapruka.com
+    Paid --> Tracked: Kapruka emails VIMP… number
+    Tracked --> Delivered: kapruka_track_order shows progress (stage 0→3)
+    Expired --> [*]
+    Delivered --> [*]
+```
+
+### Key payment facts
+
+| Fact | Detail |
+|---|---|
+| **Who processes payment** | Kapruka Payments, on `kapruka.com` — the app only holds the `checkout_url` |
+| **Card data** | Never enters Kapri — typed directly into Kapruka's page inside the iframe |
+| **`ORD-…` vs `VIMP-…`** | `order_ref` (`ORD-…`) is the **pre-payment** reference; the **VIMP…** tracking number is emailed only **after** payment — they are different IDs |
+| **Price lock** | 60 minutes from creation; `CheckoutCard` shows a live countdown |
+| **Totals** | Always display `summary.grand_total` from the MCP response (Kapruka may add small handling over list price) |
+| **Iframe safety** | `sandbox` omits `allow-top-navigation` so the framed page can't redirect your app; verified the pay URL sends no `X-Frame-Options`/CSP so it embeds cleanly |
+| **3-D Secure escape hatch** | PaymentFrame footer has "Open in new tab" for bank-redirect steps that refuse to run in an iframe |
+| **Rate limit** | Max **30 real orders/hour/IP** — the form falls back to the simulated flow if order creation fails |
+| **Unpaid orders** | Simply expire with the 60-min link — no cleanup needed |
 
 ---
 
@@ -261,26 +380,30 @@ sequenceDiagram
     API-->>UI: EngineResponse with delivery card
     UI-->>User: DeliveryStatus with fee and perishable warning
 
-    Note over User,UI: 4 — Multi-Step Checkout
+    Note over User,UI: 4 — Multi-Step Checkout (real order)
     User->>UI: Open CartDrawer then click Checkout
     UI-->>User: CheckoutFlow overlay
     User->>UI: Step 1 Recipient name and phone validation
     User->>UI: Step 2 Delivery address city and date
     User->>UI: Step 3 Sender name or anonymous
     User->>UI: Step 4 Gift message plus AI enhance
-    UI->>API: POST messages and cart
-    API->>MCP: kapruka_create_order
-    MCP-->>API: Order ref and pay link
-    UI-->>User: CheckoutCard and PaymentSheet
+    UI->>API: POST /api/orders/create (cart, recipient, delivery, sender)
+    API->>MCP: tools/call kapruka_create_order (raw MCP client)
+    MCP-->>API: order_ref + checkout_url + summary totals
+    API-->>UI: { ok, order }
+    UI-->>User: CheckoutCard with real totals and price-lock timer
 
-    Note over User,KV: 5 — Payment and Tracking
-    User->>UI: Click Pay Now and opens pay link
-    UI->>KV: POST /api/orders save VIMP number
-    UI-->>User: OrderTracker timeline
-    User->>UI: track VIMP34456
-    UI->>KV: GET /api/orders/VIMP34456
-    KV-->>UI: Order data or fallback to DEMO_ORDER
-    UI-->>User: OrderTracker with live progress stages
+    Note over User,MCP: 5 — Payment and Tracking
+    User->>UI: Click "Pay Now on Kapruka"
+    UI-->>User: PaymentFrame modal — real Kapruka pay page in sandboxed iframe
+    User->>UI: Completes payment on kapruka.com (card details never touch Kapri)
+    Note over User: Kapruka emails the real VIMP… tracking number
+    User->>UI: track VIMP34456CB2
+    UI->>API: POST /api/chat
+    API->>MCP: kapruka_track_order
+    MCP-->>API: status, recipient, amount, progress timeline
+    API-->>UI: enriched tracker card (statusDisplay, stage 0–3, live)
+    UI-->>User: OrderTracker with LIVE Kapruka progress
 ```
 
 ---
@@ -321,7 +444,8 @@ graph TD
 
     OVERLAYS --> CARTD["CartDrawer"]
     OVERLAYS --> CHKF["CheckoutFlow — 4-step accordion"]
-    OVERLAYS --> PAYS["PaymentSheet"]
+    OVERLAYS --> PAYS["PaymentSheet — simulated fallback"]
+    OVERLAYS --> PAYF["PaymentFrame — real Kapruka iframe"]
 
     style PAGE fill:#f3f0fa,stroke:#442A73
     style APP fill:#ede9fe,stroke:#5b21b6
@@ -341,8 +465,8 @@ graph TD
 | `carousel` | `<ProductCarousel>` | `kapruka_search_products` | Horizontal scroll grid of product cards with add-to-cart |
 | `bundle` | `<BundleCard>` | — (AI-curated) | Gift bundle (cake + flowers + card) by theme/budget |
 | `delivery` | `<DeliveryStatus>` | `kapruka_check_delivery` | City/date validation with flat fee and perishable warnings |
-| `tracker` | `<OrderTracker>` | `kapruka_track_order` | Progress timeline with delivery stages |
-| `checkout` | `<CheckoutCard>` | `kapruka_create_order` | Order summary with price-lock countdown and pay button |
+| `tracker` | `<OrderTracker>` | `kapruka_track_order` | Progress timeline — **live** status, stage (0–3), recipient & amount from the tool result |
+| `checkout` | `<CheckoutCard>` | `kapruka_create_order` | Order summary with price-lock countdown; Pay button opens `<PaymentFrame>` (real) or `<PaymentSheet>` (simulated fallback) |
 
 Loading state: `<SkeletonCarousel>` renders while `searchPending` is true.
 
@@ -350,30 +474,46 @@ Loading state: `<SkeletonCarousel>` renders while `searchPending` is true.
 
 ## 🛠️ Key Design Decisions
 
-### 1. Anthropic MCP beta proxy
+### 1. Anthropic MCP connector (Claude Haiku 4.5)
 ```typescript
 // src/app/api/chat/route.ts
-await client.beta.messages.create({
+const response = await client.beta.messages.stream({
+  model: 'claude-haiku-4-5-20251001',        // ~1/3 the cost of Sonnet, handles the JSON card protocol reliably
   betas: ['mcp-client-2025-11-20'],
   mcp_servers: [{ type: 'url', url: 'https://mcp.kapruka.com/mcp', name: 'kapruka' }],
-})
+  tools: [{ type: 'mcp_toolset', mcp_server_name: 'kapruka' }],   // required by mcp-client-2025-11-20
+  tool_choice: { type: 'auto', disable_parallel_tool_use: true }, // see decision #2
+  // ...
+}).finalMessage()
 ```
-The Kapruka MCP server IP-allowlists Anthropic and Vercel. Routing through Anthropic's infrastructure means the app works from **any environment** — local dev, CI, or production.
+Routing through Anthropic's MCP connector means the app works from **any environment** — local dev, CI, or production. The route **streams** (keeps bytes flowing during long server-side tool loops), continues on `stop_reason: 'pause_turn'`, has a **120 s timeout + 1 retry** so a stuck call falls through to Tier 2/3, and reads the **last** text block (tool turns interleave preamble text with tool calls — the JSON answer is at the end).
 
-### 2. Static Zod schemas for Gemini
+### 2. Sequential tool calls — the parallel-call deadlock
+Stream-event tracing showed that when the model fires **two Kapruka tool calls in one response**, one call deadlocks on the MCP session until the connector's **300-second timeout** ("Timed out while waiting for response to ClientRequest"). `disable_parallel_tool_use: true` forces one-at-a-time calls; full checkout flows complete in **12–15 s** instead of randomly hanging for minutes.
+
+### 3. The `params` wrapper + strict fields
+Every Kapruka tool wraps its arguments in a required `params` object (FastMCP/Pydantic), and `kapruka_create_order` declares `additionalProperties: false` — flat arguments or extra fields (e.g. `recipient.email`) are rejected. Both tiers and the raw client honour this. Details + live error samples in [`mcp.md`](./mcp.md).
+
+### 4. Static Zod schemas for Gemini
 ```typescript
 // src/lib/gemini-route.ts
 const tools = await mcpClient.tools({ schemas: KAPRUKA_SCHEMAS })
 ```
-Gemini rejects dynamically-discovered tool schemas. Explicit Zod schemas bypass discovery while the MCP client still executes the real tools.
+Gemini rejects dynamically-discovered tool schemas. Explicit Zod schemas (each wrapped in `params`, matching the live server contract) bypass discovery while the MCP client still executes the real tools.
 
-### 3. Structured JSON protocol
-The system prompt instructs every AI model to respond **only** with valid JSON matching `EngineResponse`. `parseClaudeResponse` handles code-fence wrapping and normalises MCP price objects `{ amount, currency }` into plain numbers.
+### 5. Structured JSON protocol
+The system prompt instructs every AI model to respond **only** with valid JSON matching `EngineResponse`. `parseClaudeResponse` handles code-fence wrapping and normalises all card shapes — carousel prices `{ amount, currency }` → numbers, checkout (`order_ref`→`ref`, `checkout_url`→`url`, `summary` totals), and tracker (`status` → progress stage 0–3).
 
-### 4. Client-only rendering (`ssr: false`)
+### 6. In-app payment via sandboxed iframe
+Real orders pay inside `<PaymentFrame>` — an iframe whose `sandbox` deliberately omits `allow-top-navigation`, so Kapruka's page runs scripts/forms normally but can't frame-bust the app. The pay URL was verified to send no `X-Frame-Options`/CSP. A "new tab" fallback covers 3-D Secure bank redirects.
+
+### 7. Raw MCP client for non-LLM calls
+The cart form doesn't need an LLM to place an order, so `/api/orders/create` uses `src/lib/kapruka-mcp.ts` — a ~100-line raw Streamable-HTTP client (initialize → initialized → tools/call, SSE parsing) — calling `kapruka_create_order` directly. Cheaper, faster, deterministic.
+
+### 8. Client-only rendering (`ssr: false`)
 The App component is loaded via `next/dynamic` with `ssr: false` to prevent React hydration mismatches — a chat interface has zero SEO benefit from server rendering.
 
-### 5. localStorage cart persistence
+### 9. localStorage cart persistence
 Cart state lives in `localStorage` under `kapri_cart`. On every `send()` the full cart is serialised into the API request body, then injected into the system prompt — so the model always has authoritative cart context.
 
 ---
@@ -385,7 +525,7 @@ Cart state lives in `localStorage` under `kapri_cart`. On every `send()` the ful
 | Framework | Next.js App Router | 14.2 |
 | Language | TypeScript | 5 |
 | UI | React | 18.3 |
-| AI — Primary | `@anthropic-ai/sdk` | 0.102 |
+| AI — Primary | `@anthropic-ai/sdk` (Claude Haiku 4.5 `claude-haiku-4-5-20251001`) | 0.102 |
 | AI — Fallback | `ai` + `@ai-sdk/google` | 6.0 |
 | MCP Client | `@ai-sdk/mcp` | 1.0 |
 | Schema Validation | Zod | 3.25 |
@@ -418,10 +558,11 @@ kapri/
 │   │   ├── layout.tsx                    # HTML shell, Inter + Noto Sans Sinhala fonts
 │   │   ├── globals.css                   # Design tokens, animations, scrollbar styles
 │   │   └── api/
-│   │       ├── chat/route.ts             # 3-tier AI routing (Claude → Gemini → Engine)
+│   │       ├── chat/route.ts             # 3-tier AI routing (Claude Haiku → Gemini → Engine)
 │   │       ├── product-image/route.ts    # og:image proxy with in-memory cache
 │   │       └── orders/
 │   │           ├── route.ts              # POST: save order to Vercel KV
+│   │           ├── create/route.ts       # POST: REAL kapruka_create_order via raw MCP
 │   │           └── [number]/route.ts     # GET: fetch order by VIMP number
 │   │
 │   ├── components/
@@ -440,8 +581,9 @@ kapri/
 │   │   │
 │   │   ├── overlays/                     # Full-screen modal flows
 │   │   │   ├── CartDrawer.tsx            # Slide-in cart with quantity controls
-│   │   │   ├── CheckoutFlow.tsx          # Multi-step checkout (recipient → delivery → gift)
-│   │   │   └── PaymentSheet.tsx          # Pay link + price-lock countdown
+│   │   │   ├── CheckoutFlow.tsx          # Multi-step checkout → places a REAL order
+│   │   │   ├── PaymentFrame.tsx          # REAL Kapruka pay page in sandboxed iframe
+│   │   │   └── PaymentSheet.tsx          # Simulated payment (fallback orders only)
 │   │   │
 │   │   └── ui/                           # Reusable primitives
 │   │       ├── Header.tsx                # Logo, language toggle, cart badge
@@ -457,9 +599,12 @@ kapri/
 │       ├── system-prompt.ts              # Cart-aware dynamic system prompt builder
 │       ├── parse-mcp-response.ts         # Claude JSON extractor + price normaliser
 │       ├── gemini-route.ts               # Tier-2 Gemini handler (static schemas + unwrap)
+│       ├── kapruka-mcp.ts                # Raw Streamable-HTTP MCP client (server-side)
 │       ├── engine.ts                     # Tier-3 scripted engine (keyword rules)
 │       └── db.ts                         # Vercel KV helpers (save/get orders)
 │
+├── mcp.md                                # 📖 Full MCP integration reference (all 7 tools,
+│                                         #    live request/response samples, error shapes)
 ├── public/
 │   └── kapruka-logo.jpg                  # Brand logo
 ├── next.config.mjs
@@ -565,29 +710,61 @@ The app works **without any API key** (Tier 3 scripted engine). For live Kapruka
 ## 🛡️ Responsible Use
 
 The Kapruka MCP creates **real guest-checkout orders**. Kapri:
-- Never spams `kapruka_create_order` — the limit is **30 orders/hour/IP**.
-- Stops at the **pay link** — payment is completed by the user in the browser.
-- Respects the **60 requests/min** rate limit across all tools.
+- Never spams `kapruka_create_order` — the limit is **30 orders/hour/IP**; the form falls back to the simulated flow on failure instead of retry-storming.
+- Stops at the **pay surface** — payment is completed by the customer on Kapruka's own page (inside `PaymentFrame` or a new tab); Kapri never collects card data.
+- Respects the **60 requests/min** rate limit across all tools (429s surface a friendly retry message).
+- Unpaid test orders simply **expire after 60 minutes** — no cleanup, no charge.
 
-**Important:** Do not complete real payments during development. Stop at the checkout URL.
+**Important:** Do not complete real payments during development. Stop at the payment page.
 
 ---
 
 ## ❓ FAQ
 
-**Q: Why does order tracking show a demo order when I track a real Kapruka number (like VIMP27778)?**
+**Q: Is order tracking real?**
 
-This is a prototype not connected to Kapruka's private internal database. Here's what happens:
+Yes — when you track through **chat** (e.g. `Track VIMP34456CB2`), the model calls
+`kapruka_track_order` and the tracker card carries the **live** Kapruka data:
+status, progress stage (0–3), recipient, amount, and delivery date. The UI only
+falls back to demo values for fields the server doesn't return (the per-item
+list is usually empty on Kapruka's side). Orders placed inside the demo are also
+cached in **Vercel KV** so the tracker refreshes instantly on revisit.
 
-1. The app checks **Vercel KV** for orders placed inside this demo.
-2. If not found (because `VIMP27778` is a real Kapruka order from the outside world), it returns `null`.
-3. Rather than showing "Order Not Found", the app falls back to a `DEMO_ORDER` template so you can see the tracking UI.
-4. It dynamically replaces the order number with yours so it feels realistic.
-5. When Kapruka provides a real tracking API, we can swap the KV call in `OrderTracker.tsx`.
+**Q: Are the orders and payments real?**
+
+Yes. Both the chat and the cart form call `kapruka_create_order`, which creates a
+real guest-checkout order with a 60-minute click-to-pay link. Payment happens on
+Kapruka's own secure page (loaded in the in-app `PaymentFrame`). If you don't pay,
+the link simply expires — nothing is charged. The simulated `PaymentSheet` only
+appears for fallback orders that couldn't be placed for real (e.g. rate limit).
 
 ---
 
 ## 📋 Changelog
+
+### v1.1 — Real Payments, Haiku 4.5 & Hardening
+
+#### 💳 Real Checkout & Payments
+- **Cart form places real orders:** `CheckoutFlow` → `/api/orders/create` → `kapruka_create_order` via a new raw Streamable-HTTP MCP client (`src/lib/kapruka-mcp.ts`); graceful fallback to the simulated flow on failure.
+- **In-app payment:** new `PaymentFrame` overlay loads the real Kapruka pay page in a **sandboxed iframe** (no `allow-top-navigation` — the page can't hijack the app), with an "Open in new tab" fallback for 3-D Secure. The simulated `PaymentSheet` no longer opens for real orders.
+- **Checkout card** carries the real `order_ref`, `checkout_url`, and `summary` totals with the 60-min price-lock countdown.
+
+#### 🧠 Tier 1 — Claude Haiku 4.5 + MCP connector fixes
+- Model switched to **`claude-haiku-4-5-20251001`** (~⅓ the cost of Sonnet; verified across all 7 tools).
+- **Fixed the parallel-call deadlock:** `disable_parallel_tool_use` — two simultaneous Kapruka calls hung one of them for the connector's full 300 s timeout; flows now complete in 12–15 s.
+- **Streaming + 120 s timeout + `pause_turn` continuation;** read the **last** text block (the JSON answer), not the first (the preamble).
+- Added the **`mcp_toolset`** entry required by `mcp-client-2025-11-20`.
+
+#### 🔌 MCP contract fixes (both tiers)
+- All Gemini Zod schemas wrapped in the server's required **`params`** object (flat args are rejected).
+- `create_order` fields aligned to the live schema: `location_type` (house/apartment/office/other), no email/extra fields (`additionalProperties: false`).
+- System prompt: documented the `checkout` and enriched `tracker` card shapes; removed nonexistent CategoryGrid/DeliveryPicker references.
+
+#### 📦 Live order tracking
+- `kapruka_track_order` results now flow into the UI: status → progress stage (0–3), recipient, amount, delivery date — no more demo-only tracker for real VIMP numbers.
+
+#### 📖 Documentation
+- New **[`mcp.md`](./mcp.md)**: full integration reference — every tool with live markdown + JSON request/response samples, error shapes, rate limits, and reliability notes.
 
 ### v1.0 — Kapruka Agent Challenge Entry
 
