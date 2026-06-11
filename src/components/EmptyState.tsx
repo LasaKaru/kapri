@@ -14,6 +14,31 @@ interface EmptyStateProps {
   lang: string
 }
 
+/** A single category/occasion tile. Lazy-loads its image (live categories pull
+ *  the Kapruka og:image via the proxy) and falls back to an emoji gradient tile
+ *  if the image is missing or fails to load — so new categories never look broken. */
+const CategoryTile = ({ item, onClick }: { item: Category | Occasion, onClick: (q: string) => void }) => {
+  const [failed, setFailed] = React.useState(false)
+  const showImg = item.img && !failed
+  return (
+    <div onClick={() => onClick(item.q)} role="button" tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter') onClick(item.q) }}
+      style={{ scrollSnapAlign: 'start', display:'flex', flexDirection:'column', alignItems:'center', gap:6, minWidth:72, background:'transparent', border:'none', padding:0, cursor:'pointer' }}>
+      <span style={{ position:'relative', width:72, height:72, borderRadius:'var(--radius-lg)', overflow:'hidden', boxShadow:'var(--shadow-sm)', display:'flex', alignItems:'center', justifyContent:'center',
+        background: showImg ? 'var(--purple-100)' : 'linear-gradient(135deg, var(--purple-100), var(--purple-200))' }}>
+        {showImg ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={item.img} alt={item.name} loading="lazy" onError={() => setFailed(true)}
+            style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+        ) : (
+          <span style={{ fontSize:30 }} aria-hidden>{item.emoji || '🎁'}</span>
+        )}
+      </span>
+      <span style={{ fontSize:11, fontWeight:500, color:'var(--ink)', whiteSpace:'nowrap' }}>{item.name}</span>
+    </div>
+  )
+}
+
 const ScrollRow = ({ title, items, onClick }: { title: string, items: (Category|Occasion)[], onClick: (q: string) => void }) => {
   const scrollRef = React.useRef<HTMLDivElement>(null)
   
@@ -41,15 +66,7 @@ const ScrollRow = ({ title, items, onClick }: { title: string, items: (Category|
       </div>
       <div ref={scrollRef} className="scrollbar-hide" style={{ display:'flex', gap:10, overflowX:'auto', paddingBottom:8, scrollSnapType: 'x mandatory' }}>
         {items.map((c) => (
-          <div key={c.name} onClick={() => onClick(c.q)} role="button" tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter') onClick(c.q) }}
-            style={{ scrollSnapAlign: 'start', display:'flex', flexDirection:'column', alignItems:'center', gap:6, minWidth:72, background:'transparent', border:'none', padding:0, cursor:'pointer' }}>
-            <span style={{ position:'relative', width:72, height:72, borderRadius:'var(--radius-lg)', overflow:'hidden', boxShadow:'var(--shadow-sm)', display:'block' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={c.img} alt={c.name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-            </span>
-            <span style={{ fontSize:11, fontWeight:500, color:'var(--ink)', whiteSpace:'nowrap' }}>{c.name}</span>
-          </div>
+          <CategoryTile key={c.name} item={c} onClick={onClick} />
         ))}
       </div>
     </div>

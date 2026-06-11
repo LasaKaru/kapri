@@ -10,6 +10,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Missing url param' }, { status: 400 })
   }
 
+  // Only proxy Kapruka pages — prevents this route being used as an open
+  // fetch / SSRF gateway to arbitrary hosts.
+  try {
+    const host = new URL(productUrl).hostname
+    if (host !== 'kapruka.com' && !host.endsWith('.kapruka.com')) {
+      return NextResponse.json({ error: 'Only kapruka.com URLs are allowed' }, { status: 400 })
+    }
+  } catch {
+    return NextResponse.json({ error: 'Invalid url' }, { status: 400 })
+  }
+
   // Check cache
   const cached = imageCache.get(productUrl)
   if (cached && Date.now() - cached.ts < CACHE_TTL) {

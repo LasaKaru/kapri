@@ -19,7 +19,7 @@ import { PaymentSheet } from './overlays/PaymentSheet'
 import { PaymentFrame } from './overlays/PaymentFrame'
 import { CATALOG, BUNDLES, CATEGORIES, OCCASIONS, SEASON } from '@/lib/data'
 
-import type { Message, CartItem, Lang, Product, OrderData, PlacedOrder, CardData } from '@/lib/types'
+import type { Message, CartItem, Lang, Product, OrderData, PlacedOrder, CardData, Category } from '@/lib/types'
 
 const DEMO_ITEMS = ['CAKE-2291', 'FLOWERS-118', 'CHOC-540']
   .map(id => CATALOG.find(p => p.id === id))
@@ -70,6 +70,9 @@ export default function App() {
   const [toast, setToast] = useState<string | null>(null)
   const [paidOrders, setPaidOrders] = useState<Set<string>>(new Set())
   const [searchPending, setSearchPending] = useState(false)
+  // "Shop by Category" tiles — start with the static list (instant, offline-safe),
+  // then replace with the live Kapruka category list fetched from /api/categories.
+  const [categories, setCategories] = useState<Category[]>(CATEGORIES)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -82,6 +85,20 @@ export default function App() {
     try { setLang((localStorage.getItem('kapri_lang') as Lang) || 'en') } catch {}
     try { setGiftMessage(localStorage.getItem('kapri_gift') || '') } catch {}
     try { setSessionOrders(JSON.parse(localStorage.getItem('kapri_orders') || '[]')) } catch {}
+  }, [])
+
+  // Load the live category list from Kapruka (falls back to the static CATEGORIES on error)
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/categories')
+      .then(r => r.json())
+      .then((d: { ok?: boolean; categories?: Category[] }) => {
+        if (!cancelled && d?.ok && Array.isArray(d.categories) && d.categories.length) {
+          setCategories(d.categories)
+        }
+      })
+      .catch(() => { /* keep static CATEGORIES */ })
+    return () => { cancelled = true }
   }, [])
 
   // Persist cart
@@ -362,7 +379,7 @@ export default function App() {
           <EmptyState
             prompts={PROMPTS}
             onPrompt={send}
-            categories={CATEGORIES}
+            categories={categories}
             occasions={OCCASIONS}
             onCategory={send}
             lang={lang}
