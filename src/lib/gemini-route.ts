@@ -11,7 +11,7 @@ import { createMCPClient } from '@ai-sdk/mcp'
 import { z } from 'zod'
 import { buildSystemPrompt } from './system-prompt'
 import { parseClaudeResponse } from './parse-mcp-response'
-import type { CartItem } from './types'
+import type { CartItem, Product } from './types'
 
 export type HistoryMessage = { role: 'user' | 'assistant'; text: string; image?: string }
 
@@ -158,7 +158,8 @@ const KAPRUKA_SCHEMAS = {
 export async function callGemini(
   history: HistoryMessage[],
   cart: CartItem[],
-  lastVimp?: string | null
+  lastVimp?: string | null,
+  favorites: Product[] = []
 ): Promise<Record<string, unknown>> {
   const mcpClient = await createMCPClient({
     transport: { type: 'http', url: 'https://mcp.kapruka.com/mcp' },
@@ -182,7 +183,7 @@ export async function callGemini(
 
     const { text } = await generateText({
       model: google('gemini-2.5-flash'),
-      system: buildSystemPrompt(cart, lastVimp),
+      system: buildSystemPrompt(cart, lastVimp, favorites),
       messages,
       tools,
       stopWhen: stepCountIs(6),

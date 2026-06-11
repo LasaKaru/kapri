@@ -27,9 +27,11 @@ interface ProductDetailProps {
   inCart: boolean
   onAdd: (p: Product, qty: number, icing?: string) => void
   onClose: () => void
+  isFavorite?: boolean
+  onToggleFavorite?: (p: Product) => void
 }
 
-export function ProductDetail({ p, inCart, onAdd, onClose }: ProductDetailProps) {
+export function ProductDetail({ p, inCart, onAdd, onClose, isFavorite, onToggleFavorite }: ProductDetailProps) {
   const [qty, setQty] = useState(1)
   const [icing, setIcing] = useState('')
   const [imgErr, setImgErr] = useState(false)
@@ -70,7 +72,13 @@ export function ProductDetail({ p, inCart, onAdd, onClose }: ProductDetailProps)
               ? <img src={p.img} alt={p.name} onError={() => setImgErr(true)}
                   style={{ width:'100%', height:'100%', objectFit:'cover' }} />
               : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:64 }}>🎁</div>}
-            <div style={{ position:'absolute', top:12, left:12 }}><Pill tone="purple">{p.cat}</Pill></div>
+            <div style={{ position:'absolute', top:12, left:12, display:'flex', gap:6, alignItems:'flex-start' }}>
+              <Pill tone="purple">{p.cat}</Pill>
+              <button onClick={(e) => { e.stopPropagation(); if(onToggleFavorite) onToggleFavorite(p) }} aria-label="Toggle favorite"
+                style={{ display:'flex', alignItems:'center', justifyContent:'center', width:30, height:30, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(255,255,255,0.85)', color: isFavorite ? 'var(--error)' : 'var(--muted)', boxShadow:'var(--shadow-sm)', transition:'transform .2s', transform: isFavorite ? 'scale(1.1)' : 'none' }}>
+                <Ico name={isFavorite ? 'heart-filled' : 'heart'} size={16} />
+              </button>
+            </div>
             <div style={{ position:'absolute', top:12, right:12, display:'flex', flexDirection:'column', gap:5, alignItems:'flex-end' }}>
               {lowStock && <Pill tone="warn">Low Stock</Pill>}
               {hasDisc && <Pill tone="success">-{pct}% OFF</Pill>}

@@ -4,9 +4,9 @@ import { Ico } from './Icons'
 
 export function Avatar() {
   return (
-    <div style={{ width:30, height:30, flexShrink:0, marginTop:2, borderRadius:999, background:'var(--purple-700)',
-      display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, boxShadow:'var(--shadow-sm)' }}>
-      🛍️
+    <div style={{ width:30, height:30, flexShrink:0, marginTop:2, borderRadius:999, background:'#fff',
+      display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'var(--shadow-sm)', overflow:'hidden' }}>
+      <img src="/kapri-avatar.png" alt="Kapri" style={{ width:'100%', height:'100%', objectFit:'cover', transform:'scale(1.35) translateY(2px)' }} />
     </div>
   )
 }
