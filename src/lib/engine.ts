@@ -17,18 +17,18 @@ import { CATALOG, BUNDLES, CITIES, CATEGORIES } from './data'
 
 const TANGLISH_HINTS = [
   // common words
-  'mata','ekak','ekata','gannako','ganna','hadanna','oyaa','mama','tikak',
+  'mata','ekak','ekata','gannako','ganna','hadanna','oya','mama','tikak',
   'hoyanna','hoya','neda','denna','puluwan','kawda','monawada','genna',
   'kiyanna','heta','ada','salli','karanna','innawa','yanawa','enna','balanna',
   // family
-  'amma','ammata','amage','thaaththa','thatta','appa','nangi','akka','malli','aiya',
+  'amma','ammata','amage','thaththa','thatta','appa','nangi','akka','malli','aiya',
   // shopping
-  'ganne','baduwak','thaegi','thaegga','gaana','gaanata','hodama','lassana',
-  'sappu','sappu karanna','order','gannada','aran','arinna','gamu',
+  'ganne','baduwak','thagi','thagga','gaana','gaanata','hodama','lassana',
+  'sappu','baduwak miladi gamu','order','gannada','aran','arinna','gamu',
   // emotions
-  'suba','bohoma','ane','hari','isthi','supiri','niyamai','hari hari',
+  'suba','bohoma','ane','hari','sthuthi','supiri','niyamai','hari hari',
   // greetings
-  'ayubowan','kohomada','kohomada innawada',
+  'ayubowan','kohomada','kohomada hodin innawada',
   // occasions
   'avurudu','wesak','poson','uppanna','upandina','mal',
   // delivery
@@ -455,7 +455,7 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
       return { lang, text: L(lang, {
         en: "Your cart is empty right now! 🛒 Let me help you find something amazing. What are you looking for?",
         si: 'ඔබේ කරත්තය දැන් හිස්! 🛒 මම ඔබට අපූරු දෙයක් හොයන්න උදව් කරන්නම්. මොනවද හොයන්නේ?',
-        tl: 'Oyage cart eka dæn his! 🛒 Mama oyata apuru deyak hoyanna udaw karannam. Monawada hoyanne?' }),
+        tl: 'Oyage cart eka dan his! 🛒 Mama oyata apuru deyak hoyanna udaw karannam. Monawada hoyanne?' }),
         chips: ['Birthday cakes', 'Flowers for mom', 'Gift hamper'] }
     }
     return { lang, action: 'open_cart', text: L(lang, {
