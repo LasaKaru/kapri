@@ -53,7 +53,7 @@ export function CheckoutCard({ order, paid, onPay }: CheckoutCardProps) {
       </div>
       <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:8, borderTop:'1px solid var(--line)', marginTop:12 }}>
         <Summary l="Items" v={LKR(order.subtotal)} />
-        <Summary l="Delivery (flat per order)" v={LKR(order.rate)} />
+        <Summary l="Delivery (calculated fee)" v={LKR(order.rate)} />
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', paddingTop:8, borderTop:'1px solid var(--line)' }}>
           <span style={{ fontWeight:700, color:'var(--ink)' }}>Total</span>
           <span style={{ fontWeight:700, fontSize:20, color:'var(--purple-700)' }}>{LKR(order.total)}</span>

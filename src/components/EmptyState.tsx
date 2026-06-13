@@ -12,6 +12,9 @@ interface EmptyStateProps {
   occasions: Occasion[]
   onCategory: (q: string) => void
   lang: string
+  hasChat?: boolean
+  onResumeChat?: () => void
+  onClearChat?: () => void
 }
 
 /** A single category/occasion tile. Lazy-loads its image (live categories pull
@@ -73,7 +76,7 @@ const ScrollRow = ({ title, items, onClick }: { title: string, items: (Category|
   )
 }
 
-export function EmptyState({ prompts, onPrompt, categories, occasions, onCategory }: EmptyStateProps) {
+export function EmptyState({ prompts, onPrompt, categories, occasions, onCategory, hasChat, onResumeChat, onClearChat }: EmptyStateProps) {
   return (
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center',
       minHeight:'100%', width: '100%', overflowX: 'hidden' }}>
@@ -89,7 +92,7 @@ export function EmptyState({ prompts, onPrompt, categories, occasions, onCategor
           ආයුබෝවන්! I&#39;m Kapri 👋
         </h1>
         <p className="sinhala-text" style={{ margin:'7px auto 0', maxWidth:330, fontSize:14, color:'var(--muted)', lineHeight:1.6 }}>
-          Chat in <strong style={{ color:'var(--ink)' }}>English</strong>, <strong style={{ color:'var(--ink)' }}>සිංහල</strong>, or <strong style={{ color:'var(--ink)' }}>Tanglish</strong> — I&#39;ll find it, deliver it, and gift-wrap the message.
+          Chat in <strong style={{ color:'var(--ink)' }}>English</strong>, <strong style={{ color:'var(--ink)' }}>සිංහල</strong>, or <strong style={{ color:'var(--ink)' }}>Tanglish</strong> — gifts, groceries, electronics, fashion &amp; more. I&apos;ll find it and deliver it.
         </p>
       </div>
       
@@ -112,13 +115,34 @@ export function EmptyState({ prompts, onPrompt, categories, occasions, onCategor
         ))}
       </div>
 
-      <button onClick={() => onPrompt('Track my order')}
-        style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 16px', borderRadius:999, marginTop: 12,
-          background:'var(--purple-100)', border:'1px solid var(--purple-200)', color:'var(--purple-700)',
-          fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
-        <Ico name="package" size={15} color="var(--purple-700)" /> Track an order
-      </button>
-      <p style={{ margin:0, fontSize:11, color:'var(--purple-200)' }}>Powered by Kapruka</p>
+      <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <button onClick={() => onPrompt('Track my order')}
+          style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 16px', borderRadius:999,
+            background:'var(--purple-100)', border:'1px solid var(--purple-200)', color:'var(--purple-700)',
+            fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+          <Ico name="package" size={15} color="var(--purple-700)" /> Track an order
+        </button>
+
+        {hasChat && onResumeChat && (
+          <button onClick={onResumeChat}
+            style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 16px', borderRadius:999,
+              background:'var(--purple-600)', border:'1px solid var(--purple-700)', color:'#fff',
+              fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'var(--font-sans)', boxShadow:'var(--shadow-sm)' }}>
+            <Ico name="message-square" size={15} color="#fff" /> Resume last chat
+          </button>
+        )}
+
+        {hasChat && onClearChat && (
+          <button onClick={onClearChat}
+            style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 16px', borderRadius:999,
+              background:'#fff', border:'1px solid var(--line)', color:'var(--muted)',
+              fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+            <Ico name="trash" size={15} color="var(--muted)" /> Clear
+          </button>
+        )}
+      </div>
+
+      <p style={{ margin:'12px 0 0', fontSize:11, color:'var(--purple-200)' }}>Powered by Kapruka</p>
       </div>
     </div>
   )

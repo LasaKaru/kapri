@@ -170,7 +170,7 @@ export async function callGemini(
     // Use our static Zod schemas — makes Gemini happy while keeping real MCP execution
     const tools = await mcpClient.tools({ schemas: KAPRUKA_SCHEMAS })
 
-    const messages = history.map((m) => {
+    const messages = history.slice(-8).map((m) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const content: any[] = [{ type: 'text', text: m.text }]
       if (m.image) {

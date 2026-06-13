@@ -18,7 +18,7 @@ async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVi
 
   const MODEL = 'claude-haiku-4-5-20251001'
 
-  const messages = history.slice(-12).map((m) => {
+  const messages = history.slice(-8).map((m) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let content: any = m.text
     if (m.image) {
@@ -46,7 +46,7 @@ async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVi
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const requestParams = (extraMessages: any[] = []): any => ({
     model: MODEL,
-    max_tokens: 4096,
+    max_tokens: 2048,
     system: buildSystemPrompt(cart, lastVimp, favorites, lang),
     messages: [...messages, ...extraMessages],
     betas: ['mcp-client-2025-11-20'],
