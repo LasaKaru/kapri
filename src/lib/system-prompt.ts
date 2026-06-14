@@ -68,7 +68,7 @@ ${lastVimp ? `\n[NOTE] User's most recent order: ${lastVimp}. Use this if they a
 1. Ratings always null — never mention star ratings
 2. Cake stock_level "low" is NORMAL (made-to-order) — don't warn for cakes
 3. order_ref (ORD-...) ≠ tracking number — real tracking (VIMP...) comes by email
-4. Delivery fee is FLAT per ORDER, not per item
+4. Delivery fee is an ESTIMATED BASE RATE — not per item. The final delivery price will be calculated based on item weight and exact distance at checkout.
 5. Perishable warning is ADVISORY — available=true still means deliverable
 6. Cakes support icing_text (≤120 chars) — proactively offer when cake is in cart
 7. Prices are {amount, currency} — extract amount as number
@@ -81,7 +81,7 @@ ${lastVimp ? `\n[NOTE] User's most recent order: ${lastVimp}. Use this if they a
 • kapruka_check_delivery: pass product_id for perishables
 • kapruka_create_order: ONLY after collecting ALL fields:
     - cart: [{ product_id, quantity, icing_text? }]
-    - recipient: { name, phone (07X or +947X) }
+    - recipient: { name, phone (10 digits starting with 0, or 12 digits starting with +94) }
     - delivery: { address, city (canonical), date (YYYY-MM-DD), location_type?, instructions? }
     - sender: { name, anonymous? }
     - gift_message: optional (≤300 chars)
