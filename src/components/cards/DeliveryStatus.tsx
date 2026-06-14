@@ -22,7 +22,7 @@ export function DeliveryStatus({ city, date, available, rate, reason, nextDate, 
         <Ico name={available ? 'check-circle' : 'x'} size={20} color={available ? 'var(--success)' : 'var(--error)'} />
         <div>
           <p style={{ margin:0, fontSize:14, fontWeight:700, color: available ? 'var(--success)' : 'var(--error)' }}>
-            {available ? '✅ Delivery Available!' : '❌ Not Available'}
+            {available ? 'Delivery Available!' : '❌ Not Available'}
           </p>
           <p style={{ margin:'2px 0 0', fontSize:12, color:'var(--muted)', display:'flex', alignItems:'center', gap:4 }}>
             <Ico name="calendar" size={12} /> {city} · {date}
@@ -31,12 +31,17 @@ export function DeliveryStatus({ city, date, available, rate, reason, nextDate, 
       </div>
       <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:10 }}>
         {available && rate != null && (
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', fontSize:14 }}>
-            <span style={{ display:'flex', alignItems:'center', gap:6, color:'var(--muted)' }}>
-              <Ico name="truck" size={16} color="var(--purple-700)" /> Delivery fee (flat per order)
-            </span>
-            <span style={{ fontWeight:700, color:'var(--purple-700)' }}>{LKR(rate)}</span>
-          </div>
+          <>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', fontSize:14 }}>
+              <span style={{ display:'flex', alignItems:'center', gap:6, color:'var(--muted)' }}>
+                <Ico name="truck" size={16} color="var(--purple-700)" /> Delivery fee (estimated base)
+              </span>
+              <span style={{ fontWeight:700, color:'var(--purple-700)' }}>{LKR(rate)}</span>
+            </div>
+            <p style={{ margin:0, fontSize:11, color:'var(--muted)', lineHeight:1.3 }}>
+              * Final delivery fee calculates at checkout based on weight and exact distance.
+            </p>
+          </>
         )}
         {reason && (
           <div style={{ padding:'8px 12px', borderRadius:'var(--radius-md)', background:'var(--error-tint)' }}>

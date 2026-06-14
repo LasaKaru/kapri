@@ -1410,7 +1410,7 @@ function checkAvailability(cityObj, dateObj, hasPerishable) {
     currency: 'LKR',
     reason: null,
     nextDate: null,
-    perishableWarning: hasPerishable ? `This order has fresh items (cake/flowers) — they're prepared on the delivery day. Please make sure someone can receive it. Delivery to ${cityObj.name} is available! ✅` : null
+    perishableWarning: hasPerishable ? `This order has fresh items (cake/flowers) — they're prepared on the delivery day. Please make sure someone can receive it. Delivery to ${cityObj.name} is available!` : null
   };
 }
 
@@ -4692,7 +4692,7 @@ function DeliveryStatus({
       fontWeight: 700,
       color: available ? 'var(--success)' : 'var(--error)'
     }
-  }, available ? '✅ Delivery Available!' : '❌ Not Available'), /*#__PURE__*/React.createElement("p", {
+  }, available ? ' Delivery Available!' : '❌ Not Available'), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: '2px 0 0',
       fontSize: 12,
@@ -7109,7 +7109,7 @@ function DeliveryStatus({
       fontWeight: 700,
       color: d.available ? 'var(--success)' : 'var(--error)'
     }
-  }, d.available ? '✅ Delivery Available!' : '❌ Not Available'), /*#__PURE__*/React.createElement("p", {
+  }, d.available ? ' Delivery Available!' : '❌ Not Available'), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: '2px 0 0',
       fontSize: 12,

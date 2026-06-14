@@ -20,7 +20,7 @@ function checkAvailability(cityObj, dateObj, hasPerishable) {
   }
   return { available: true, rate: cityObj.rate, currency: 'LKR', reason: null, nextDate: null,
     perishableWarning: hasPerishable
-      ? `This order has fresh items (cake/flowers) — they're prepared on the delivery day. Please make sure someone can receive it. Delivery to ${cityObj.name} is available! ✅`
+      ? `This order has fresh items (cake/flowers) — they're prepared on the delivery day. Please make sure someone can receive it. Delivery to ${cityObj.name} is available!`
       : null }
 }
 

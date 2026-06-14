@@ -217,7 +217,7 @@ function DeliveryStatus({ city, date, available, rate, reason, nextDate, perisha
         <Ico name={available ? 'check-circle' : 'x'} size={20} color={available ? 'var(--success)' : 'var(--error)'} />
         <div>
           <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: available ? 'var(--success)' : 'var(--error)' }}>
-            {available ? '✅ Delivery Available!' : '❌ Not Available'}</p>
+            {available ? 'Delivery Available!' : '❌ Not Available'}</p>
           <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
             <Ico name="calendar" size={12} /> {city} · {date}</p>
         </div>

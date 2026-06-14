@@ -29,8 +29,8 @@ const DEMO_ITEMS = ['CAKE-2291', 'FLOWERS-118', 'CHOC-540']
 const PROMPTS = [
   { emoji: '🎁', text: 'I need a gift for my mother, under Rs. 5,000' },
   { emoji: '🎂', text: 'Birthday cake for tomorrow, Colombo delivery' },
-  { emoji: '🌹', text: 'Send roses to Kandy for our anniversary' },
-  { emoji: '🇱🇰', text: 'Avurudu hamper — family celebration' },
+  { emoji: '🎧', text: 'I need good wireless earbuds for myself' },
+  { emoji: '🛒', text: 'Weekly grocery essentials — deliver to Nugegoda' },
 ]
 
 const DEMO_ORDER: PlacedOrder = {
@@ -59,6 +59,7 @@ export default function App() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [lang, setLang] = useState<Lang>('en')
   const [sessionOrders, setSessionOrders] = useState<PlacedOrder[]>([])
+  const [view, setView] = useState<'home' | 'chat'>('home')
   const [typing, setTyping] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
@@ -87,7 +88,11 @@ export default function App() {
     try { setLang((localStorage.getItem('kapri_lang') as Lang) || 'en') } catch {}
     try { setGiftMessage(localStorage.getItem('kapri_gift') || '') } catch {}
     try { setSessionOrders(JSON.parse(localStorage.getItem('kapri_orders') || '[]')) } catch {}
-    try { setMsgs(JSON.parse(localStorage.getItem('kapri_chat') || '[]')) } catch {}
+    try { 
+      const savedMsgs = JSON.parse(localStorage.getItem('kapri_chat') || '[]')
+      setMsgs(savedMsgs)
+      if (savedMsgs.length > 0) setView('chat')
+    } catch {}
     try { setFavorites(JSON.parse(localStorage.getItem('kapri_favs') || '[]')) } catch {}
   }, [])
 
@@ -162,6 +167,17 @@ export default function App() {
     setCart(prev => prev.map(i => i.p.id === id ? { ...i, icing: v } : i))
   }, [])
 
+  // Strip card/carousel JSON from Kapri's past replies to save API tokens.
+  // The AI doesn't need to re-read its own product cards — just the conversational text.
+  const stripCardJson = (raw: string): string => {
+    if (!raw) return ''
+    try {
+      const parsed = JSON.parse(raw)
+      if (parsed && typeof parsed.text === 'string') return parsed.text
+    } catch { /* not JSON, return as-is */ }
+    return raw
+  }
+
   const send = useCallback(async (text: string) => {
     if (!text.trim() && !imageInput) return
     const userMsg: Message = { role: 'user', text, image: imageInput || undefined }
@@ -169,12 +185,13 @@ export default function App() {
     setTyping(true)
     setSearchPending(true)
     setImageInput(null)
+    setView('chat')
 
     try {
       const history = [...msgs, userMsg].map(m => ({
         role: (m.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
-        text: m.text || '',
-        image: m.image
+        text: m.role === 'kapri' ? stripCardJson(m.text || '') : (m.text || ''),
+        image: m.role === 'user' ? m.image : undefined
       })).filter(m => m.text.trim() || m.image)
 
       const lastOrder = sessionOrders.length > 0 ? sessionOrders[sessionOrders.length - 1] : null;
@@ -374,10 +391,10 @@ export default function App() {
         onCart={() => setCartOpen(true)}
         onFavorites={() => setFavoritesOpen(true)}
         onLogoClick={() => {
-          if (msgs.length > 0) setExitConfirmOpen(true)
+          if (msgs.length > 0 && view === 'chat') setExitConfirmOpen(true)
           else window.location.href = 'https://www.kapruka.com/'
         }}
-        onBack={msgs.length > 0 ? () => setMsgs([]) : undefined}
+        onBack={view === 'chat' && msgs.length > 0 ? () => setView('home') : undefined}
       />
 
       {season && <SeasonBanner season={season} onShop={(q) => { send(q) }} />}
@@ -385,7 +402,7 @@ export default function App() {
       <div ref={scrollRef} className="scrollbar-hide"
         style={{ flex: 1, overflowY: 'auto', padding: '12px 0 8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
-        {msgs.length === 0 ? (
+        {view === 'home' ? (
           <EmptyState
             prompts={PROMPTS}
             onPrompt={send}
@@ -393,6 +410,9 @@ export default function App() {
             occasions={occasions}
             onCategory={send}
             lang={lang}
+            hasChat={msgs.length > 0}
+            onResumeChat={() => setView('chat')}
+            onClearChat={() => { setMsgs([]); setView('home'); localStorage.removeItem('kapri_chat') }}
           />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '0 12px', width: '100%', maxWidth: 840 }}>

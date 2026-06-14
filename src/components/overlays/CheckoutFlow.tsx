@@ -144,7 +144,7 @@ function checkAvailability(cityObj: City, dateObj: DateItem | undefined, hasPeri
   }
   return { available: true, rate: cityObj.rate, currency:'LKR', reason: null, nextDate: null,
     perishableWarning: hasPerishable
-      ? `This order has fresh items (cake/flowers) — they're prepared on the delivery day. Please make sure someone can receive it. Delivery to ${cityObj.name} is available! ✅`
+      ? `This order has fresh items (cake/flowers) — they're prepared on the delivery day. Please make sure someone can receive it. Delivery to ${cityObj.name} is available!`
       : null }
 }
 
@@ -178,7 +178,7 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
 
   const avail = checkAvailability(cityObj, dates.find((d) => d.iso === f.date), hasPerishable)
 
-  const isPhoneValid = /^(?:0|\+94)7\d{8}$/.test(f.phone.replace(/[\s-]/g, ''))
+  const isPhoneValid = /^(?:0\d{9}|\+94\d{9})$/.test(f.phone.replace(/[\s-]/g, ''))
   const isNameValid = f.name.trim().length >= 2
   const isAddressValid = f.address.trim().length >= 8
   const isSenderValid = f.anon || f.sender.trim().length >= 2
@@ -289,9 +289,9 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
               <Field label="Recipient phone" icon="phone">
                 <input value={f.phone} onChange={(e) => set('phone', e.target.value)} onBlur={() => onBlur('phone')} placeholder="07X XXX XXXX" inputMode="tel" 
                   style={{ ...inp, borderColor: touched.phone && !isPhoneValid ? '#e11d48' : 'var(--line)' }} />
-                {touched.phone && !isPhoneValid && <p style={{ margin:'4px 0 0', fontSize:11, color:'#e11d48' }}>Must be a valid Sri Lankan mobile number (e.g., 0771234567).</p>}
+                {touched.phone && !isPhoneValid && <p style={{ margin:'4px 0 0', fontSize:11, color:'#e11d48' }}>Must be a valid Sri Lankan number (10 digits with 07X, or 12 with +94).</p>}
               </Field>
-              <p style={{ margin:0, fontSize:12, color:'var(--muted)', lineHeight:1.5 }}>We&apos;ll only use this to coordinate delivery — Sri Lankan numbers (07X… or +947X…).</p>
+              <p style={{ margin:0, fontSize:12, color:'var(--muted)', lineHeight:1.5 }}>We&apos;ll only use this to coordinate delivery — Sri Lankan numbers (07X… or +94X…).</p>
             </>
           )}
           {step === 1 && (
@@ -305,7 +305,7 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
                       onBlur={() => { if (cityQuery !== f.city) setCityQuery(f.city) }}
                       placeholder="Search a Sri Lankan city…"
                       style={{ flex:1, border:'none', outline:'none', padding:'11px 0', fontSize:14, background:'transparent', fontFamily:'var(--font-sans)' }} />
-                    <span style={{ fontSize:12, fontWeight:700, color:'var(--purple-700)', whiteSpace:'nowrap' }}>{LKR(cityObj.rate)}</span>
+                    <span style={{ fontSize:12, fontWeight:700, color:'var(--purple-700)', whiteSpace:'nowrap' }}>Est. {LKR(cityObj.rate)}</span>
                   </div>
                   {cityMatches.length > 0 && (
                     <div style={{ position:'absolute', top:'100%', left:0, right:0, marginTop:4, background:'#fff',
@@ -407,12 +407,15 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
               ))}
               <div style={{ borderTop:'1px solid var(--line)', paddingTop:12, display:'flex', flexDirection:'column', gap:7 }}>
                 <Summary l="Items" v={LKR(subtotal)} />
-                <Summary l={`Delivery to ${f.city} (flat)`} v={LKR(cityObj.rate)} />
+                <Summary l={`Delivery to ${f.city} (base rate)`} v={`Est. ${LKR(cityObj.rate)}`} />
                 <div style={{ display:'flex', justifyContent:'space-between', paddingTop:7, borderTop:'1px solid var(--line)' }}>
-                  <span style={{ fontWeight:700, color:'var(--ink)' }}>Total</span>
+                  <span style={{ fontWeight:700, color:'var(--ink)' }}>Estimated Total</span>
                   <span style={{ fontWeight:700, fontSize:19, color:'var(--purple-700)' }}>{LKR(subtotal + cityObj.rate)}</span>
                 </div>
               </div>
+              <p style={{ margin:'0', fontSize:11, color:'var(--muted)', lineHeight:1.4 }}>
+                * The delivery fee shown is an estimated base rate. The final delivery price will be calculated based on item weight and exact distance after generating the payment link.
+              </p>
               <div style={{ padding:'11px 13px', background:'#fff', borderRadius:'var(--radius-md)', border:'1px solid var(--line)', fontSize:12.5, color:'var(--muted)', lineHeight:1.6 }}>
                 <div><strong style={{ color:'var(--ink)' }}>To:</strong> {f.name || '—'} · {f.phone}</div>
                 <div><strong style={{ color:'var(--ink)' }}>Address:</strong> {f.address || '—'}, {f.city}</div>
@@ -440,7 +443,7 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
                 background:'var(--yellow-400)', color:'var(--purple-700)', fontWeight:700, fontSize:16,
                 cursor: placing ? 'wait' : 'pointer', opacity: placing ? .6 : 1,
                 fontFamily:'var(--font-sans)', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-              <Ico name="check-circle" size={18} /> {placing ? 'Placing order…' : `Place order — ${LKR(subtotal + cityObj.rate)}`}
+              <Ico name="check-circle" size={18} /> {placing ? 'Placing order…' : `Place order — Est. ${LKR(subtotal + cityObj.rate)}`}
             </button>
           )}
         </div>

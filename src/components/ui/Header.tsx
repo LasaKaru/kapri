@@ -46,20 +46,18 @@ export function Header({ count, onCart, favoritesCount, onFavorites, lang, onLan
               ? <span>EN <span style={{ opacity:.55 }}>· සිං</span></span>
               : <span><span style={{ opacity:.55 }}>EN ·</span> සිං</span>}
           </button>
-          {onFavorites && (
+          {onFavorites && (favoritesCount || 0) > 0 && (
             <button onClick={onFavorites} aria-label="Favorites"
               style={{ position:'relative', width:40, height:40, display:'flex', alignItems:'center',
                 justifyContent:'center', borderRadius:'var(--radius-md)', background:'rgba(255,255,255,0.1)',
                 color:'#fff', border:'none', cursor:'pointer', transition:'background .2s' }}>
               <Ico name="heart" size={18} />
-              {(favoritesCount || 0) > 0 && (
-                <span style={{ position:'absolute', top:-6, right:-6, minWidth:19, height:19, padding:'0 4px',
-                  background:'var(--error)', color:'#fff', fontSize:11, fontWeight:700,
-                  borderRadius:999, display:'flex', alignItems:'center', justifyContent:'center',
-                  boxShadow:'var(--shadow-sm)', animation:'kapri-pop .3s var(--ease-spring)' }}>
-                  {favoritesCount}
-                </span>
-              )}
+              <span style={{ position:'absolute', top:-6, right:-6, minWidth:19, height:19, padding:'0 4px',
+                background:'var(--error)', color:'#fff', fontSize:11, fontWeight:700,
+                borderRadius:999, display:'flex', alignItems:'center', justifyContent:'center',
+                boxShadow:'var(--shadow-sm)', animation:'kapri-pop .3s var(--ease-spring)' }}>
+                {favoritesCount}
+              </span>
             </button>
           )}
           <button onClick={onCart} aria-label="Cart"
