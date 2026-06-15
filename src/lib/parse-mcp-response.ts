@@ -1,4 +1,5 @@
 import type { EngineResponse } from './types'
+import { cacheProducts } from './product-cache'
 
 /**
  * Parse Claude's JSON response from the MCP-powered chat.
@@ -129,6 +130,8 @@ function normalise(obj: Record<string, any>): EngineResponse {
         occ: Array.isArray(item.occ) ? item.occ : [],
       })),
     }
+    // Fire-and-forget: cache real Kapruka products for Tier 3
+    try { cacheProducts(result.card.items) } catch { /* never block response */ }
   }
 
   return result

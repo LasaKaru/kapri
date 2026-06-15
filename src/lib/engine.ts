@@ -6,10 +6,14 @@
  * farewell, thank-you, comparisons, recommendations, icing text,
  * price-range queries, category browsing, and graceful fallbacks.
  *
+ * Reads from the product cache (real Kapruka MCP data) first, then
+ * falls back to the hardcoded CATALOG if the cache has no matches.
+ *
  * This is the safety net — the app ALWAYS responds, even with zero API keys.
  */
 import type { Lang, EngineResponse, Product } from './types'
 import { CATALOG, BUNDLES, CITIES, CATEGORIES } from './data'
+import { getCachedProducts, getCachedCities } from './product-cache'
 
 // ═══════════════════════════════════════════════════════════
 //  Language Detection — Sinhala, Tanglish, English
@@ -154,9 +158,18 @@ function findCity(text: string) {
   const lower = text.toLowerCase()
   // Check aliases first (includes Sinhala names)
   for (const [alias, canonical] of Object.entries(CITY_ALIASES)) {
-    if (lower.includes(alias)) return CITIES.find(c => c.name === canonical) ?? null
+    if (lower.includes(alias)) {
+      // Try cached cities first (real MCP rates), then hardcoded
+      const cached = getCachedCities()
+      const fromCache = cached.find(c => c.name === canonical)
+      if (fromCache) return fromCache
+      return CITIES.find(c => c.name === canonical) ?? null
+    }
   }
-  // Fallback to direct name match
+  // Fallback to direct name match — check cache then hardcoded
+  const cached = getCachedCities()
+  const fromCache = cached.find(c => new RegExp('\\b' + c.name + '\\b', 'i').test(text))
+  if (fromCache) return fromCache
   return CITIES.find((c) => new RegExp('\\b' + c.name + '\\b', 'i').test(text)) ?? null
 }
 
@@ -171,7 +184,10 @@ function search({ cat, occ, budget, keywords, sort }: {
   keywords?: string[]
   sort?: 'price_asc' | 'price_desc' | 'popular'
 }): Product[] {
-  let list = CATALOG.slice()
+  // Try cached products first (real Kapruka MCP data), then hardcoded
+  const cached = getCachedProducts()
+  const source = cached.length > 0 ? cached : CATALOG
+  let list = source.slice()
 
   // Filter by category
   if (cat) list = list.filter(p => p.cat === cat)
@@ -196,13 +212,24 @@ function search({ cat, occ, budget, keywords, sort }: {
       .sort((a, b) => ((b as Product & { _score: number })._score || 0) - ((a as Product & { _score: number })._score || 0))
   }
 
-  // Fallback widening
+  // Fallback widening — if cache had no matches, try hardcoded CATALOG
+  if (list.length === 0 && cached.length > 0) {
+    // Cache had data but no matches — try the hardcoded catalog as backup
+    let fallback = CATALOG.slice()
+    if (cat) fallback = fallback.filter(p => p.cat === cat)
+    if (occ) fallback = fallback.filter(p => (p.occ || []).includes(occ))
+    if (budget.max) fallback = fallback.filter(p => p.price <= budget.max!)
+    if (budget.min) fallback = fallback.filter(p => p.price >= budget.min!)
+    if (fallback.length > 0) list = fallback
+  }
+
+  // Original fallback widening
   if (list.length === 0 && occ) {
-    list = CATALOG.filter(p => (p.occ || []).includes(occ))
+    list = (source.length > 0 ? source : CATALOG).filter(p => (p.occ || []).includes(occ))
     if (budget.max) list = list.filter(p => p.price <= budget.max!)
   }
   if (list.length === 0 && cat) {
-    list = CATALOG.filter(p => p.cat === cat)
+    list = (source.length > 0 ? source : CATALOG).filter(p => p.cat === cat)
   }
   if (list.length === 0) {
     list = CATALOG.filter(p => ['Cakes', 'Flowers', 'Chocolates', 'Hampers'].includes(p.cat))
