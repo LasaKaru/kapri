@@ -103,6 +103,11 @@ body {
   50%      { border-color: var(--purple-400); box-shadow: 0 0 18px var(--purple-300); }
 }
 
+@keyframes kapri-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
 
 .kapri-btn-clear {

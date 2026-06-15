@@ -77,21 +77,66 @@ const ScrollRow = ({ title, items, onClick }: { title: string, items: (Category|
 }
 
 export function EmptyState({ prompts, onPrompt, categories, occasions, onCategory, hasChat, onResumeChat, onClearChat }: EmptyStateProps) {
+  const [showAvatar, setShowAvatar] = React.useState(false)
+  const [typedText, setTypedText] = React.useState('')
+  const fullText = "ආයුබෝවන්! I'm Kapri 👋"
+
+  React.useEffect(() => {
+    // 1. Float in the avatar
+    const t1 = setTimeout(() => setShowAvatar(true), 100)
+    
+    // 2. Start typing the greeting shortly after the avatar appears
+    let i = 0
+    const t2 = setTimeout(() => {
+      const typeInterval = setInterval(() => {
+        setTypedText(fullText.slice(0, i + 1))
+        i++
+        if (i >= fullText.length) clearInterval(typeInterval)
+      }, 50)
+      return () => clearInterval(typeInterval)
+    }, 500)
+
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [])
+
   return (
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center',
       minHeight:'100%', width: '100%', overflowX: 'hidden' }}>
       <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:20, padding:'24px 0', margin: 'auto 0', width: '100%', textAlign:'center' }}>
-      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12, animation:'kapri-breathe 3.5s ease-in-out 3' }}>
-        <div style={{ width: 64, height: 64, borderRadius: '50%', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', border: '2px solid var(--purple-200)', background: '#fff', animation: 'kapri-neon-border 3s infinite alternate ease-in-out' }}>
+      
+      {/* Animated Avatar Hero */}
+      <div style={{ 
+        display:'flex', flexDirection:'column', alignItems:'center', gap:12,
+        transform: showAvatar ? 'translateY(0) scale(1)' : 'translateY(30px) scale(0.85)',
+        opacity: showAvatar ? 1 : 0,
+        transition: 'all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)' 
+      }}>
+        <div style={{ 
+          width: 72, height: 72, borderRadius: '50%', overflow: 'hidden', boxShadow: '0 8px 24px rgba(68,42,115,0.25)', 
+          border: '2px solid var(--purple-200)', background: '#fff', 
+          animation: showAvatar ? 'kapri-breathe 4s ease-in-out infinite alternate' : 'none' 
+        }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/kapri-avatar.png" alt="Kapri Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.6)', transformOrigin: 'center 20%' }} />
+          <img src="/kapri-avatar.png" alt="Kapri Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.5)', transformOrigin: 'center 20%' }} />
         </div>
       </div>
-      <div style={{ padding: '0 20px' }}>
-        <h1 className="sinhala-text" style={{ margin:0, fontSize:25, fontWeight:700, color:'var(--purple-700)' }}>
-          ආයුබෝවන්! I&#39;m Kapri 👋
+      
+      <div style={{ padding: '0 20px', minHeight: 70 }}>
+        <h1 className="sinhala-text" style={{ 
+          margin:0, fontSize:26, fontWeight:800, color:'var(--purple-700)', 
+          letterSpacing: '-0.5px', height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' 
+        }}>
+          {typedText}
+          <span style={{ 
+            display: 'inline-block', width: 2, height: 24, background: 'var(--purple-500)', 
+            marginLeft: 4, animation: 'kapri-blink 1s step-end infinite',
+            opacity: typedText.length === fullText.length ? 0 : 1 
+          }} />
         </h1>
-        <p className="sinhala-text" style={{ margin:'7px auto 0', maxWidth:330, fontSize:14, color:'var(--muted)', lineHeight:1.6 }}>
+        <p className="sinhala-text" style={{ 
+          margin:'10px auto 0', maxWidth:330, fontSize:14, color:'var(--muted)', lineHeight:1.6,
+          opacity: typedText.length > 5 ? 1 : 0, transition: 'opacity 0.8s ease'
+        }}>
           Chat in <strong style={{ color:'var(--ink)' }}>English</strong>, <strong style={{ color:'var(--ink)' }}>සිංහල</strong>, or <strong style={{ color:'var(--ink)' }}>Tanglish</strong> — gifts, groceries, electronics, fashion &amp; more. I&apos;ll find it and deliver it.
         </p>
       </div>
