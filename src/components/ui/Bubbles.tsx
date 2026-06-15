@@ -2,6 +2,30 @@
 import React from 'react'
 import { Ico } from './Icons'
 
+const EMOJI_MAP: Record<string, string> = {
+  '🎁': 'gift',
+  '🚚': 'truck',
+  '📍': 'pin',
+  '🎂': 'cake',
+  '🎉': 'sparkles',
+  '💕': 'heart',
+  '🎓': 'sparkles',
+  '🇱🇰': 'globe',
+  '✍️': 'edit',
+  '💐': 'gift',
+  '💝': 'heart-filled',
+  '🛒': 'cart',
+  '🏷️': 'bag',
+  '🌸': 'sparkles',
+  '📦': 'package',
+  '💜': 'heart-filled',
+  '🛍️': 'bag',
+  '🔄': 'sparkles',
+  '📞': 'phone',
+  '🗂️': 'package',
+  '👋': 'sparkles'
+}
+
 export function Avatar() {
   return (
     <div style={{ width:30, height:30, flexShrink:0, marginTop:2, borderRadius:999, background:'#fff',
@@ -45,10 +69,18 @@ export function KapriRow({ children }: { children: React.ReactNode }) {
 export function KapriText({ children }: { children: React.ReactNode }) {
   const formatText = (text: React.ReactNode) => {
     if (typeof text !== 'string') return text
-    const parts = text.split(/(\*\*.*?\*\*)/g)
+    const parts = text.split(/(\*\*.*?\*\*|[\u{1F300}-\u{1F5FF}\u{1F900}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}](?:\uFE0F)?)/u)
     return parts.map((part, i) => {
+      if (!part) return null
       if (part.startsWith('**') && part.endsWith('**')) {
         return <strong key={i} style={{ fontWeight: 700 }}>{part.slice(2, -2)}</strong>
+      }
+      if (EMOJI_MAP[part]) {
+        return (
+          <span key={i} style={{ display: 'inline-flex', verticalAlign: 'text-bottom', margin: '0 2px', padding: '3px', background: 'var(--yellow-300)', borderRadius: 6, color: 'var(--purple-900)' }}>
+            <Ico name={EMOJI_MAP[part]} size={15} />
+          </span>
+        )
       }
       return part
     })
