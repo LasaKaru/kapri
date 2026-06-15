@@ -133,11 +133,10 @@ export function EmptyState({ prompts, onPrompt, categories, occasions, onCategor
         )}
 
         {hasChat && onClearChat && (
-          <button onClick={onClearChat}
+          <button onClick={onClearChat} className="kapri-btn-clear"
             style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 16px', borderRadius:999,
-              background:'#fff', border:'1px solid var(--line)', color:'var(--muted)',
               fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
-            <Ico name="trash" size={15} color="var(--muted)" /> Clear
+            <Ico name="trash" size={15} color="currentColor" /> Clear
           </button>
         )}
       </div>

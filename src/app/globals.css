@@ -104,3 +104,15 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+
+.kapri-btn-clear {
+  background: #fff;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  transition: all 0.2s ease;
+}
+.kapri-btn-clear:hover {
+  background: var(--error-tint);
+  border-color: var(--error);
+  color: var(--error);
+}
