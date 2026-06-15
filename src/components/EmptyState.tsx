@@ -3,7 +3,7 @@ import React from 'react'
 import { Ico } from './ui/Icons'
 import type { Category, Occasion } from '@/lib/types'
 
-interface Prompt { emoji: string; text: string }
+interface Prompt { icon: string; text: string }
 
 interface EmptyStateProps {
   prompts: Prompt[]
@@ -153,7 +153,9 @@ export function EmptyState({ prompts, onPrompt, categories, occasions, onCategor
               gap:12, cursor:'pointer', boxShadow:'var(--shadow-sm)', transition:'all .15s var(--ease-out)' }}
             onMouseEnter={(e) => { e.currentTarget.style.borderColor='var(--purple-700)'; e.currentTarget.style.background='var(--purple-50)' }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor='var(--line)'; e.currentTarget.style.background='#fff' }}>
-            <span style={{ fontSize:19 }}>{p.emoji}</span>
+            <span style={{ display:'flex', alignItems:'center', justifyContent:'center', width: 28, height: 28, background: 'var(--yellow-300)', borderRadius: 8, color: 'var(--purple-900)' }}>
+              <Ico name={p.icon} size={16} />
+            </span>
             <span style={{ flex:1 }}>{p.text}</span>
             <Ico name="sparkles" size={15} color="var(--purple-300)" />
           </button>

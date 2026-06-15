@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import confetti from 'canvas-confetti'
 import { Header } from './ui/Header'
 import { SeasonBanner } from './ui/SeasonBanner'
 import { Chip } from './ui/Chip'
@@ -29,10 +30,10 @@ const DEMO_ITEMS = ['CAKE-2291', 'FLOWERS-118', 'CHOC-540']
   .filter(Boolean) as Product[]
 
 const PROMPTS = [
-  { emoji: '🎁', text: 'I need a gift for my mother, under Rs. 5,000' },
-  { emoji: '🎂', text: 'Birthday cake for tomorrow, Colombo delivery' },
-  { emoji: '🎧', text: 'I need good wireless earbuds for myself' },
-  { emoji: '🛒', text: 'Weekly grocery essentials — deliver to Nugegoda' },
+  { icon: 'gift', text: 'I need a gift for my mother, under Rs. 5,000' },
+  { icon: 'cake', text: 'Birthday cake for tomorrow, Colombo delivery' },
+  { icon: 'headphones', text: 'I need good wireless earbuds for myself' },
+  { icon: 'cart', text: 'Weekly grocery essentials — deliver to Nugegoda' },
 ]
 
 const DEMO_ORDER: PlacedOrder = {
@@ -157,6 +158,15 @@ export default function App() {
       }
       return [...prev, { p, qty, icing }]
     })
+    
+    // Confetti burst
+    confetti({
+      particleCount: 50,
+      spread: 60,
+      origin: { y: 0.9 },
+      colors: ['#442A73', '#7452B2', '#F9DB09', '#FBE840']
+    })
+    
     showToast(`${p.name.split('—')[0].trim()} added to cart 🛍️`)
   }, [showToast])
 
