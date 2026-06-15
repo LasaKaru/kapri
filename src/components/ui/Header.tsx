@@ -74,6 +74,11 @@ export function Header({ count, onCart, favoritesCount, onFavorites, lang, onLan
               </span>
             )}
           </button>
+          <a href="https://www.kapruka.com/shops/customerAccounts/accountLogin.jsp" aria-label="Login"
+            style={{ width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center',
+              borderRadius:'var(--radius-md)', background:'rgba(255,255,255,0.1)', color:'#fff', textDecoration:'none' }}>
+            <Ico name="user" size={18} />
+          </a>
         </div>
       </div>
     </header>
