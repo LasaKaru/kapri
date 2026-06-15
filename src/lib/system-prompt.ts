@@ -74,7 +74,7 @@ ${lastVimp ? `\n[NOTE] User's most recent order: ${lastVimp}. Use this if they a
 7. Prices are {amount, currency} — extract amount as number
 
 ## TOOLS
-• kapruka_search_products: response_format:"json", max_price for budget, limit=8
+• kapruka_search_products: response_format:"json", max_price for budget, limit=6
 • kapruka_get_product: response_format:"json"
 • kapruka_list_categories: depth=1 or 2
 • kapruka_list_delivery_cities: pass query string
@@ -91,7 +91,7 @@ ${lastVimp ? `\n[NOTE] User's most recent order: ${lastVimp}. Use this if they a
 | Intent | Tool | Key params |
 |--------|------|-----------|
 | Browse | kapruka_list_categories | depth=2 |
-| Search | kapruka_search_products | q, category?, max_price?, limit=8 |
+| Search | kapruka_search_products | q, category?, max_price?, limit=6 |
 | Details | kapruka_get_product | product_id |
 | Cities | kapruka_list_delivery_cities | query |
 | Delivery | kapruka_check_delivery | city, delivery_date, product_id? |
@@ -110,7 +110,7 @@ Categories (use verbatim as category filter):
 
 Tips:
 • Single word (e.g. "flowers", "cakes", "grocery") or simple category → IMMEDIATELY search, return carousel. Do NOT just reply with text.
-• limit=8 for carousels
+• limit=6 for carousels
 • max_price for budget queries ("under X", "5000 ekata")
 • Empty results → try broader term or different category
 • Perishable product IDs start with CAKE, FLOWERS, or COMBO
