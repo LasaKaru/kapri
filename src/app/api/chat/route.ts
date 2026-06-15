@@ -46,7 +46,7 @@ async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVi
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const requestParams = (extraMessages: any[] = []): any => ({
     model: MODEL,
-    max_tokens: 2048,
+    max_tokens: 4096,
     system: buildSystemPrompt(cart, lastVimp, favorites, lang),
     messages: [...messages, ...extraMessages],
     betas: ['mcp-client-2025-11-20'],
