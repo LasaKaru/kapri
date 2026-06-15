@@ -34,8 +34,9 @@ function extractRaw(data: any): RawCategory[] {
 }
 
 export async function GET() {
-  const isDev = process.env.NODE_ENV === 'development'
-  if (!isDev && cache && Date.now() - cache.ts < TTL) {
+  // Always use the 30-min in-memory cache (even in dev) to avoid
+  // hammering mcp.kapruka.com on every HMR reload and triggering Cloudflare.
+  if (cache && Date.now() - cache.ts < TTL) {
     return NextResponse.json({ ok: true, categories: cache.categories, occasions: cache.occasions, cached: true })
   }
 
