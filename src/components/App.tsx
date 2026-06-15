@@ -9,6 +9,7 @@ import { EmptyState } from './EmptyState'
 import { ProductCarousel } from './cards/ProductCarousel'
 import { SkeletonCarousel } from './cards/SkeletonCarousel'
 import { BundleCard } from './cards/BundleCard'
+import { ComparisonCard } from './cards/ComparisonCard'
 import { DeliveryStatus } from './cards/DeliveryStatus'
 import { OrderTracker } from './cards/OrderTracker'
 import { CheckoutCard } from './cards/CheckoutCard'
@@ -303,6 +304,18 @@ export default function App() {
       case 'carousel':
         return (
           <ProductCarousel
+            key={idx}
+            products={card.items}
+            cartIds={cartIds}
+            onAdd={(p) => addToCart(p)}
+            onOpen={setDetail}
+            favorites={favorites.map(f => f.id)}
+            onToggleFavorite={toggleFavorite}
+          />
+        )
+      case 'comparison':
+        return (
+          <ComparisonCard
             key={idx}
             products={card.items}
             cartIds={cartIds}

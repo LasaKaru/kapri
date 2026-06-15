@@ -201,9 +201,24 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
     items, subtotal, total: subtotal + cityObj.rate, perishable: hasPerishable,
   })
 
+  // ⚠️ DEMO TOGGLE: Set to true for your presentation to show the simulated payment screen.
+  // Set to false for real Kapruka production orders.
+  const DEMO_MODE = false
+
   const place = async () => {
     if (placing) return
     setPlacing(true)
+
+    // DEMO MODE: Bypass real API, wait 1.5s, show beautiful success screens.
+    if (DEMO_MODE) {
+      setTimeout(() => {
+        onPlaced(simulatedOrder())
+        setPlacing(false)
+      }, 1500)
+      return
+    }
+
+    // PRODUCTION MODE: Real API call
     try {
       // Bare "Colombo" isn't a canonical Kapruka delivery city — default to a zone.
       const mcpCity = f.city === 'Colombo' ? 'Colombo 03' : f.city
@@ -241,12 +256,13 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
         })
         return
       }
-      // Real order failed — fall back to the simulated flow so the demo always completes.
-      console.warn('[checkout] real order failed, using simulated order:', data?.error)
-      onPlaced(simulatedOrder())
+      
+      // REAL ORDER FAILED (Production)
+      console.warn('[checkout] real order failed:', data?.error)
+      alert(`Sorry, your order could not be placed: ${data?.error || 'Unknown Kapruka error'}`)
     } catch (err) {
-      console.warn('[checkout] order request error, using simulated order:', err)
-      onPlaced(simulatedOrder())
+      console.error('[checkout] order request error:', err)
+      alert('Network error connecting to the Kapruka server. Please try again.')
     } finally {
       setPlacing(false)
     }
