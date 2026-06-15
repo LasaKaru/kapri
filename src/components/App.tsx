@@ -19,6 +19,7 @@ import { FavoritesDrawer } from './overlays/FavoritesDrawer'
 import { CheckoutFlow } from './overlays/CheckoutFlow'
 import { PaymentSheet } from './overlays/PaymentSheet'
 import { PaymentFrame } from './overlays/PaymentFrame'
+import { OnboardingOverlay } from './overlays/OnboardingOverlay'
 import { CATALOG, BUNDLES, CATEGORIES, OCCASIONS, SEASON } from '@/lib/data'
 
 import type { Message, CartItem, Lang, Product, OrderData, PlacedOrder, CardData, Category } from '@/lib/types'
@@ -79,6 +80,7 @@ export default function App() {
   const [imageInput, setImageInput] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<Product[]>([])
   const [favoritesOpen, setFavoritesOpen] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
@@ -95,6 +97,11 @@ export default function App() {
       if (savedMsgs.length > 0) setView('chat')
     } catch {}
     try { setFavorites(JSON.parse(localStorage.getItem('kapri_favs') || '[]')) } catch {}
+    
+    // Onboarding check
+    if (!localStorage.getItem('kapri_onboarded')) {
+      setShowOnboarding(true)
+    }
   }, [])
 
   useEffect(() => {
@@ -558,6 +565,15 @@ export default function App() {
           animation: 'kapri-up .25s var(--ease-out)', boxShadow: 'var(--shadow-lg)' }}>
           {toast}
         </div>
+      )}
+
+      {showOnboarding && (
+        <OnboardingOverlay
+          onFinish={() => {
+            setShowOnboarding(false)
+            localStorage.setItem('kapri_onboarded', '1')
+          }}
+        />
       )}
     </div>
   )
