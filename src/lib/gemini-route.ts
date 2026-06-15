@@ -187,7 +187,7 @@ export async function callGemini(
       system: buildSystemPrompt(cart, lastVimp, favorites, lang),
       messages,
       tools,
-      maxOutputTokens: 4096,
+      maxOutputTokens: 2048,
       stopWhen: stepCountIs(6),
     })
 
