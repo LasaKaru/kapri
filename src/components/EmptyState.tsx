@@ -79,7 +79,7 @@ const ScrollRow = ({ title, items, onClick }: { title: string, items: (Category|
 export function EmptyState({ prompts, onPrompt, categories, occasions, onCategory, hasChat, onResumeChat, onClearChat }: EmptyStateProps) {
   const [showAvatar, setShowAvatar] = React.useState(false)
   const [typedText, setTypedText] = React.useState('')
-  const fullText = "ආයුබෝවන්! I'm Kapri 👋"
+  const fullText = "ආයුබෝවන්! I'm Kapri"
 
   React.useEffect(() => {
     // 1. Float in the avatar
@@ -132,6 +132,20 @@ export function EmptyState({ prompts, onPrompt, categories, occasions, onCategor
             marginLeft: 4, animation: 'kapri-blink 1s step-end infinite',
             opacity: typedText.length === fullText.length ? 0 : 1 
           }} />
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginLeft: 8,
+            opacity: typedText.length === fullText.length ? 1 : 0,
+            transformOrigin: '70% 70%',
+            animation: typedText.length === fullText.length ? 'kapri-waving-hand 2s infinite' : 'none',
+            transition: 'opacity 0.3s ease'
+          }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="#FBE840" stroke="#D97706" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 11V6a2 2 0 0 0-4 0v5"/>
+              <path d="M14 10.5V5a2 2 0 0 0-4 0v6"/>
+              <path d="M10 10.5V4a2 2 0 0 0-4 0v7"/>
+              <path d="M6 12V8a2 2 0 0 0-4 0v7.6c0 3.3 2.7 6 6 6h2c3.3 0 6-2.7 6-6V12a2 2 0 0 0-4 0"/>
+            </svg>
+          </span>
         </h1>
         <p className="sinhala-text" style={{ 
           margin:'10px auto 0', maxWidth:330, fontSize:14, color:'var(--muted)', lineHeight:1.6,

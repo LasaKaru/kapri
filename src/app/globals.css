@@ -97,6 +97,16 @@ body {
 @keyframes kapri-up         { from { opacity:0; transform: translateY(24px); } to { opacity:1; transform:none; } }
 @keyframes kapri-wave       { from { transform: scaleY(0.3); } to { transform: scaleY(1.1); } }
 @keyframes kapri-spin       { to { transform: rotate(360deg); } }
+@keyframes kapri-waving-hand {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-8deg); }
+  30% { transform: rotate(14deg); }
+  40% { transform: rotate(-4deg); }
+  50% { transform: rotate(10deg); }
+  60% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
 
 @keyframes kapri-neon-border {
   0%, 100% { border-color: var(--purple-500); box-shadow: 0 0 10px var(--purple-200); }
