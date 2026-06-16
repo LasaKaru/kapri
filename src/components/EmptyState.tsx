@@ -202,7 +202,7 @@ export function EmptyState({ prompts, onPrompt, categories, occasions, onCategor
         )}
       </div>
 
-      <p style={{ margin:'12px 0 0', fontSize:11, color:'var(--purple-200)' }}>Powered by Kapruka</p>
+      <p style={{ margin:'12px 0 0', fontSize:11, color:'var(--purple-200)' }}>Powered by Kapruka · Island-wide delivery</p>
       </div>
     </div>
   )

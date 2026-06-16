@@ -108,6 +108,17 @@ body {
   100% { transform: rotate(0deg); }
 }
 
+@keyframes kapri-bloom {
+  0% { transform: scale(0.5) rotate(-15deg); opacity: 0; }
+  50% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes kapri-shrink-bar {
+  from { width: 100%; background: var(--warn); }
+  to { width: var(--final-width); background: var(--error); }
+}
+
 @keyframes kapri-neon-border {
   0%, 100% { border-color: var(--purple-500); box-shadow: 0 0 10px var(--purple-200); }
   50%      { border-color: var(--purple-400); box-shadow: 0 0 18px var(--purple-300); }

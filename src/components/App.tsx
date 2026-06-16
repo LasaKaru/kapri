@@ -57,6 +57,25 @@ function saveCart(cart: CartItem[]) {
   try { localStorage.setItem('kapri_cart', JSON.stringify(cart)) } catch {}
 }
 
+let audioCtx: AudioContext | null = null
+const playClick = () => {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+    if (audioCtx.state === 'suspended') audioCtx.resume()
+    const osc = audioCtx.createOscillator()
+    const gain = audioCtx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(800, audioCtx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05)
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05)
+    osc.connect(gain)
+    gain.connect(audioCtx.destination)
+    osc.start()
+    osc.stop(audioCtx.currentTime + 0.05)
+  } catch(e) {}
+}
+
 export default function App() {
   const [msgs, setMsgs] = useState<Message[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
@@ -82,6 +101,7 @@ export default function App() {
   const [favorites, setFavorites] = useState<Product[]>([])
   const [favoritesOpen, setFavoritesOpen] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [typingTopic, setTypingTopic] = useState<'cake'|'flowers'|null>(null)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
@@ -200,6 +220,10 @@ export default function App() {
     if (!text.trim() && !imageInput) return
     const userMsg: Message = { role: 'user', text, image: imageInput || undefined }
     setMsgs(prev => [...prev, userMsg])
+    const lowerText = text.toLowerCase()
+    if (lowerText.includes('cake') || lowerText.includes('cakes')) setTypingTopic('cake')
+    else if (lowerText.includes('flower') || lowerText.includes('flowers') || lowerText.includes('rose')) setTypingTopic('flowers')
+    else setTypingTopic(null)
     setTyping(true)
     setSearchPending(true)
     setImageInput(null)
@@ -231,6 +255,7 @@ export default function App() {
         action: data.action,
       }
       setMsgs(prev => [...prev, kapriMsg])
+      playClick()
 
       if (data.action === 'checkout') {
         if (cart.length > 0) {
@@ -244,6 +269,7 @@ export default function App() {
     } finally {
       setTyping(false)
       setSearchPending(false)
+      setTypingTopic(null)
     }
   }, [msgs, cart, imageInput, sessionOrders, showToast, favorites])
 
@@ -468,9 +494,14 @@ export default function App() {
             })}
 
             {typing && (
-              <KapriRow>
-                {searchPending ? <SkeletonCarousel /> : <Typing />}
-              </KapriRow>
+              <>
+                <Typing topic={typingTopic} />
+                {searchPending && (
+                  <KapriRow>
+                    <SkeletonCarousel />
+                  </KapriRow>
+                )}
+              </>
             )}
           </div>
         )}

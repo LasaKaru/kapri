@@ -53,7 +53,7 @@ export function Composer({ value, onChange, onSend, onMic, recording, lang, imag
         </label>
         <input value={value} onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder} className="sinhala-text"
-          style={{ flex:1, borderRadius:'var(--radius-lg)', border:'1px solid var(--line)', padding:'12px 16px',
+          style={{ flex:1, minWidth:0, borderRadius:'var(--radius-lg)', border:'1px solid var(--line)', padding:'12px 16px',
             fontSize:14, color:'var(--ink)', background:'var(--surface)', outline:'none', fontFamily:'var(--font-sans)' }}
           onFocus={(e) => { e.target.style.borderColor='var(--purple-700)'; e.target.style.background='#fff'; e.target.style.boxShadow='0 0 0 3px var(--focus-ring)' }}
           onBlur={(e) => { e.target.style.borderColor='var(--line)'; e.target.style.background='var(--surface)'; e.target.style.boxShadow='none' }} />

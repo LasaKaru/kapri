@@ -13,9 +13,11 @@ interface HeaderProps {
   onLang: () => void
   onLogoClick?: () => void
   onBack?: () => void
+  soundEnabled?: boolean
+  onToggleSound?: () => void
 }
 
-export function Header({ cart = [], count, onCart, favoritesCount, onFavorites, lang, onLang, onLogoClick, onBack }: HeaderProps) {
+export function Header({ cart = [], count, onCart, favoritesCount, onFavorites, lang, onLang, onLogoClick, onBack, soundEnabled = false, onToggleSound }: HeaderProps) {
   const [cartHover, setCartHover] = React.useState(false)
 
   return (

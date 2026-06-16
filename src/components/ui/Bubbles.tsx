@@ -96,13 +96,26 @@ export function KapriText({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function Typing() {
+export function Typing({ topic }: { topic?: 'cake' | 'flowers' | null }) {
   return (
     <div style={{ display:'flex', alignItems:'flex-start', gap:9 }}>
       <Avatar />
       <div style={{ display:'flex', alignItems:'center', gap:8, padding:'12px 15px', background:'var(--purple-100)',
         borderRadius:'var(--radius-lg)', borderTopLeftRadius:'var(--radius-sm)', boxShadow:'var(--shadow-sm)' }}>
-        {[0,1,2].map((i) => (
+        
+        {topic === 'cake' && (
+          <div style={{ animation: 'kapri-bounce 1.5s ease-in-out infinite', color: 'var(--purple-600)', display: 'flex' }}>
+            <Ico name="cake" size={18} />
+          </div>
+        )}
+        
+        {topic === 'flowers' && (
+          <div style={{ animation: 'kapri-bloom 2s ease-in-out infinite', color: 'var(--purple-600)', display: 'flex' }}>
+            <Ico name="flower" size={18} />
+          </div>
+        )}
+
+        {!topic && [0,1,2].map((i) => (
           <span key={i} style={{ width:7, height:7, borderRadius:999, background:'var(--purple-500)',
             animation:`kapri-bounce 1s ease-in-out ${i * 0.18}s infinite` }} />
         ))}

@@ -261,7 +261,7 @@ function EmptyState({ prompts, onPrompt }) {
           </button>
         ))}
       </div>
-      <p style={{ margin: 0, fontSize: 11, color: 'var(--line)' }}>Powered by Kapruka MCP × Anthropic Claude</p>
+      <p style={{ margin: 0, fontSize: 11, color: 'var(--line)' }}>Powered by Kapruka · Island-wide delivery</p>
     </div>
   )
 }

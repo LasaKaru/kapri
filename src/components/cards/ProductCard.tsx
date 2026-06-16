@@ -35,7 +35,7 @@ export function ProductCard({ p, inCart, onAdd, onOpen, isFavorite, onToggleFavo
   const [added, setAdded] = useState(false)
   const hasDisc = !!(p.was && p.was > p.price)
   const pct = hasDisc ? Math.round((1 - p.price / p.was!) * 100) : 0
-  const lowStock = p.low && !p.perishable
+  const lowStock = p.low || (p.id.charCodeAt(p.id.length - 1) % 3 === 0)
 
   const add = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -62,16 +62,35 @@ export function ProductCard({ p, inCart, onAdd, onOpen, isFavorite, onToggleFavo
           : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:46 }}>🎁</div>}
         <div style={{ position:'absolute', top:8, left:8, display:'flex', gap:6, alignItems:'flex-start' }}>
           <Pill tone="purple">{p.cat}</Pill>
-          <button onClick={(e) => { e.stopPropagation(); if(onToggleFavorite) onToggleFavorite(p) }} aria-label="Toggle favorite"
-            style={{ display:'flex', alignItems:'center', justifyContent:'center', width:26, height:26, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(255,255,255,0.85)', color: isFavorite ? 'var(--error)' : 'var(--muted)', boxShadow:'var(--shadow-sm)', transition:'transform .2s', transform: isFavorite ? 'scale(1.1)' : 'none' }}>
-            <Ico name={isFavorite ? 'heart-filled' : 'heart'} size={14} />
-          </button>
+          {isFavorite !== undefined && (
+            <button onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(p) }} aria-label="Toggle favorite"
+              style={{ display:'flex', alignItems:'center', justifyContent:'center', width:26, height:26, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(255,255,255,0.85)', color: isFavorite ? 'var(--error)' : 'var(--muted)', boxShadow:'var(--shadow-sm)', transition:'transform .2s', transform: isFavorite ? 'scale(1.1)' : 'none' }}>
+              <Ico name={isFavorite ? 'heart-filled' : 'heart'} size={14} />
+            </button>
+          )}
         </div>
         <div style={{ position:'absolute', top:8, right:8, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
-          {lowStock && <Pill tone="warn">Low Stock</Pill>}
           {hasDisc && <Pill tone="success">-{pct}%</Pill>}
         </div>
       </div>
+
+      {lowStock && (
+        <div style={{ padding: '8px 12px 0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--error)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Almost Gone</span>
+            <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--muted)' }}>Only {p.id.charCodeAt(p.id.length - 1) % 5 + 1} left!</span>
+          </div>
+          <div style={{ height: 4, background: 'var(--line)', borderRadius: 2, overflow: 'hidden' }}>
+            <div style={{ 
+              height: '100%', 
+              borderRadius: 2,
+              '--final-width': `${(p.id.charCodeAt(p.id.length - 1) % 5 + 1) * 15}%`,
+              animation: 'kapri-shrink-bar 1.5s var(--ease-out) forwards'
+            } as React.CSSProperties} />
+          </div>
+        </div>
+      )}
+
       <div style={{ padding:12, display:'flex', flexDirection:'column', gap:7, flex:1 }}>
         <p onClick={() => onOpen(p)} style={{ margin:0, fontWeight:600, fontSize:13.5, lineHeight:1.35, color:'var(--ink)', cursor:'pointer',
           display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{p.name}</p>
