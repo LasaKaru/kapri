@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import confetti from 'canvas-confetti'
 import { Header } from './ui/Header'
 import { SeasonBanner } from './ui/SeasonBanner'
 import { Chip } from './ui/Chip'
@@ -9,6 +10,7 @@ import { EmptyState } from './EmptyState'
 import { ProductCarousel } from './cards/ProductCarousel'
 import { SkeletonCarousel } from './cards/SkeletonCarousel'
 import { BundleCard } from './cards/BundleCard'
+import { ComparisonCard } from './cards/ComparisonCard'
 import { DeliveryStatus } from './cards/DeliveryStatus'
 import { OrderTracker } from './cards/OrderTracker'
 import { CheckoutCard } from './cards/CheckoutCard'
@@ -18,6 +20,7 @@ import { FavoritesDrawer } from './overlays/FavoritesDrawer'
 import { CheckoutFlow } from './overlays/CheckoutFlow'
 import { PaymentSheet } from './overlays/PaymentSheet'
 import { PaymentFrame } from './overlays/PaymentFrame'
+import { OnboardingOverlay } from './overlays/OnboardingOverlay'
 import { CATALOG, BUNDLES, CATEGORIES, OCCASIONS, SEASON } from '@/lib/data'
 
 import type { Message, CartItem, Lang, Product, OrderData, PlacedOrder, CardData, Category } from '@/lib/types'
@@ -27,10 +30,10 @@ const DEMO_ITEMS = ['CAKE-2291', 'FLOWERS-118', 'CHOC-540']
   .filter(Boolean) as Product[]
 
 const PROMPTS = [
-  { emoji: '🎁', text: 'I need a gift for my mother, under Rs. 5,000' },
-  { emoji: '🎂', text: 'Birthday cake for tomorrow, Colombo delivery' },
-  { emoji: '🎧', text: 'I need good wireless earbuds for myself' },
-  { emoji: '🛒', text: 'Weekly grocery essentials — deliver to Nugegoda' },
+  { icon: 'gift', text: 'I need a gift for my mother, under Rs. 5,000' },
+  { icon: 'cake', text: 'Birthday cake for tomorrow, Colombo delivery' },
+  { icon: 'headphones', text: 'I need good wireless earbuds for myself' },
+  { icon: 'cart', text: 'Weekly grocery essentials — deliver to Nugegoda' },
 ]
 
 const DEMO_ORDER: PlacedOrder = {
@@ -52,6 +55,25 @@ function loadCart(): CartItem[] {
 
 function saveCart(cart: CartItem[]) {
   try { localStorage.setItem('kapri_cart', JSON.stringify(cart)) } catch {}
+}
+
+let audioCtx: AudioContext | null = null
+const playClick = () => {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+    if (audioCtx.state === 'suspended') audioCtx.resume()
+    const osc = audioCtx.createOscillator()
+    const gain = audioCtx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(800, audioCtx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05)
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05)
+    osc.connect(gain)
+    gain.connect(audioCtx.destination)
+    osc.start()
+    osc.stop(audioCtx.currentTime + 0.05)
+  } catch(e) {}
 }
 
 export default function App() {
@@ -78,6 +100,8 @@ export default function App() {
   const [imageInput, setImageInput] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<Product[]>([])
   const [favoritesOpen, setFavoritesOpen] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [typingTopic, setTypingTopic] = useState<'cake'|'flowers'|null>(null)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
@@ -94,6 +118,11 @@ export default function App() {
       if (savedMsgs.length > 0) setView('chat')
     } catch {}
     try { setFavorites(JSON.parse(localStorage.getItem('kapri_favs') || '[]')) } catch {}
+    
+    // Onboarding check
+    if (!localStorage.getItem('kapri_onboarded')) {
+      setShowOnboarding(true)
+    }
   }, [])
 
   useEffect(() => {
@@ -149,6 +178,15 @@ export default function App() {
       }
       return [...prev, { p, qty, icing }]
     })
+    
+    // Confetti burst
+    confetti({
+      particleCount: 50,
+      spread: 60,
+      origin: { y: 0.9 },
+      colors: ['#442A73', '#7452B2', '#F9DB09', '#FBE840']
+    })
+    
     showToast(`${p.name.split('—')[0].trim()} added to cart 🛍️`)
   }, [showToast])
 
@@ -182,6 +220,10 @@ export default function App() {
     if (!text.trim() && !imageInput) return
     const userMsg: Message = { role: 'user', text, image: imageInput || undefined }
     setMsgs(prev => [...prev, userMsg])
+    const lowerText = text.toLowerCase()
+    if (lowerText.includes('cake') || lowerText.includes('cakes')) setTypingTopic('cake')
+    else if (lowerText.includes('flower') || lowerText.includes('flowers') || lowerText.includes('rose')) setTypingTopic('flowers')
+    else setTypingTopic(null)
     setTyping(true)
     setSearchPending(true)
     setImageInput(null)
@@ -213,6 +255,7 @@ export default function App() {
         action: data.action,
       }
       setMsgs(prev => [...prev, kapriMsg])
+      playClick()
 
       if (data.action === 'checkout') {
         if (cart.length > 0) {
@@ -226,6 +269,7 @@ export default function App() {
     } finally {
       setTyping(false)
       setSearchPending(false)
+      setTypingTopic(null)
     }
   }, [msgs, cart, imageInput, sessionOrders, showToast, favorites])
 
@@ -303,6 +347,18 @@ export default function App() {
       case 'carousel':
         return (
           <ProductCarousel
+            key={idx}
+            products={card.items}
+            cartIds={cartIds}
+            onAdd={(p) => addToCart(p)}
+            onOpen={setDetail}
+            favorites={favorites.map(f => f.id)}
+            onToggleFavorite={toggleFavorite}
+          />
+        )
+      case 'comparison':
+        return (
+          <ComparisonCard
             key={idx}
             products={card.items}
             cartIds={cartIds}
@@ -438,9 +494,14 @@ export default function App() {
             })}
 
             {typing && (
-              <KapriRow>
-                {searchPending ? <SkeletonCarousel /> : <Typing />}
-              </KapriRow>
+              <>
+                <Typing topic={typingTopic} />
+                {searchPending && (
+                  <KapriRow>
+                    <SkeletonCarousel />
+                  </KapriRow>
+                )}
+              </>
             )}
           </div>
         )}
@@ -545,6 +606,15 @@ export default function App() {
           animation: 'kapri-up .25s var(--ease-out)', boxShadow: 'var(--shadow-lg)' }}>
           {toast}
         </div>
+      )}
+
+      {showOnboarding && (
+        <OnboardingOverlay
+          onFinish={() => {
+            setShowOnboarding(false)
+            localStorage.setItem('kapri_onboarded', '1')
+          }}
+        />
       )}
     </div>
   )

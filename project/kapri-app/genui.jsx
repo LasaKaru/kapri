@@ -67,7 +67,7 @@ function EmptyState({ prompts, onPrompt, categories, onCategory, lang }) {
       <button onClick={() => onPrompt('Track my order')} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 999,
         background: 'var(--purple-100)', border: '1px solid var(--purple-200)', color: 'var(--purple-700)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-sans)' }}>
         <Ico name="package" size={15} color="var(--purple-700)" /> Track an order</button>
-      <p style={{ margin: 0, fontSize: 11, color: 'var(--purple-200)' }}>Powered by Kapruka × Anthropic Claude</p>
+      <p style={{ margin: 0, fontSize: 11, color: 'var(--purple-200)' }}>Powered by Kapruka  · Island-wide delivery</p>
     </div>
   )
 }

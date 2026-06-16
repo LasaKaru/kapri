@@ -1,9 +1,10 @@
 'use client'
 import React from 'react'
 import { Ico } from './Icons'
-import type { Lang } from '@/lib/types'
+import type { Lang, CartItem } from '@/lib/types'
 
 interface HeaderProps {
+  cart?: CartItem[]
   count: number
   onCart: () => void
   favoritesCount?: number
@@ -12,9 +13,13 @@ interface HeaderProps {
   onLang: () => void
   onLogoClick?: () => void
   onBack?: () => void
+  soundEnabled?: boolean
+  onToggleSound?: () => void
 }
 
-export function Header({ count, onCart, favoritesCount, onFavorites, lang, onLang, onLogoClick, onBack }: HeaderProps) {
+export function Header({ cart = [], count, onCart, favoritesCount, onFavorites, lang, onLang, onLogoClick, onBack, soundEnabled = false, onToggleSound }: HeaderProps) {
+  const [cartHover, setCartHover] = React.useState(false)
+
   return (
     <header style={{ display:'flex', justifyContent:'center', padding:'11px 16px', background:'var(--purple-700)',
       boxShadow:'var(--shadow-lg)', zIndex:20, flexShrink:0, position:'relative' }}>
@@ -60,20 +65,42 @@ export function Header({ count, onCart, favoritesCount, onFavorites, lang, onLan
               </span>
             </button>
           )}
-          <button onClick={onCart} aria-label="Cart"
-            style={{ position:'relative', width:40, height:40, display:'flex', alignItems:'center',
-              justifyContent:'center', borderRadius:'var(--radius-md)', background:'rgba(255,255,255,0.1)',
-              color:'#fff', border:'none', cursor:'pointer' }}>
-            <Ico name="cart" size={20} />
-            {count > 0 && (
-              <span style={{ position:'absolute', top:-6, right:-6, minWidth:19, height:19, padding:'0 4px',
-                background:'var(--yellow-400)', color:'var(--purple-700)', fontSize:11, fontWeight:700,
-                borderRadius:999, display:'flex', alignItems:'center', justifyContent:'center',
-                boxShadow:'var(--shadow-sm)', animation:'kapri-pop .3s var(--ease-spring)' }}>
-                {count}
-              </span>
+          
+          {/* CART WITH DROPDOWN PREVIEW */}
+          <div style={{ position: 'relative' }} onMouseEnter={() => setCartHover(true)} onMouseLeave={() => setCartHover(false)}>
+            <button onClick={onCart} aria-label="Cart"
+              style={{ position:'relative', width:40, height:40, display:'flex', alignItems:'center',
+                justifyContent:'center', borderRadius:'var(--radius-md)', background:'rgba(255,255,255,0.1)',
+                color:'#fff', border:'none', cursor:'pointer' }}>
+              <Ico name="cart" size={20} />
+              {count > 0 && (
+                <span style={{ position:'absolute', top:-6, right:-6, minWidth:19, height:19, padding:'0 4px',
+                  background:'var(--yellow-400)', color:'var(--purple-700)', fontSize:11, fontWeight:700,
+                  borderRadius:999, display:'flex', alignItems:'center', justifyContent:'center',
+                  boxShadow:'var(--shadow-sm)', animation:'kapri-pop .3s var(--ease-spring)' }}>
+                  {count}
+                </span>
+              )}
+            </button>
+            {cartHover && cart.length > 0 && (
+              <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 12, width: 280, background: '#fff', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-xl)', padding: 16, display: 'flex', flexDirection: 'column', gap: 12, border: '1px solid var(--line)', animation: 'kapri-up 0.2s var(--ease-out)', zIndex: 50 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>Cart Preview</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 280, overflowY: 'auto' }}>
+                  {cart.map((item, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={item.p.img} alt={item.p.name} style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--line)' }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.p.name}</div>
+                        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>Qty: {item.qty} • Rs. {(item.p.price * item.qty).toLocaleString()}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={onCart} style={{ width: '100%', padding: '10px 0', background: 'var(--purple-700)', color: '#fff', border: 'none', borderRadius: 'var(--radius-md)', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s', marginTop: 4 }}>View Full Cart</button>
+              </div>
             )}
-          </button>
+          </div>
           <a href="https://www.kapruka.com/shops/customerAccounts/accountLogin.jsp" aria-label="Login"
             style={{ width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center',
               borderRadius:'var(--radius-md)', background:'rgba(255,255,255,0.1)', color:'#fff', textDecoration:'none' }}>
