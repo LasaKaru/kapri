@@ -114,27 +114,47 @@ function normalise(obj: Record<string, any>): EngineResponse {
   if (result.card?.type === 'carousel' && Array.isArray(result.card.items)) {
     result.card = {
       type: 'carousel',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      items: result.card.items.map((item: any) => ({
-        id: String(item.id ?? item.product_id ?? ''),
-        name: String(item.name ?? ''),
-        summary: String(item.summary ?? item.description ?? ''),
-        price: parsePrice(item.price),
-        was: item.was != null ? parsePrice(item.was) : undefined,
-        cat: String(item.cat ?? item.category?.name ?? ''),
-        img: String(item.img ?? item.image_url ?? ''),
-        inStock: Boolean(item.inStock ?? item.in_stock ?? true),
-        low: Boolean(item.low ?? (item.stock_level === 'low')),
-        perishable: Boolean(item.perishable),
-        url: String(item.url ?? ''),
-        occ: Array.isArray(item.occ) ? item.occ : [],
-      })),
+      items: result.card.items.map(normaliseProduct),
     }
     // Fire-and-forget: cache real Kapruka products for Tier 3
     try { cacheProducts(result.card.items) } catch { /* never block response */ }
   }
 
+  // Normalise comparison items from MCP data shapes
+  if (result.card?.type === 'comparison' && Array.isArray(result.card.items)) {
+    result.card = {
+      type: 'comparison',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      items: result.card.items.map((item: any) => ({
+        product: normaliseProduct(item.product || {}),
+        pros: Array.isArray(item.pros) ? item.pros : [],
+        cons: Array.isArray(item.cons) ? item.cons : [],
+      })),
+    }
+    // Fire-and-forget: cache real Kapruka products for Tier 3
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    try { cacheProducts(result.card.items.map((i: any) => i.product)) } catch { /* never block response */ }
+  }
+
   return result
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normaliseProduct(item: any): any {
+  return {
+    id: String(item.id ?? item.product_id ?? ''),
+    name: String(item.name ?? ''),
+    summary: String(item.summary ?? item.description ?? ''),
+    price: parsePrice(item.price),
+    was: item.was != null ? parsePrice(item.was) : undefined,
+    cat: String(item.cat ?? item.category?.name ?? ''),
+    img: String(item.img ?? item.image_url ?? ''),
+    inStock: Boolean(item.inStock ?? item.in_stock ?? true),
+    low: Boolean(item.low ?? (item.stock_level === 'low')),
+    perishable: Boolean(item.perishable),
+    url: String(item.url ?? ''),
+    occ: Array.isArray(item.occ) ? item.occ : [],
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

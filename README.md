@@ -159,9 +159,10 @@ graph TB
     end
 
     subgraph AI ["AI Providers"]
-        T1["Tier 1: Claude Haiku 4.5 - Anthropic MCP connector"]
-        T2["Tier 2: Gemini 2.5 Flash - @ai-sdk/mcp - Static Zod schemas"]
+        T1["Tier 1: Claude Haiku 4.5 - Anthropic MCP connector (English Core)"]
+        T2["Tier 2: Gemini Fallback Cascade - @ai-sdk/mcp (English Core)"]
         T3["Tier 3: Scripted Engine - engine.ts - Keyword rules"]
+        TRANSLATOR["Translation Layer: Gemini Fallback Cascade (Sinhala/Tanglish)"]
     end
 
     RAWMCP["kapruka-mcp.ts - raw Streamable-HTTP client"]
@@ -184,6 +185,11 @@ graph TB
     CHAT -."Fallback".-> T2
     CHAT -."Offline".-> T3
 
+    T1 --> TRANSLATOR
+    T2 --> TRANSLATOR
+    T3 --> TRANSLATOR
+    TRANSLATOR --"Translate to user language"--> CHAT
+
     T1 --"MCP connector beta"--> MCP
     T2 --"Direct HTTP"--> MCP
     CREATE --> RAWMCP
@@ -205,35 +211,47 @@ graph TB
 
 ---
 
-## 🧠 AI Provider Fallback Chain
+## 🧠 AI Provider Fallback Chain & The Split-Brain Architecture
+
+Kapri utilizes a **"Split-Brain"** architecture to guarantee reliability. The core AI model (Claude or Gemini) is strictly instructed to *always think and search the Kapruka database in pure English*, completely eliminating MCP tool-calling hallucinations caused by language barriers.
+
+If the user is speaking Sinhala or Tanglish, the final English response is intercepted by a dedicated **Translation Layer** before it reaches the UI.
+
+To eliminate free-tier rate limits, both Tier 2 and the Translation Layer use a highly robust **5-Model Gemini Fallback Cascade** (`gemini-3.1-flash-lite` → `gemini-2.5-flash-lite` → `gemini-3.5-flash` → `gemini-3-flash` → `gemini-2.5-flash`).
 
 ```mermaid
 flowchart TD
     REQ(("Request")) --> CHECK1{"ANTHROPIC_API_KEY set?"}
 
-    CHECK1 -- YES --> T1["Tier 1: Claude Haiku 4.5 via Anthropic MCP connector - streaming, 120s timeout, sequential tool calls, pause_turn continuation"]
+    CHECK1 -- YES --> T1["Tier 1: Claude Haiku 4.5 via Anthropic MCP connector (English)"]
     CHECK1 -- NO --> CHECK2
 
     T1 --"Runtime error / timeout"--> CHECK2{"GOOGLE_API_KEY set?"}
-    T1 --> PARSE["parseClaudeResponse - read LAST text block, extract JSON, normalise carousel/checkout/tracker cards"]
+    T1 --> PARSE["parseClaudeResponse"]
 
-    CHECK2 -- YES --> T2["Tier 2: Gemini 2.5 Flash via @ai-sdk/mcp with static Zod schemas"]
+    CHECK2 -- YES --> T2["Tier 2: Gemini Cascade via @ai-sdk/mcp (English)"]
     CHECK2 -- NO --> T3
 
-    T2 --"Runtime error"--> T3["Tier 3: Scripted Engine - keyword rules, no network"]
-    T2 --> UNWRAP["unwrapMCPResult - Peel MCP envelope, extract clean data"]
+    T2 --"Runtime error"--> T3["Tier 3: Scripted Engine - keyword rules, no network (English)"]
+    T2 --> UNWRAP["unwrapMCPResult"]
 
-    T3 --> ENG["engine.ts - Regex matching, CATALOG lookup, CITIES lookup, Bundle builder"]
+    T3 --> ENG["engine.ts"]
 
-    PARSE --> RES(("EngineResponse: text, card, chips, action"))
-    UNWRAP --> RES
-    ENG --> RES
+    PARSE --> TRANS["Translation Layer (Gemini Cascade)"]
+    UNWRAP --> TRANS
+    ENG --> TRANS
+    
+    TRANS --"If lang === 'si' or 'tl'"--> TRANSLATE["Translate to Sinhala/Tanglish via gemini-3.1-flash-lite"]
+    TRANS --"If lang === 'en'"--> RES(("EngineResponse: text, card, chips, action"))
+    TRANSLATE --> RES
 
     style T1 fill:#d4edda,stroke:#28a745
     style T2 fill:#fff3cd,stroke:#856404
     style T3 fill:#f8d7da,stroke:#721c24
+    style TRANS fill:#e0f2fe,stroke:#0369a1
     style RES fill:#f3f0fa,stroke:#442A73
 ```
+
 
 ---
 

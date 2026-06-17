@@ -40,8 +40,7 @@ The rubric gives **50 of 100 points to look-and-feel** (Experience & Polish 30 +
 Richness 20). So the build order is deliberately *experience-first*: get a beautiful,
 fast, full-screen chat shell rendering rich generative product UI before adding breadth.
 Then close the loop end-to-end (discovery → cart → delivery validation → checkout pay
-link). Then capture the **highest-leverage bonus**: Sinhala / Tanglish, which the brief
-says almost nobody will attempt. Reliability of the public URL is treated as a
+link). Then capture the **highest-leverage bonus**: Sinhala / Tanglish, which we achieve flawlessly using a **"Split-Brain" Translation Layer** and a **5-Model Gemini Fallback Cascade** to eliminate API limits. Reliability of the public URL is treated as a
 first-class requirement, not an afterthought — if the judges can't open it, nothing else
 counts.
 

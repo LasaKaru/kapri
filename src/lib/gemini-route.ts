@@ -11,7 +11,7 @@ import { createMCPClient } from '@ai-sdk/mcp'
 import { z } from 'zod'
 import { buildSystemPrompt } from './system-prompt'
 import { parseClaudeResponse } from './parse-mcp-response'
-import type { CartItem, Product } from './types'
+import type { CartItem, Product, Lang } from './types'
 
 export type HistoryMessage = { role: 'user' | 'assistant'; text: string; image?: string }
 
@@ -160,7 +160,7 @@ export async function callGemini(
   cart: CartItem[],
   lastVimp?: string | null,
   favorites: Product[] = [],
-  lang: 'en' | 'si' = 'en'
+  lang: Lang = 'en'
 ): Promise<Record<string, unknown>> {
   const mcpClient = await createMCPClient({
     transport: { type: 'http', url: 'https://mcp.kapruka.com/mcp' },
@@ -182,16 +182,41 @@ export async function callGemini(
       }
     })
 
-    const { text } = await generateText({
-      model: google('gemini-2.5-flash'),
-      system: buildSystemPrompt(cart, lastVimp, favorites, lang),
-      messages,
-      tools,
-      maxOutputTokens: 2048,
-      stopWhen: stepCountIs(6),
-    })
+    const models = [
+      'gemini-3.1-flash-lite',
+      'gemini-2.5-flash-lite',
+      'gemini-3.5-flash',
+      'gemini-3-flash',
+      'gemini-2.5-flash'
+    ]
 
-    return parseClaudeResponse(text) as unknown as Record<string, unknown>
+    let resultText = ''
+    let lastError: any = null
+
+    for (const modelName of models) {
+      try {
+        const { text } = await generateText({
+          model: google(modelName),
+          system: buildSystemPrompt(cart, lastVimp, favorites, lang),
+          messages,
+          tools,
+          maxOutputTokens: 2048,
+          stopWhen: stepCountIs(6),
+        })
+        resultText = text
+        break // Success! Break the loop.
+      } catch (err: any) {
+        console.warn(`[Tier2-Gemini] Model ${modelName} failed:`, err.message)
+        lastError = err
+      }
+    }
+
+    if (!resultText && lastError) {
+      console.error('[Tier2-Gemini] All fallback models failed.')
+      throw lastError
+    }
+
+    return parseClaudeResponse(resultText) as unknown as Record<string, unknown>
   } finally {
     await mcpClient.close()
   }

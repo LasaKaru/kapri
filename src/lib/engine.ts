@@ -14,43 +14,16 @@
 import type { Lang, EngineResponse, Product } from './types'
 import { CATALOG, BUNDLES, CITIES, CATEGORIES } from './data'
 import { getCachedProducts, getCachedCities } from './product-cache'
+import { detectLang as sharedDetectLang } from './detect-lang'
 
 // ═══════════════════════════════════════════════════════════
-//  Language Detection — Sinhala, Tanglish, English
+//  Language Detection — delegated to shared module
 // ═══════════════════════════════════════════════════════════
 
-const TANGLISH_HINTS = [
-  // common words
-  'mata','ekak','ekata','gannako','ganna','hadanna','oya','mama','tikak',
-  'hoyanna','hoya','neda','denna','puluwan','kawda','monawada','genna',
-  'kiyanna','heta','ada','salli','karanna','innawa','yanawa','enna','balanna',
-  // family
-  'amma','ammata','amage','thaththa','thatta','appa','nangi','akka','malli','aiya',
-  // shopping
-  'ganne','baduwak','thagi','thagga','gaana','gaanata','hodama','lassana',
-  'sappu','baduwak miladi gamu','order','gannada','aran','arinna','gamu',
-  // emotions
-  'suba','bohoma','ane','hari','sthuthi','supiri','niyamai','hari hari',
-  // greetings
-  'ayubowan','kohomada','kohomada hodin innawada',
-  // occasions
-  'avurudu','wesak','poson','uppanna','upandina','mal',
-  // delivery
-  'genna','yawanna','yawanawa','gehen','gedara','gedarata',
-]
-
-const SI_RE = /[඀-෿]/
 const SI_WORD_RE = /[\u0D80-\u0DFF]{2,}/g
 
 function detectLang(text: string): Lang {
-  if (SI_RE.test(text)) return 'si'
-  const t = ' ' + text.toLowerCase() + ' '
-  let hits = 0
-  for (const w of TANGLISH_HINTS) {
-    if (t.includes(' ' + w + ' ') || t.includes(' ' + w + '.') || t.includes(' ' + w + '?')) hits++
-    else if (t.includes(w)) hits += 0.5
-  }
-  return hits >= 1 ? 'tl' : 'en'
+  return sharedDetectLang(text)
 }
 
 /** Pick a translation by language, fallback to English */
@@ -300,8 +273,9 @@ function formatPrice(n: number): string {
 //  Main respond() function
 // ═══════════════════════════════════════════════════════════
 
-export function respond(text: string, ctx: { cartCount: number; lastVimp?: string | null }): EngineResponse {
-  const lang = detectLang(text)
+export function respond(text: string, ctx: { cartCount: number; lastVimp?: string | null; effectiveLang?: Lang }): EngineResponse {
+  // Use the session's effective language when available; fall back to per-message detection
+  const lang = ctx.effectiveLang || detectLang(text)
   const t = ' ' + text.toLowerCase().trim() + ' '
   const { cartCount } = ctx
 

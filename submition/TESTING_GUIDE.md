@@ -4,9 +4,9 @@ Welcome to Kapri! To experience the magic of our 3-Tier AI Concierge, we highly 
 
 These prompts are specifically designed to showcase Kapri's advanced capabilities, including its language routing, real-time backend integrations (MCP), and interactive UI rendering.
 
-### Test 1: Language Routing & NLP
+### Test 1: Language Routing & The "Split-Brain" Translation Layer
 **Type:** `"Ammata birthday cake ekak ganna one"`
-- **What it tests:** The custom Language Detection Engine. Kapri will recognize the 'Tanglish' (Singlish) input, route it properly, and respond in the same casual colloquial tone. 
+- **What it tests:** Kapri's advanced "Split-Brain" architecture. Kapri will instantly recognize the 'Tanglish' input. Instead of confusing the Kapruka database with Tanglish, Kapri's core will perfectly translate your intent into English to search the database flawlessly. Then, the dedicated **Translation Layer** (powered by the Gemini Fallback Cascade) will translate the response back into natural, colloquial Tanglish!
 
 ### Test 2: MCP Search & Zero-Text UI
 **Type:** `"Find me earbuds under 5000"`

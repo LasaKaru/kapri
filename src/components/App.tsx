@@ -22,6 +22,7 @@ import { PaymentSheet } from './overlays/PaymentSheet'
 import { PaymentFrame } from './overlays/PaymentFrame'
 import { OnboardingOverlay } from './overlays/OnboardingOverlay'
 import { CATALOG, BUNDLES, CATEGORIES, OCCASIONS, SEASON } from '@/lib/data'
+import { detectLang } from '@/lib/detect-lang'
 
 import type { Message, CartItem, Lang, Product, OrderData, PlacedOrder, CardData, Category } from '@/lib/types'
 
@@ -101,7 +102,6 @@ export default function App() {
   const [favorites, setFavorites] = useState<Product[]>([])
   const [favoritesOpen, setFavoritesOpen] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [typingTopic, setTypingTopic] = useState<'cake'|'flowers'|null>(null)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
@@ -220,10 +220,14 @@ export default function App() {
     if (!text.trim() && !imageInput) return
     const userMsg: Message = { role: 'user', text, image: imageInput || undefined }
     setMsgs(prev => [...prev, userMsg])
+
+    // Detect the language of the user's input
+    const inputLang = detectLang(text)
+    // Auto-sync the header toggle when user types in Sinhala or Tanglish
+    if (inputLang === 'si') setLang('si')
+    else if (inputLang === 'tl' && lang === 'en') setLang('si') // Tanglish → show සිං in toggle
+
     const lowerText = text.toLowerCase()
-    if (lowerText.includes('cake') || lowerText.includes('cakes')) setTypingTopic('cake')
-    else if (lowerText.includes('flower') || lowerText.includes('flowers') || lowerText.includes('rose')) setTypingTopic('flowers')
-    else setTypingTopic(null)
     setTyping(true)
     setSearchPending(true)
     setImageInput(null)
@@ -241,7 +245,14 @@ export default function App() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history, cart, lastVimp: lastOrder?.number, favorites, lang }),
+        body: JSON.stringify({
+          messages: history,
+          cart,
+          lastVimp: lastOrder?.number,
+          favorites,
+          detectedLang: inputLang,
+          preferredLang: lang,
+        }),
       })
       const data: { lang?: Lang; text?: string; card?: CardData; chips?: string[]; action?: string } = await res.json()
       if (data.lang) setLang(data.lang)
@@ -269,7 +280,6 @@ export default function App() {
     } finally {
       setTyping(false)
       setSearchPending(false)
-      setTypingTopic(null)
     }
   }, [msgs, cart, imageInput, sessionOrders, showToast, favorites])
 
@@ -494,14 +504,12 @@ export default function App() {
             })}
 
             {typing && (
-              <>
-                <Typing topic={typingTopic} />
+              <KapriRow>
+                <Typing />
                 {searchPending && (
-                  <KapriRow>
-                    <SkeletonCarousel />
-                  </KapriRow>
+                  <SkeletonCarousel />
                 )}
-              </>
+              </KapriRow>
             )}
           </div>
         )}

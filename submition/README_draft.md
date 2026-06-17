@@ -7,13 +7,13 @@ Modern e-commerce chat bots are little more than "search boxes wearing chat cost
 
 ## ✨ The Solution
 Kapri solves this by blending emotional intelligence with hard e-commerce utility:
-- **Trilingual Support:** Native parsing of English, Sinhala, and "Tanglish" (Singlish).
+- **Trilingual Support via Split-Brain Architecture:** Native parsing of English, Sinhala, and "Tanglish" (Singlish). Kapri's core handles all complex MCP logic in English, while a dedicated Translation Layer translates the final output to the user's language using a 5-model Fallback Cascade.
 - **Zero-Text UI:** A strict rule against plain-text product lists. Kapri intercepts backend data and renders interactive carousels, status cards, and checkout modals natively in the chat.
 - **Direct Checkout:** Kapri handles phone validation, delivery checks, perishable warnings, and generates click-to-pay URLs. No Kapruka account required.
 
 ## 🛠️ Tech Stack
 - **Frontend**: Next.js 14, React, Vanilla CSS.
-- **AI Engines**: Anthropic Claude 3.5 Haiku (Primary), Google Gemini (Fallback).
+- **AI Engines**: Anthropic Claude 3.5 Haiku (Primary), Google Gemini (Tier 2 Fallback & Translation Layer). Both tiers use a robust 5-model Gemini Fallback Cascade (`gemini-3.1-flash-lite`, etc.) to eliminate rate limit crashes.
 - **Backend Integration**: Direct integration via the Kapruka Model Context Protocol (MCP) server.
 
 ## 🏃‍♂️ How to Run Locally

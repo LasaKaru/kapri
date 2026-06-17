@@ -2,7 +2,24 @@ import { NextRequest, NextResponse } from 'next/server'
 import { buildSystemPrompt } from '@/lib/system-prompt'
 import { parseClaudeResponse } from '@/lib/parse-mcp-response'
 import { respond } from '@/lib/engine'
-import type { CartItem, Product } from '@/lib/types'
+import { computeEffectiveLang } from '@/lib/detect-lang'
+import type { CartItem, Product, Lang } from '@/lib/types'
+
+async function applyTranslation(res: NextResponse, targetLang: Lang): Promise<NextResponse> {
+  if (targetLang === 'en' || !process.env.GOOGLE_GENERATIVE_AI_API_KEY) return res
+  
+  const data = await res.json()
+  if (!data.text) return NextResponse.json(data)
+  
+  const { translateResponse } = await import('@/lib/translator')
+  const translated = await translateResponse(data.text, data.chips || [], targetLang)
+  data.text = translated.text
+  if (translated.chips.length > 0) {
+    data.chips = translated.chips
+  }
+  
+  return NextResponse.json(data)
+}
 
 export type HistoryMessage = { role: 'user' | 'assistant'; text: string; image?: string }
 
@@ -10,7 +27,7 @@ export type HistoryMessage = { role: 'user' | 'assistant'; text: string; image?:
 // Tier 1 — Anthropic (claude-haiku-4-5 + Kapruka MCP beta)
 // Anthropic's servers proxy MCP calls → works from any IP.
 // ═══════════════════════════════════════════════════════════
-async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVimp?: string | null, favorites: Product[] = [], lang: 'en' | 'si' = 'en'): Promise<NextResponse> {
+async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVimp?: string | null, favorites: Product[] = [], lang: Lang = 'en'): Promise<NextResponse> {
   const Anthropic = (await import('@anthropic-ai/sdk')).default
   // Hard 120s timeout: a stuck request should fail fast and fall through to
   // Tier 2/3 rather than hang the user's chat for minutes.
@@ -86,7 +103,7 @@ async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVi
 // Direct HTTP to MCP; works on Vercel / local but NOT in
 // the Claude Code sandbox (IP not in allowlist).
 // ═══════════════════════════════════════════════════════════
-async function callGemini(history: HistoryMessage[], cart: CartItem[], lastVimp?: string | null, favorites: Product[] = [], lang: 'en' | 'si' = 'en'): Promise<NextResponse> {
+async function callGemini(history: HistoryMessage[], cart: CartItem[], lastVimp?: string | null, favorites: Product[] = [], lang: Lang = 'en'): Promise<NextResponse> {
   const { callGemini: geminiHandler } = await import('@/lib/gemini-route')
   const result = await geminiHandler(history, cart, lastVimp, favorites, lang)
   return NextResponse.json(result)
@@ -95,8 +112,8 @@ async function callGemini(history: HistoryMessage[], cart: CartItem[], lastVimp?
 // ═══════════════════════════════════════════════════════════
 // Tier 3 — Scripted engine (always works, no API key needed)
 // ═══════════════════════════════════════════════════════════
-function callScriptedEngine(lastText: string, cartCount: number, lastVimp?: string | null): NextResponse {
-  const result = respond(lastText, { cartCount, lastVimp })
+function callScriptedEngine(lastText: string, cartCount: number, lastVimp?: string | null, effectiveLang?: Lang): NextResponse {
+  const result = respond(lastText, { cartCount, lastVimp, effectiveLang })
   return NextResponse.json(result)
 }
 
@@ -116,7 +133,11 @@ export async function POST(req: NextRequest) {
     const history = body.messages ?? []
     const cart = body.cart ?? []
     const favorites = body.favorites ?? []
-    const lang = body.lang || 'en'
+    const detectedLang = (body as Record<string, unknown>).detectedLang as Lang | undefined
+    const preferredLang = (body as Record<string, unknown>).preferredLang as Lang | undefined
+    // Backward compat: old clients send `lang` only
+    const legacyLang = body.lang || 'en'
+    const effectiveLang = computeEffectiveLang(detectedLang, preferredLang ?? legacyLang)
     const lastText = body.text ?? history.at(-1)?.text ?? ''
     const cartCount = cart.reduce((s, i) => s + i.qty, 0) ?? body.cartCount ?? 0
     const lastVimp = body.lastVimp
@@ -126,7 +147,8 @@ export async function POST(req: NextRequest) {
     // — Tier 1: Anthropic —
     if (process.env.ANTHROPIC_API_KEY && hasHistory) {
       try {
-        return await callAnthropic(history, cart, lastVimp, favorites, lang)
+        const res = await callAnthropic(history, cart, lastVimp, favorites, effectiveLang)
+        return await applyTranslation(res, effectiveLang)
       } catch (err) {
         console.error('[Tier1-Anthropic] failed, trying Gemini:', (err as Error).message)
       }
@@ -135,14 +157,16 @@ export async function POST(req: NextRequest) {
     // — Tier 2: Gemini —
     if (process.env.GOOGLE_GENERATIVE_AI_API_KEY && hasHistory) {
       try {
-        return await callGemini(history, cart, lastVimp, favorites, lang)
+        const res = await callGemini(history, cart, lastVimp, favorites, effectiveLang)
+        return await applyTranslation(res, effectiveLang)
       } catch (err) {
         console.error('[Tier2-Gemini] failed, falling back to scripted:', (err as Error).message)
       }
     }
 
     // — Tier 3: Scripted engine —
-    return callScriptedEngine(lastText, cartCount, lastVimp)
+    const res = callScriptedEngine(lastText, cartCount, lastVimp, effectiveLang)
+    return await applyTranslation(res, effectiveLang)
 
   } catch (err) {
     console.error('[Chat route] fatal:', err)

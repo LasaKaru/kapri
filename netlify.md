@@ -108,7 +108,7 @@ Verify these settings match:
 | Variable | Value | Scopes |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | `sk-ant-api03-...` | All scopes |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | `AIza...` | All scopes |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | `AIza...` | All scopes (Required for Sinhala/Tanglish Translation) |
 | `KAPRUKA_MCP_URL` | `https://mcp.kapruka.com/mcp` | All scopes |
 
 > **⚠️ Security:** Never use the `NEXT_PUBLIC_` prefix for API keys. They must stay server-side only.

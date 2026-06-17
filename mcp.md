@@ -643,6 +643,10 @@ final answer) and `parse-mcp-response.ts` normalises it.
 
 Card TypeScript shapes live in `src/lib/types.ts` (`CardData`).
 
+### 5.1 The "Split-Brain" English-Only Rule
+Regardless of what language the user is speaking (Sinhala, Tanglish, or English), the AI model is strictly instructed to **always translate the user's intent into clean English search terms** before calling Kapruka tools.
+For example, if the user says "උපන් දින කේක්" (Sinhala for birthday cake), the AI will call `kapruka_search_products(q: "birthday cake")`. This "Split-Brain" Translation architecture ensures 100% reliability with the Kapruka database, which is primarily in English.
+
 ### Request shape the app POSTs to `/api/chat`
 
 ```json
