@@ -1,8 +1,7 @@
 <div align="center">
-  
-<video src="https://github.com/user-attachments/assets/808ff83c-c49d-49ba-9282-59e354cb7ac1" autoplay loop muted playsinline width="80%"></video>
 
-#  Kapri — AI Shopping Concierge for Kapruka.lk
+# Kapri — AI Shopping Concierge for Kapruka.lk  
+<video src="https://github.com/user-attachments/assets/808ff83c-c49d-49ba-9282-59e354cb7ac1" autoplay loop muted playsinline width="80%"></video>
 
 **A full-screen, multilingual (English · සිංහල · Tanglish) AI shopping agent built on the public Kapruka MCP server.**
 
@@ -51,22 +50,22 @@ Kapri is powered by **[Kapruka's public MCP server](https://mcp.kapruka.com/mcp)
 
 ```mermaid
 graph LR
-    subgraph Discovery ["Discovery"]
+    subgraph Discovery [Discovery]
         T1["kapruka_search_products"]
         T2["kapruka_get_product"]
         T3["kapruka_list_categories"]
     end
 
-    subgraph Delivery ["Delivery"]
+    subgraph Delivery [Delivery]
         T4["kapruka_list_delivery_cities"]
         T5["kapruka_check_delivery"]
     end
 
-    subgraph Checkout ["Checkout"]
+    subgraph Checkout [Checkout]
         T6["kapruka_create_order"]
     end
 
-    subgraph Tracking ["Tracking"]
+    subgraph Tracking [Tracking]
         T7["kapruka_track_order"]
     end
 
@@ -82,36 +81,36 @@ graph LR
     style Tracking fill:#e3f2fd,stroke:#1565c0
 ```
 
-| Tool | Purpose | Key Parameters |
-|---|---|---|
-| `kapruka_search_products` | Search catalog by keyword with filters | `q`, `category`, `min_price`, `max_price`, `in_stock_only`, `sort`, `limit`, `cursor`, `currency` |
-| `kapruka_get_product` | Full product details by ID | `product_id`, `currency` |
-| `kapruka_list_categories` | Top-level category names with browse URLs | `depth` |
-| `kapruka_list_delivery_cities` | Search delivery network by name or alias | `query`, `limit` |
-| `kapruka_check_delivery` | Check delivery availability, rate & perishable warnings | `city`, `delivery_date`, `product_id` |
-| `kapruka_create_order` | Create guest-checkout order → click-to-pay URL | `cart`, `recipient`, `delivery`, `sender`, `gift_message`, `currency` |
-| `kapruka_track_order` | Order status, items, and delivery progress | `order_number` |
+| Tool                           | Purpose                                                 | Key Parameters                                                                                    |
+| ------------------------------ | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `kapruka_search_products`      | Search catalog by keyword with filters                  | `q`, `category`, `min_price`, `max_price`, `in_stock_only`, `sort`, `limit`, `cursor`, `currency` |
+| `kapruka_get_product`          | Full product details by ID                              | `product_id`, `currency`                                                                          |
+| `kapruka_list_categories`      | Top-level category names with browse URLs               | `depth`                                                                                           |
+| `kapruka_list_delivery_cities` | Search delivery network by name or alias                | `query`, `limit`                                                                                  |
+| `kapruka_check_delivery`       | Check delivery availability, rate & perishable warnings | `city`, `delivery_date`, `product_id`                                                             |
+| `kapruka_create_order`         | Create guest-checkout order → click-to-pay URL          | `cart`, `recipient`, `delivery`, `sender`, `gift_message`, `currency`                             |
+| `kapruka_track_order`          | Order status, items, and delivery progress              | `order_number`                                                                                    |
 
 ### Rate Limits
 
-| Limit | Value |
-|---|---|
-| All tools | **60 requests/min** per client IP |
+| Limit                  | Value                                                    |
+| ---------------------- | -------------------------------------------------------- |
+| All tools              | **60 requests/min** per client IP                        |
 | `kapruka_create_order` | **30 orders/hour** per client IP (on top of per-min cap) |
-| Price lock | **60 minutes** from order creation |
-| Product/category cache | Up to **30 minutes** server-side |
+| Price lock             | **60 minutes** from order creation                       |
+| Product/category cache | Up to **30 minutes** server-side                         |
 
 ### ✅ Full Implementation Audit — All 7 Tools Across All 3 Tiers
 
-| MCP Tool | Tier 1 (Claude) | Tier 2 (Gemini) | Tier 3 (Engine) | UI Component |
-|---|---|---|---|---|
-| `kapruka_search_products` | ✅ Auto-discover | ✅ Zod schema | ✅ Keyword search | `<ProductCarousel>` |
-| `kapruka_get_product` | ✅ Auto-discover | ✅ Zod schema | — | `<ProductDetail>` |
-| `kapruka_list_categories` | ✅ Auto-discover | ✅ Zod schema | ✅ Static CATEGORIES | EmptyState carousels |
-| `kapruka_list_delivery_cities` | ✅ Auto-discover | ✅ Zod schema | ✅ Static CITIES | `<DeliveryStatus>` |
-| `kapruka_check_delivery` | ✅ Auto-discover | ✅ Zod schema | ✅ City lookup | `<DeliveryStatus>` |
-| `kapruka_create_order` | ✅ Auto-discover | ✅ Zod schema | ✅ Opens checkout flow | `<CheckoutCard>` + `<PaymentFrame>` |
-| `kapruka_track_order` | ✅ Auto-discover | ✅ Zod schema | ✅ VIMP regex | `<OrderTracker>` |
+| MCP Tool                       | Tier 1 (Claude)  | Tier 2 (Gemini) | Tier 3 (Engine)        | UI Component                        |
+| ------------------------------ | ---------------- | --------------- | ---------------------- | ----------------------------------- |
+| `kapruka_search_products`      | ✅ Auto-discover | ✅ Zod schema   | ✅ Keyword search      | `<ProductCarousel>`                 |
+| `kapruka_get_product`          | ✅ Auto-discover | ✅ Zod schema   | —                      | `<ProductDetail>`                   |
+| `kapruka_list_categories`      | ✅ Auto-discover | ✅ Zod schema   | ✅ Static CATEGORIES   | EmptyState carousels                |
+| `kapruka_list_delivery_cities` | ✅ Auto-discover | ✅ Zod schema   | ✅ Static CITIES       | `<DeliveryStatus>`                  |
+| `kapruka_check_delivery`       | ✅ Auto-discover | ✅ Zod schema   | ✅ City lookup         | `<DeliveryStatus>`                  |
+| `kapruka_create_order`         | ✅ Auto-discover | ✅ Zod schema   | ✅ Opens checkout flow | `<CheckoutCard>` + `<PaymentFrame>` |
+| `kapruka_track_order`          | ✅ Auto-discover | ✅ Zod schema   | ✅ VIMP regex          | `<OrderTracker>`                    |
 
 > 🧾 **Server quirk to know:** every Kapruka tool wraps its arguments in a required `params` object, and `kapruka_create_order` rejects unknown fields (`additionalProperties: false`). Both tiers honour this. Full request/response samples for all 7 tools (markdown **and** JSON), error shapes, and reliability notes live in **[`mcp.md`](./mcp.md)** — the developer reference for this integration.
 
@@ -121,11 +120,11 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph Client ["Browser - Client-Only Rendering"]
+    subgraph Client [Browser - Client-Only Rendering]
         PAGE["page.tsx - dynamic import"]
         APP["App.tsx - Root orchestrator"]
-        
-        subgraph UILayer ["UI Layer"]
+
+        subgraph UILayer [UI Layer]
             HEADER["Header"]
             SEASON["SeasonBanner"]
             EMPTY["EmptyState"]
@@ -133,7 +132,7 @@ graph TB
             BUBBLES["Bubbles"]
         end
 
-        subgraph GenUI ["Generative UI Cards"]
+        subgraph GenUI [Generative UI Cards]
             PC["ProductCarousel"]
             PD["ProductDetail"]
             BC["BundleCard"]
@@ -143,7 +142,7 @@ graph TB
             SK["SkeletonCarousel"]
         end
 
-        subgraph Overlays ["Full-Screen Overlays"]
+        subgraph Overlays [Full-Screen Overlays]
             CART["CartDrawer"]
             CHECKOUT["CheckoutFlow - 4-step accordion"]
             PAY["PaymentSheet - simulated fallback"]
@@ -153,14 +152,14 @@ graph TB
         LS["localStorage - cart, lang, gift msg, orders"]
     end
 
-    subgraph Server ["Next.js API Routes"]
+    subgraph Server [Next.js API Routes]
         CHAT["/api/chat - 3-tier AI routing"]
         CREATE["/api/orders/create - real order via raw MCP"]
         IMG["/api/product-image - proxy + cache"]
         ORDERS["/api/orders - save and fetch"]
     end
 
-    subgraph AI ["AI Providers"]
+    subgraph AI [AI Providers]
         T1["Tier 1: Claude Haiku 4.5 - Anthropic MCP connector (English Core)"]
         T2["Tier 2: Gemini Fallback Cascade - @ai-sdk/mcp (English Core)"]
         T3["Tier 3: Scripted Engine - engine.ts - Keyword rules"]
@@ -215,7 +214,7 @@ graph TB
 
 ## 🧠 AI Provider Fallback Chain & The Split-Brain Architecture
 
-Kapri utilizes a **"Split-Brain"** architecture to guarantee reliability. The core AI model (Claude or Gemini) is strictly instructed to *always think and search the Kapruka database in pure English*, completely eliminating MCP tool-calling hallucinations caused by language barriers.
+Kapri utilizes a **"Split-Brain"** architecture to guarantee reliability. The core AI model (Claude or Gemini) is strictly instructed to _always think and search the Kapruka database in pure English_, completely eliminating MCP tool-calling hallucinations caused by language barriers.
 
 If the user is speaking Sinhala or Tanglish, the final English response is intercepted by a dedicated **Translation Layer** before it reaches the UI.
 
@@ -242,7 +241,7 @@ flowchart TD
     PARSE --> TRANS["Translation Layer (Gemini Cascade)"]
     UNWRAP --> TRANS
     ENG --> TRANS
-    
+
     TRANS --"If lang === 'si' or 'tl'"--> TRANSLATE["Translate to Sinhala/Tanglish via gemini-3.1-flash-lite"]
     TRANS --"If lang === 'en'"--> RES(("EngineResponse: text, card, chips, action"))
     TRANSLATE --> RES
@@ -253,7 +252,6 @@ flowchart TD
     style TRANS fill:#e0f2fe,stroke:#0369a1
     style RES fill:#f3f0fa,stroke:#442A73
 ```
-
 
 ---
 
@@ -268,13 +266,13 @@ surfaces (real `PaymentFrame` & simulated `PaymentSheet` fallback).
 
 ```mermaid
 flowchart TD
-    subgraph PathA ["Path A - Conversational (chat)"]
+    subgraph PathA [Path A - Conversational (chat)]
         A1["User confirms order in chat"] --> A2["/api/chat to Tier 1 Claude Haiku 4.5"]
         A2 --> A3["Claude calls kapruka_check_delivery then kapruka_create_order (sequential - parallel calls deadlock the MCP session)"]
         A3 --> A4["Model returns JSON 'checkout' card: ref + checkout_url + totals"]
     end
 
-    subgraph PathB ["Path B - Cart form (CheckoutFlow)"]
+    subgraph PathB [Path B - Cart form (CheckoutFlow)]
         B1["User fills 4-step form: Recipient to Delivery to Gift to Review"] --> B2["POST /api/orders/create"]
         B2 --> B3["kapruka-mcp.ts raw client: initialize to initialized to tools/call kapruka_create_order"]
         B3 --> B4{"Order created?"}
@@ -353,17 +351,17 @@ stateDiagram-v2
 
 ### Key payment facts
 
-| Fact | Detail |
-|---|---|
-| **Who processes payment** | Kapruka Payments, on `kapruka.com` — the app only holds the `checkout_url` |
-| **Card data** | Never enters Kapri — typed directly into Kapruka's page inside the iframe |
-| **`ORD-…` vs `VIMP-…`** | `order_ref` (`ORD-…`) is the **pre-payment** reference; the **VIMP…** tracking number is emailed only **after** payment — they are different IDs |
-| **Price lock** | 60 minutes from creation; `CheckoutCard` shows a live countdown |
-| **Totals** | Always display `summary.grand_total` from the MCP response (Kapruka may add small handling over list price) |
-| **Iframe safety** | `sandbox` omits `allow-top-navigation` so the framed page can't redirect your app; verified the pay URL sends no `X-Frame-Options`/CSP so it embeds cleanly |
-| **3-D Secure escape hatch** | PaymentFrame footer has "Open in new tab" for bank-redirect steps that refuse to run in an iframe |
-| **Rate limit** | Max **30 real orders/hour/IP** — the form falls back to the simulated flow if order creation fails |
-| **Unpaid orders** | Simply expire with the 60-min link — no cleanup needed |
+| Fact                        | Detail                                                                                                                                                      |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Who processes payment**   | Kapruka Payments, on `kapruka.com` — the app only holds the `checkout_url`                                                                                  |
+| **Card data**               | Never enters Kapri — typed directly into Kapruka's page inside the iframe                                                                                   |
+| **`ORD-…` vs `VIMP-…`**     | `order_ref` (`ORD-…`) is the **pre-payment** reference; the **VIMP…** tracking number is emailed only **after** payment — they are different IDs            |
+| **Price lock**              | 60 minutes from creation; `CheckoutCard` shows a live countdown                                                                                             |
+| **Totals**                  | Always display `summary.grand_total` from the MCP response (Kapruka may add small handling over list price)                                                 |
+| **Iframe safety**           | `sandbox` omits `allow-top-navigation` so the framed page can't redirect your app; verified the pay URL sends no `X-Frame-Options`/CSP so it embeds cleanly |
+| **3-D Secure escape hatch** | PaymentFrame footer has "Open in new tab" for bank-redirect steps that refuse to run in an iframe                                                           |
+| **Rate limit**              | Max **30 real orders/hour/IP** — the form falls back to the simulated flow if order creation fails                                                          |
+| **Unpaid orders**           | Simply expire with the 60-min link — no cleanup needed                                                                                                      |
 
 ---
 
@@ -482,13 +480,13 @@ graph TD
 
 `App.tsx → renderCard()` maps `CardData.type` to the appropriate component:
 
-| `CardData.type` | Component | MCP Tool | Description |
-|---|---|---|---|
-| `carousel` | `<ProductCarousel>` | `kapruka_search_products` | Horizontal scroll grid of product cards with add-to-cart |
-| `bundle` | `<BundleCard>` | — (AI-curated) | Gift bundle (cake + flowers + card) by theme/budget |
-| `delivery` | `<DeliveryStatus>` | `kapruka_check_delivery` | City/date validation with flat fee and perishable warnings |
-| `tracker` | `<OrderTracker>` | `kapruka_track_order` | Progress timeline — **live** status, stage (0–3), recipient & amount from the tool result |
-| `checkout` | `<CheckoutCard>` | `kapruka_create_order` | Order summary with price-lock countdown; Pay button opens `<PaymentFrame>` (real) or `<PaymentSheet>` (simulated fallback) |
+| `CardData.type` | Component           | MCP Tool                  | Description                                                                                                                |
+| --------------- | ------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `carousel`      | `<ProductCarousel>` | `kapruka_search_products` | Horizontal scroll grid of product cards with add-to-cart                                                                   |
+| `bundle`        | `<BundleCard>`      | — (AI-curated)            | Gift bundle (cake + flowers + card) by theme/budget                                                                        |
+| `delivery`      | `<DeliveryStatus>`  | `kapruka_check_delivery`  | City/date validation with flat fee and perishable warnings                                                                 |
+| `tracker`       | `<OrderTracker>`    | `kapruka_track_order`     | Progress timeline — **live** status, stage (0–3), recipient & amount from the tool result                                  |
+| `checkout`      | `<CheckoutCard>`    | `kapruka_create_order`    | Order summary with price-lock countdown; Pay button opens `<PaymentFrame>` (real) or `<PaymentSheet>` (simulated fallback) |
 
 Loading state: `<SkeletonCarousel>` renders while `searchPending` is true.
 
@@ -497,76 +495,91 @@ Loading state: `<SkeletonCarousel>` renders while `searchPending` is true.
 ## 🛠️ Key Design Decisions
 
 ### 1. Anthropic MCP connector (Claude Haiku 4.5)
+
 ```typescript
 // src/app/api/chat/route.ts
-const response = await client.beta.messages.stream({
-  model: 'claude-haiku-4-5-20251001',        // ~1/3 the cost of Sonnet, handles the JSON card protocol reliably
-  betas: ['mcp-client-2025-11-20'],
-  mcp_servers: [{ type: 'url', url: 'https://mcp.kapruka.com/mcp', name: 'kapruka' }],
-  tools: [{ type: 'mcp_toolset', mcp_server_name: 'kapruka' }],   // required by mcp-client-2025-11-20
-  tool_choice: { type: 'auto', disable_parallel_tool_use: true }, // see decision #2
-  // ...
-}).finalMessage()
+const response = await client.beta.messages
+  .stream({
+    model: "claude-haiku-4-5-20251001", // ~1/3 the cost of Sonnet, handles the JSON card protocol reliably
+    betas: ["mcp-client-2025-11-20"],
+    mcp_servers: [
+      { type: "url", url: "https://mcp.kapruka.com/mcp", name: "kapruka" },
+    ],
+    tools: [{ type: "mcp_toolset", mcp_server_name: "kapruka" }], // required by mcp-client-2025-11-20
+    tool_choice: { type: "auto", disable_parallel_tool_use: true }, // see decision #2
+    // ...
+  })
+  .finalMessage();
 ```
+
 Routing through Anthropic's MCP connector means the app works from **any environment** — local dev, CI, or production. The route **streams** (keeps bytes flowing during long server-side tool loops), continues on `stop_reason: 'pause_turn'`, has a **120 s timeout + 1 retry** so a stuck call falls through to Tier 2/3, and reads the **last** text block (tool turns interleave preamble text with tool calls — the JSON answer is at the end).
 
 ### 2. Sequential tool calls — the parallel-call deadlock
+
 Stream-event tracing showed that when the model fires **two Kapruka tool calls in one response**, one call deadlocks on the MCP session until the connector's **300-second timeout** ("Timed out while waiting for response to ClientRequest"). `disable_parallel_tool_use: true` forces one-at-a-time calls; full checkout flows complete in **12–15 s** instead of randomly hanging for minutes.
 
 ### 3. The `params` wrapper + strict fields
+
 Every Kapruka tool wraps its arguments in a required `params` object (FastMCP/Pydantic), and `kapruka_create_order` declares `additionalProperties: false` — flat arguments or extra fields (e.g. `recipient.email`) are rejected. Both tiers and the raw client honour this. Details + live error samples in [`mcp.md`](./mcp.md).
 
 ### 4. Static Zod schemas for Gemini
+
 ```typescript
 // src/lib/gemini-route.ts
-const tools = await mcpClient.tools({ schemas: KAPRUKA_SCHEMAS })
+const tools = await mcpClient.tools({ schemas: KAPRUKA_SCHEMAS });
 ```
+
 Gemini rejects dynamically-discovered tool schemas. Explicit Zod schemas (each wrapped in `params`, matching the live server contract) bypass discovery while the MCP client still executes the real tools.
 
 ### 5. Structured JSON protocol
+
 The system prompt instructs every AI model to respond **only** with valid JSON matching `EngineResponse`. `parseClaudeResponse` handles code-fence wrapping and normalises all card shapes — carousel prices `{ amount, currency }` → numbers, checkout (`order_ref`→`ref`, `checkout_url`→`url`, `summary` totals), and tracker (`status` → progress stage 0–3).
 
 ### 6. In-app payment via sandboxed iframe
+
 Real orders pay inside `<PaymentFrame>` — an iframe whose `sandbox` deliberately omits `allow-top-navigation`, so Kapruka's page runs scripts/forms normally but can't frame-bust the app. The pay URL was verified to send no `X-Frame-Options`/CSP. A "new tab" fallback covers 3-D Secure bank redirects.
 
 ### 7. Raw MCP client for non-LLM calls
+
 The cart form doesn't need an LLM to place an order, so `/api/orders/create` uses `src/lib/kapruka-mcp.ts` — a ~100-line raw Streamable-HTTP client (initialize → initialized → tools/call, SSE parsing) — calling `kapruka_create_order` directly. Cheaper, faster, deterministic.
 
 ### 8. Client-only rendering (`ssr: false`)
+
 The App component is loaded via `next/dynamic` with `ssr: false` to prevent React hydration mismatches — a chat interface has zero SEO benefit from server rendering.
 
 ### 9. localStorage cart persistence
+
 Cart state lives in `localStorage` under `kapri_cart`. On every `send()` the full cart is serialised into the API request body, then injected into the system prompt — so the model always has authoritative cart context.
 
 ---
 
 ## 💻 Tech Stack
 
-| Layer | Choice | Version |
-|---|---|---|
-| Framework | Next.js App Router | 14.2 |
-| Language | TypeScript | 5 |
-| UI | React | 18.3 |
-| AI — Primary | `@anthropic-ai/sdk` (Claude Haiku 4.5 `claude-haiku-4-5-20251001`) | 0.102 |
-| AI — Fallback | `ai` + `@ai-sdk/google` | 6.0 |
-| MCP Client | `@ai-sdk/mcp` | 1.0 |
-| Schema Validation | Zod | 3.25 |
-| Order Storage | `@vercel/kv` | 3.0 |
-| Hosting | Vercel | — |
+| Layer             | Choice                                                             | Version |
+| ----------------- | ------------------------------------------------------------------ | ------- |
+| Framework         | Next.js App Router                                                 | 14.2    |
+| Language          | TypeScript                                                         | 5       |
+| UI                | React                                                              | 18.3    |
+| AI — Primary      | `@anthropic-ai/sdk` (Claude Haiku 4.5 `claude-haiku-4-5-20251001`) | 0.102   |
+| AI — Fallback     | `ai` + `@ai-sdk/google`                                            | 6.0     |
+| MCP Client        | `@ai-sdk/mcp`                                                      | 1.0     |
+| Schema Validation | Zod                                                                | 3.25    |
+| Order Storage     | `@vercel/kv`                                                       | 3.0     |
+| Hosting           | Vercel                                                             | —       |
 
 ---
 
 ## 🎨 Brand System
 
-| Token | Value | Use |
-|---|---|---|
+| Token      | Value     | Use                                  |
+| ---------- | --------- | ------------------------------------ |
 | Purple 700 | `#442A73` | Primary brand, headers, user bubbles |
-| Yellow 400 | `#F9DB09` | CTAs, accents, season banner |
-| Surface | `#F6F4FA` | App background |
-| Ink | `#1B1230` | Body text |
-| Success | `#1F9D57` | Delivery available, order confirmed |
-| Warning | `#D98A00` | Perishable item notice |
-| Error | `#D63B3B` | Delivery unavailable, order error |
+| Yellow 400 | `#F9DB09` | CTAs, accents, season banner         |
+| Surface    | `#F6F4FA` | App background                       |
+| Ink        | `#1B1230` | Body text                            |
+| Success    | `#1F9D57` | Delivery available, order confirmed  |
+| Warning    | `#D98A00` | Perishable item notice               |
+| Error      | `#D63B3B` | Delivery unavailable, order error    |
 
 ---
 
@@ -639,48 +652,50 @@ kapri/
 
 ## 🏆 Rubric Coverage (100 pts)
 
-| Category | Pts | How Kapri scores |
-|---|---|---|
-| **Experience & Polish** | 30 | Full-screen app shell; optimistic message UI; skeleton loaders; mobile-first (380px); localStorage state sync; no layout shift; smooth card transitions; safe-area insets |
-| **Visual Richness** | 20 | Zero raw-text product lists — every result is a `<ProductCarousel>`, `<BundleCard>`, `<DeliveryStatus>`, or `<OrderTracker>` generative component |
-| **Personality** | 15 | Named "Kapri"; warm, proactive Sri Lankan voice; seasonal occasion awareness (Avurudu, Poya, birthdays, anniversaries) |
-| **Usefulness** | 15 | Budget parsing (`max_price`); vague-intent clarification; delivery validation with perishable warnings; Sinhala city name aliases |
-| **End-to-end completeness** | 15 | Discovery → cart → delivery check → checkout form → `kapruka_create_order` → real pay link → order tracking |
-| **Creativity** | 5 | AI Gift Bundle Builder; Sinhala voice input (`si-LK`); gift message AI-enhancer in EN + Sinhala |
-| **Total** | **100** | |
+| Category                    | Pts     | How Kapri scores                                                                                                                                                          |
+| --------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Experience & Polish**     | 30      | Full-screen app shell; optimistic message UI; skeleton loaders; mobile-first (380px); localStorage state sync; no layout shift; smooth card transitions; safe-area insets |
+| **Visual Richness**         | 20      | Zero raw-text product lists — every result is a `<ProductCarousel>`, `<BundleCard>`, `<DeliveryStatus>`, or `<OrderTracker>` generative component                         |
+| **Personality**             | 15      | Named "Kapri"; warm, proactive Sri Lankan voice; seasonal occasion awareness (Avurudu, Poya, birthdays, anniversaries)                                                    |
+| **Usefulness**              | 15      | Budget parsing (`max_price`); vague-intent clarification; delivery validation with perishable warnings; Sinhala city name aliases                                         |
+| **End-to-end completeness** | 15      | Discovery → cart → delivery check → checkout form → `kapruka_create_order` → real pay link → order tracking                                                               |
+| **Creativity**              | 5       | AI Gift Bundle Builder; Sinhala voice input (`si-LK`); gift message AI-enhancer in EN + Sinhala                                                                           |
+| **Total**                   | **100** |                                                                                                                                                                           |
 
 ### Bonus Features
 
-| Bonus | Status |
-|---|---|
-| Multi-item cart | ✅ Persistent cart, quantity controls, header badge |
-| Delivery-date constraints | ✅ Calendar widget + `check_delivery` + perishable rules |
-| Gift messaging | ✅ Free-text + AI "Enhance" rewrite (English + Sinhala) |
-| Tanglish conversation | ✅ Model detects and responds in mixed Sinhala-English |
-| Sinhala language | ✅ Voice input (`si-LK`), Sinhala city aliases, Sinhala responses |
+| Bonus                     | Status                                                            |
+| ------------------------- | ----------------------------------------------------------------- |
+| Multi-item cart           | ✅ Persistent cart, quantity controls, header badge               |
+| Delivery-date constraints | ✅ Calendar widget + `check_delivery` + perishable rules          |
+| Gift messaging            | ✅ Free-text + AI "Enhance" rewrite (English + Sinhala)           |
+| Tanglish conversation     | ✅ Model detects and responds in mixed Sinhala-English            |
+| Sinhala language          | ✅ Voice input (`si-LK`), Sinhala city aliases, Sinhala responses |
 
 ---
 
 ## 🧪 Try These Prompts
 
-| Language | Prompt |
-|---|---|
-| English | `I need a gift for my mother, under Rs. 5,000` |
-| Tanglish | `Mata ammata cake ekak gannako — Colombo ekata` |
+| Language | Prompt                                               |
+| -------- | ---------------------------------------------------- |
+| English  | `I need a gift for my mother, under Rs. 5,000`       |
+| Tanglish | `Mata ammata cake ekak gannako — Colombo ekata`      |
 | Tanglish | `Avurudu hamper bundle ekak hadanna under Rs. 8,000` |
-| Sinhala | `අම්මට තෑග්ගක් — රු. 5000ට අඩුවෙන්` |
-| Tracking | `Track my order VIMP34456CB2` |
-| Voice | tap 🎤 and speak in Sinhala or English |
+| Sinhala  | `අම්මට තෑග්ගක් — රු. 5000ට අඩුවෙන්`                  |
+| Tracking | `Track my order VIMP34456CB2`                        |
+| Voice    | tap 🎤 and speak in Sinhala or English               |
 
 ---
 
 ## 🚀 Running Locally
 
 ### Prerequisites
+
 - **Node.js 18.18+** (Node 20 LTS recommended)
-- **Anthropic API key** → [console.anthropic.com](https://console.anthropic.com) *(or Google AI key as fallback)*
+- **Anthropic API key** → [console.anthropic.com](https://console.anthropic.com) _(or Google AI key as fallback)_
 
 ### Setup
+
 ```bash
 # 1. Clone
 git clone https://github.com/LasaKaru/kapri.git
@@ -694,6 +709,7 @@ cp .env.local.example .env.local
 ```
 
 Edit `.env.local`:
+
 ```bash
 # Primary (recommended) — server-side only
 ANTHROPIC_API_KEY=sk-ant-api03-...
@@ -719,11 +735,11 @@ The app works **without any API key** (Tier 3 scripted engine). For live Kapruka
 1. Push the repo and import at [vercel.com/new](https://vercel.com/new).
 2. Add environment variables (**Production + Preview**):
 
-   | Variable | Required | Notes |
-   |---|---|---|
-   | `ANTHROPIC_API_KEY` | Primary | Best Sinhala + tool reliability |
+   | Variable                       | Required | Notes                                         |
+   | ------------------------------ | -------- | --------------------------------------------- |
+   | `ANTHROPIC_API_KEY`            | Primary  | Best Sinhala + tool reliability               |
    | `GOOGLE_GENERATIVE_AI_API_KEY` | Fallback | Activates if Anthropic key is absent or fails |
-   | `KAPRUKA_MCP_URL` | Optional | Defaults to `https://mcp.kapruka.com/mcp` |
+   | `KAPRUKA_MCP_URL`              | Optional | Defaults to `https://mcp.kapruka.com/mcp`     |
 
 3. Deploy → smoke test on a phone at **380px**: empty state → search → add to cart → checkout.
 
@@ -732,6 +748,7 @@ The app works **without any API key** (Tier 3 scripted engine). For live Kapruka
 ## 🛡️ Responsible Use
 
 The Kapruka MCP creates **real guest-checkout orders**. Kapri:
+
 - Never spams `kapruka_create_order` — the limit is **30 orders/hour/IP**; the form falls back to the simulated flow on failure instead of retry-storming.
 - Stops at the **pay surface** — payment is completed by the customer on Kapruka's own page (inside `PaymentFrame` or a new tab); Kapri never collects card data.
 - Respects the **60 requests/min** rate limit across all tools (429s surface a friendly retry message).
@@ -767,30 +784,36 @@ appears for fallback orders that couldn't be placed for real (e.g. rate limit).
 ### v1.1 — Real Payments, Haiku 4.5 & Hardening
 
 #### 💳 Real Checkout & Payments
+
 - **Cart form places real orders:** `CheckoutFlow` → `/api/orders/create` → `kapruka_create_order` via a new raw Streamable-HTTP MCP client (`src/lib/kapruka-mcp.ts`); graceful fallback to the simulated flow on failure.
 - **In-app payment:** new `PaymentFrame` overlay loads the real Kapruka pay page in a **sandboxed iframe** (no `allow-top-navigation` — the page can't hijack the app), with an "Open in new tab" fallback for 3-D Secure. The simulated `PaymentSheet` no longer opens for real orders.
 - **Checkout card** carries the real `order_ref`, `checkout_url`, and `summary` totals with the 60-min price-lock countdown.
 
 #### 🧠 Tier 1 — Claude Haiku 4.5 + MCP connector fixes
+
 - Model switched to **`claude-haiku-4-5-20251001`** (~⅓ the cost of Sonnet; verified across all 7 tools).
 - **Fixed the parallel-call deadlock:** `disable_parallel_tool_use` — two simultaneous Kapruka calls hung one of them for the connector's full 300 s timeout; flows now complete in 12–15 s.
 - **Streaming + 120 s timeout + `pause_turn` continuation;** read the **last** text block (the JSON answer), not the first (the preamble).
 - Added the **`mcp_toolset`** entry required by `mcp-client-2025-11-20`.
 
 #### 🔌 MCP contract fixes (both tiers)
+
 - All Gemini Zod schemas wrapped in the server's required **`params`** object (flat args are rejected).
 - `create_order` fields aligned to the live schema: `location_type` (house/apartment/office/other), no email/extra fields (`additionalProperties: false`).
 - System prompt: documented the `checkout` and enriched `tracker` card shapes; removed nonexistent CategoryGrid/DeliveryPicker references.
 
 #### 📦 Live order tracking
+
 - `kapruka_track_order` results now flow into the UI: status → progress stage (0–3), recipient, amount, delivery date — no more demo-only tracker for real VIMP numbers.
 
 #### 📖 Documentation
+
 - New **[`mcp.md`](./mcp.md)**: full integration reference — every tool with live markdown + JSON request/response samples, error shapes, rate limits, and reliability notes.
 
 ### v1.0 — Kapruka Agent Challenge Entry
 
 #### ✨ Core AI & Architecture
+
 - **Agentic Chat Engine:** Full-screen, generative UI shopping agent connected to the Kapruka MCP.
 - **3-Tier AI Fallback:** Anthropic → Gemini → Scripted Engine, ensuring 100% uptime.
 - **Multi-lingual System Prompt:** Understands and responds in Sinhala, English, and Tanglish.
@@ -798,6 +821,7 @@ appears for fallback orders that couldn't be placed for real (e.g. rate limit).
 - **Client-Only Rendering:** `next/dynamic` with `ssr: false` eliminates hydration mismatches.
 
 #### 🛍️ Shopping & Discovery
+
 - **Generative UI Cards:** `<ProductCarousel>`, `<BundleCard>`, `<ProductDetail>` with images, pricing, and stock badges.
 - **Persistent Cart:** localStorage-backed multi-item cart with slide-out drawer and quantity controls.
 - **Voice Input:** Web Speech API with `si-LK` locale for Sinhala voice commands.
@@ -805,18 +829,92 @@ appears for fallback orders that couldn't be placed for real (e.g. rate limit).
 - **Seasonal Awareness:** Auto-detects Avurudu, Wesak, Poson, Deepavali, Christmas, Valentine's Day.
 
 #### 🚚 Checkout & Delivery
+
 - **Multi-Step Checkout:** Accordion overlay — Recipient → Delivery → Sender → Gift Message.
 - **Smart Delivery Validation:** City autocomplete, flat-fee display, 2-day lead time for remote areas.
 - **Perishable Warnings:** Auto-flags fresh cakes/flowers with delivery reminders.
 - **Form Validation:** Real-time regex validation for Sri Lankan mobile numbers (`07X` / `+947X`), address length, and required fields.
 
 #### 🎁 Post-Purchase
+
 - **AI Gift Message Enhancer:** "Magic wand" rewrites messages in Warm, Witty, or Formal tones (EN + Sinhala).
 - **Order Tracking Timeline:** Visual progress tracker with delivery stage indicators.
 - **Graceful Tracking Fallback:** Shows realistic demo data when tracking external orders.
 
 ---
 
+# Changelog
+
+A comprehensive log of the 69 commits and architectural milestones for the Kapri AI Shopping Concierge, tracking new features, improvements, bug fixes, and documentation updates.
+
+## ✨ New Features
+* **Multi-Tier LLM Architecture:** Implemented a robust 3-tier chat route with Anthropic MCP (Tier 1), Gemini fallback (Tier 2), and Scripted Engine (Tier 3).
+* **Anthropic Prompt Caching:** Added `cache_control: { type: "ephemeral" }` to drastically reduce API costs and improve response times for system prompts.
+* **Vercel KV Serverless Caching:** Migrated product and city memory from a local JSON file to Vercel KV (Upstash Redis) for persistent, stateless memory that survives server restarts.
+* **Multi-Language & Translation Layer:** Added comprehensive language detection and translation middleware for Sinhala Unicode, Tamil Unicode, Singlish, and Tanglish.
+* **Real Kapruka MCP Integration:** Wired the UI checkout form to place real Kapruka orders via the MCP server.
+* **Order Tracking:** Surfaced real `kapruka_track_order` data dynamically into the UI tracking card.
+* **Product Discovery UI:** Built dynamic 'Shop by Category' strip directly linked to the Kapruka MCP, complete with Product Comparisons and Budget Negotiation flows.
+* **Interactive Chat Interface:** Added Bubbles UI with emoji parsing, typing indicators, and a floating Chat/Cart header.
+* **Checkout Flow & Payments:** Built a multi-step checkout component with address validation, delivery scheduling, gift messaging, and a responsive in-app iframe modal for real Kapruka payments.
+* **Analytics:** Integrated Vercel Speed Insights and Analytics instrumentation.
+
+## 🚀 Improvements & Refactors
+* **Gemini Fallback Cascade:** Implemented a multi-model fallback cascade for translation tasks to ensure robust 100% uptime for local languages.
+* **Model Upgrade:** Switched Tier 1 engine to `claude-haiku-4-5-20251001` for faster MCP tool executions.
+* **Asynchronous Scripted Engine:** Refactored the Tier 3 Scripted Engine to be fully asynchronous, enabling it to await data directly from Vercel KV.
+* **Static Zod Tool Schemas:** Implemented static Zod schemas for the Gemini route to mirror the Kapruka MCP tool capabilities seamlessly.
+* **UI & UX Polish:** Initialized core UI architecture, global design tokens, custom SVG `Ico` registry, and an animated onboarding overlay.
+
+## 🐛 Bug Fixes
+* **Language Auto-Detect Override:** Fixed a critical bug where Claude's internal `{ lang: 'en' }` JSON response would override the frontend's auto-detected Sinhala/Tamil state, locking the dropdown language to English.
+* **Singlish vs Tanglish Keyword Clashes:** Fixed the language detection logic by introducing comparative hit-scoring (e.g., `sgHits` vs `tgHits`) to accurately separate Singlish and Tanglish inputs that share similar words.
+* **MCP Parallel-Call Deadlock:** Fixed a stalling issue in the MCP tool execution loop by forcing `disable_parallel_tool_use: true` in Anthropic requests.
+* **Vercel KV Environment Variables:** Fixed corrupted `.env.local` spaces caused by local shell scripts, ensuring Next.js could read `KV_REST_API_URL` and `KV_REST_API_TOKEN` correctly.
+* **Mobile Padding:** Fixed mobile viewport padding in the `EmptyState` component and adjusted the purple neon borders on the Kapri avatar.
+* **MCP Schema Alignment:** Ensured the internal tool calls exactly match the live Kapruka server schema requirements.
+
+## 📚 Documentation
+* **Architecture Overhaul:** Added comprehensive `README.md` complete with Mermaid architecture diagrams, fallback logic explanations, and project strategy.
+* **Deployment Guides:** Created specialized deployment walkthroughs for Netlify and Vercel environments.
+* **API Key Optimization:** Wrote an API key configuration guide to educate developers on cost-effective model usage.
+* **MCP & Testing Docs:** Added `mcp.md` documentation, `submition/.env.example`, and testing instructions for the guest-checkout flow.
+
+---
+
+## 📅 Version History
+
+**v1.0.5 - Jun 18, 2026**
+- Refactored Scripted Engine to be fully asynchronous
+- Integrated Vercel KV for persistent, stateless product caching
+- Added Anthropic Prompt Caching (`ephemeral`) to drastically reduce API spend
+- Fixed UI translation bugs and auto-detect overrides locking to English
+
+**v1.0.4 - Jun 17, 2026**
+- Added full support for Sinhala, Tamil, Singlish, and Tanglish
+- Integrated Gemini translation fallback cascade for maximum resilience
+- Fixed Singlish vs Tanglish detection scoring algorithm
+- Replaced header language toggle button with a clean `<select>` dropdown
+
+**v1.0.3 - Jun 15, 2026**
+- Upgraded Anthropic engine to `claude-haiku-4-5-20251001`
+- Wired real Kapruka checkout and payment gateway in a responsive iframe
+- Integrated live Kapruka order tracking directly into the UI card
+- Fixed MCP parallel-call deadlock by disabling concurrent tool use
+
+**v1.0.2 - Jun 10, 2026**
+- Implemented multi-tier 3-stage fallback architecture (Anthropic → Gemini → Scripted)
+- Added dynamic 'Shop by Category' strip via live Kapruka MCP
+- Built interactive Bubbles UI, Product Carousel, and EmptyState components
+- Added automated cart and favorites management
+
+**v1.0.1 - Jun 8, 2026**
+- Initial Release & Design System Handoff
+- Scaffolded Next.js 14 application and global design tokens
+
+
 ## 📜 License
 
-MIT — competition entry, open-sourced for the Sri Lankan dev community.
+Copyright (c) 2026 Lasantha Karunarathne or HelaO2 PVT LTD. All Rights Reserved.
+
+This code is proprietary and confidential. No part of this repository may be reproduced, distributed, or transmitted in any form or by any means, including cloning, copying, or modifying, without the prior written permission of the owner.
