@@ -1,6 +1,8 @@
 <div align="center">
+  
+<video src="https://github.com/user-attachments/assets/808ff83c-c49d-49ba-9282-59e354cb7ac1" autoplay loop muted playsinline width="80%"></video>
 
-# 🛍️ Kapri — AI Shopping Concierge for Kapruka.lk
+#  Kapri — AI Shopping Concierge for Kapruka.lk
 
 **A full-screen, multilingual (English · සිංහල · Tanglish) AI shopping agent built on the public Kapruka MCP server.**
 
