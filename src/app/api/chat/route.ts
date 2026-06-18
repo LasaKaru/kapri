@@ -17,6 +17,8 @@ async function applyTranslation(res: NextResponse, targetLang: Lang): Promise<Ne
   if (translated.chips.length > 0) {
     data.chips = translated.chips
   }
+  data.lang = targetLang
+  
   
   return NextResponse.json(data)
 }
