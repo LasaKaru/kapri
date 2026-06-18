@@ -64,6 +64,7 @@ async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVi
   const requestParams = (extraMessages: any[] = []): any => ({
     model: MODEL,
     max_tokens: 2048,
+    cache_control: { type: 'ephemeral' },
     system: buildSystemPrompt(cart, lastVimp, favorites, lang),
     messages: [...messages, ...extraMessages],
     betas: ['mcp-client-2025-11-20'],
