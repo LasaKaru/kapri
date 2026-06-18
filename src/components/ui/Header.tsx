@@ -48,8 +48,12 @@ export function Header({ cart = [], count, onCart, favoritesCount, onFavorites, 
               border:'none', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
             <Ico name="globe" size={14} color="rgba(255,255,255,.8)" />
             {lang === 'en'
-              ? <span>EN <span style={{ opacity:.55 }}>· සිං</span></span>
-              : <span><span style={{ opacity:.55 }}>EN ·</span> සිං</span>}
+              ? <span>EN <span style={{ opacity:.55 }}>· සිං · தமி</span></span>
+              : lang === 'si' 
+              ? <span><span style={{ opacity:.55 }}>EN ·</span> සිං <span style={{ opacity:.55 }}>· தமி</span></span>
+              : lang === 'ta'
+              ? <span><span style={{ opacity:.55 }}>EN · සිං ·</span> தமி</span>
+              : <span>{lang.toUpperCase()}</span>}
           </button>
           {onFavorites && (favoritesCount || 0) > 0 && (
             <button onClick={onFavorites} aria-label="Favorites"

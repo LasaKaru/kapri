@@ -1,4 +1,4 @@
-export type Lang = 'en' | 'si' | 'tl'
+export type Lang = 'en' | 'si' | 'ta' | 'sg' | 'tg'
 
 export interface Product {
   id: string

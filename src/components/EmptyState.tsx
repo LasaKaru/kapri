@@ -76,16 +76,19 @@ const ScrollRow = ({ title, items, onClick }: { title: string, items: (Category|
   )
 }
 
-export function EmptyState({ prompts, onPrompt, categories, occasions, onCategory, hasChat, onResumeChat, onClearChat }: EmptyStateProps) {
+export function EmptyState({ prompts, onPrompt, categories, occasions, onCategory, hasChat, onResumeChat, onClearChat, lang }: EmptyStateProps) {
   const [showAvatar, setShowAvatar] = React.useState(false)
   const [typedText, setTypedText] = React.useState('')
-  const fullText = "ආයුබෝවන්! I'm Kapri"
+  
+  const fullText = lang === 'ta' || lang === 'tg' ? "வணக்கம்! I'm Kapri" : lang === 'en' ? "Welcome! I'm Kapri" : "ආයුබෝවන්! I'm Kapri"
 
   React.useEffect(() => {
-    // 1. Float in the avatar
     const t1 = setTimeout(() => setShowAvatar(true), 100)
-    
-    // 2. Start typing the greeting shortly after the avatar appears
+    return () => clearTimeout(t1)
+  }, [])
+
+  React.useEffect(() => {
+    setTypedText('')
     let i = 0
     const t2 = setTimeout(() => {
       const typeInterval = setInterval(() => {
@@ -96,8 +99,8 @@ export function EmptyState({ prompts, onPrompt, categories, occasions, onCategor
       return () => clearInterval(typeInterval)
     }, 500)
 
-    return () => { clearTimeout(t1); clearTimeout(t2) }
-  }, [])
+    return () => clearTimeout(t2)
+  }, [fullText])
 
   return (
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center',

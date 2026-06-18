@@ -223,9 +223,9 @@ export default function App() {
 
     // Detect the language of the user's input
     const inputLang = detectLang(text)
-    // Auto-sync the header toggle when user types in Sinhala or Tanglish
-    if (inputLang === 'si') setLang('si')
-    else if (inputLang === 'tl' && lang === 'en') setLang('si') // Tanglish → show සිං in toggle
+    // Auto-sync the header toggle when user types in local languages
+    if (inputLang === 'si' || inputLang === 'sg') setLang('si')
+    else if (inputLang === 'ta' || inputLang === 'tg') setLang('ta')
 
     const lowerText = text.toLowerCase()
     setTyping(true)
@@ -453,7 +453,7 @@ export default function App() {
         lang={lang}
         count={cartCount}
         favoritesCount={favorites.length}
-        onLang={() => setLang(l => l === 'en' ? 'si' : 'en')}
+        onLang={() => setLang(l => l === 'en' ? 'si' : l === 'si' ? 'ta' : 'en')}
         onCart={() => setCartOpen(true)}
         onFavorites={() => setFavoritesOpen(true)}
         onLogoClick={() => {

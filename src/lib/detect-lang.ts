@@ -6,8 +6,8 @@
  */
 import type { Lang } from './types'
 
-// Common Sinhala words written in Latin script (Tanglish / Singlish)
-const TANGLISH_HINTS = [
+// Common Sinhala words written in Latin script (Singlish)
+const SINGLISH_HINTS = [
   // common words
   'mata','ekak','ekata','gannako','ganna','hadanna','oya','mama','tikak',
   'hoyanna','hoya','neda','denna','puluwan','kawda','monawada','genna',
@@ -33,25 +33,52 @@ const TANGLISH_HINTS = [
   'ow','hari','naha','nehe','epa','ewa','meka','eka','okkoma',
 ]
 
+// Common Tamil words written in Latin script (Tanglish)
+const TANGLISH_HINTS = [
+  // common words
+  'vanakkam', 'nanri', 'eppadi', 'irukkeenga', 'nalla', 'romba',
+  'venum', 'kudu', 'vaanga', 'po', 'sapadu', 'kadai', 'enna',
+  'sollu', 'sollunga', 'inga', 'anga', 'ethu', 'edhu', 'yaru',
+  'eppo', 'ippo', 'appo', 'panna', 'pannunga',
+  // family
+  'amma', 'appa', 'annan', 'thambi', 'akka', 'thangachi',
+  // shopping
+  'vilai', 'vaanganum', 'kondu', 'edutthu', 'vanga',
+  // greetings
+  'anbu', 'vaazhthukkal', 'iniya',
+]
+
 const SI_RE = /[඀-෿]/
+const TA_RE = /[\u0B80-\u0BFF]/
 
 /**
  * Detect the language of a text string.
  *
  * Priority:
  *  1. Any Sinhala Unicode character → 'si'
- *  2. ≥1 Tanglish keyword hit → 'tl'
- *  3. Otherwise → 'en'
+ *  2. Any Tamil Unicode character → 'ta'
+ *  3. ≥1 Singlish keyword hit → 'sg'
+ *  4. ≥1 Tanglish keyword hit → 'tg'
+ *  5. Otherwise → 'en'
  */
 export function detectLang(text: string): Lang {
   if (SI_RE.test(text)) return 'si'
+  if (TA_RE.test(text)) return 'ta'
+  
   const t = ' ' + text.toLowerCase() + ' '
-  let hits = 0
-  for (const w of TANGLISH_HINTS) {
-    if (t.includes(' ' + w + ' ') || t.includes(' ' + w + '.') || t.includes(' ' + w + '?') || t.includes(' ' + w + '!')) hits++
-    else if (t.includes(w)) hits += 0.5
+  let sgHits = 0
+  for (const w of SINGLISH_HINTS) {
+    if (t.includes(' ' + w + ' ') || t.includes(' ' + w + '.') || t.includes(' ' + w + '?') || t.includes(' ' + w + '!')) sgHits++
+    else if (t.includes(w)) sgHits += 0.5
   }
-  return hits >= 1 ? 'tl' : 'en'
+  if (sgHits >= 1) return 'sg'
+
+  let tgHits = 0
+  for (const w of TANGLISH_HINTS) {
+    if (t.includes(' ' + w + ' ') || t.includes(' ' + w + '.') || t.includes(' ' + w + '?') || t.includes(' ' + w + '!')) tgHits++
+    else if (t.includes(w)) tgHits += 0.5
+  }
+  return tgHits >= 1 ? 'tg' : 'en'
 }
 
 /**
@@ -65,7 +92,7 @@ export function computeEffectiveLang(
   preferredLang: Lang | undefined
 ): Lang {
   // Non-English detection = user explicitly chose a language by typing
-  if (detectedLang === 'si' || detectedLang === 'tl') return detectedLang
+  if (detectedLang === 'si' || detectedLang === 'ta' || detectedLang === 'sg' || detectedLang === 'tg') return detectedLang
   // Otherwise honour the header toggle preference
   if (preferredLang === 'si') return 'si'
   return preferredLang ?? 'en'
