@@ -71,14 +71,14 @@ export function detectLang(text: string): Lang {
     if (t.includes(' ' + w + ' ') || t.includes(' ' + w + '.') || t.includes(' ' + w + '?') || t.includes(' ' + w + '!')) sgHits++
     else if (t.includes(w)) sgHits += 0.5
   }
-  if (sgHits >= 1) return 'sg'
-
   let tgHits = 0
   for (const w of TANGLISH_HINTS) {
     if (t.includes(' ' + w + ' ') || t.includes(' ' + w + '.') || t.includes(' ' + w + '?') || t.includes(' ' + w + '!')) tgHits++
     else if (t.includes(w)) tgHits += 0.5
   }
-  return tgHits >= 1 ? 'tg' : 'en'
+  
+  if (sgHits === 0 && tgHits === 0) return 'en'
+  return tgHits > sgHits ? 'tg' : 'sg'
 }
 
 /**
