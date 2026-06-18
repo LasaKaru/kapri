@@ -112,8 +112,8 @@ async function callGemini(history: HistoryMessage[], cart: CartItem[], lastVimp?
 // ═══════════════════════════════════════════════════════════
 // Tier 3 — Scripted engine (always works, no API key needed)
 // ═══════════════════════════════════════════════════════════
-function callScriptedEngine(lastText: string, cartCount: number, lastVimp?: string | null, effectiveLang?: Lang): NextResponse {
-  const result = respond(lastText, { cartCount, lastVimp, effectiveLang })
+async function callScriptedEngine(lastText: string, cartCount: number, lastVimp?: string | null, effectiveLang?: Lang): Promise<NextResponse> {
+  const result = await respond(lastText, { cartCount, lastVimp, effectiveLang })
   return NextResponse.json(result)
 }
 
@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
     }
 
     // — Tier 3: Scripted engine —
-    const res = callScriptedEngine(lastText, cartCount, lastVimp, effectiveLang)
+    const res = await callScriptedEngine(lastText, cartCount, lastVimp, effectiveLang)
     return await applyTranslation(res, effectiveLang)
 
   } catch (err) {

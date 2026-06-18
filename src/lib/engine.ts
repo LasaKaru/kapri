@@ -127,20 +127,20 @@ const CITY_ALIASES: Record<string, string> = {
   'mt lavinia':'Mount Lavinia', 'mount lavinia':'Mount Lavinia', 'මවුන්ට් ලැවීනියා':'Mount Lavinia',
 }
 
-function findCity(text: string) {
+async function findCity(text: string) {
   const lower = text.toLowerCase()
   // Check aliases first (includes Sinhala names)
   for (const [alias, canonical] of Object.entries(CITY_ALIASES)) {
     if (lower.includes(alias)) {
       // Try cached cities first (real MCP rates), then hardcoded
-      const cached = getCachedCities()
+      const cached = await getCachedCities()
       const fromCache = cached.find(c => c.name === canonical)
       if (fromCache) return fromCache
       return CITIES.find(c => c.name === canonical) ?? null
     }
   }
   // Fallback to direct name match — check cache then hardcoded
-  const cached = getCachedCities()
+  const cached = await getCachedCities()
   const fromCache = cached.find(c => new RegExp('\\b' + c.name + '\\b', 'i').test(text))
   if (fromCache) return fromCache
   return CITIES.find((c) => new RegExp('\\b' + c.name + '\\b', 'i').test(text)) ?? null
@@ -150,15 +150,15 @@ function findCity(text: string) {
 //  Smart Search — scored, multi-factor, fuzzy
 // ═══════════════════════════════════════════════════════════
 
-function search({ cat, occ, budget, keywords, sort }: {
+async function search({ cat, occ, budget, keywords, sort }: {
   cat: string | null
   occ: string | null
   budget: { min: number | null; max: number | null }
   keywords?: string[]
   sort?: 'price_asc' | 'price_desc' | 'popular'
-}): Product[] {
+}): Promise<Product[]> {
   // Try cached products first (real Kapruka MCP data), then hardcoded
-  const cached = getCachedProducts()
+  const cached = await getCachedProducts()
   const source = cached.length > 0 ? cached : CATALOG
   let list = source.slice()
 
@@ -250,19 +250,19 @@ function detectSort(text: string): 'price_asc' | 'price_desc' | 'popular' | unde
 //  Response Helpers
 // ═══════════════════════════════════════════════════════════
 
-const occLabel: Record<string, Record<Lang, string>> = {
-  mother:      { en:'your amma', si:'ඔබේ අම්මාට', tl:'oyage ammata' },
-  father:      { en:'your dad', si:'ඔබේ තාත්තාට', tl:'oyage thaatthatata' },
-  birthday:    { en:'the birthday', si:'උපන්දිනයට', tl:'birthday ekata' },
-  anniversary: { en:'the anniversary', si:'සංවත්සරයට', tl:'anniversary ekata' },
-  valentine:   { en:'your special someone', si:'ඔබේ ආදරවන්තයාට/ආදරවන්තිමට', tl:'oyage special kenata' },
-  avurudu:     { en:'Avurudu', si:'අවුරුදුට', tl:'Avurudu ekata' },
-  graduation:  { en:'the graduate', si:'උපාධිධාරියාට', tl:'graduate ekata' },
-  wedding:     { en:'the wedding', si:'මංගල්‍යයට', tl:'wedding ekata' },
-  sympathy:    { en:'a difficult time', si:'දුෂ්කර අවස්ථාවට', tl:'difficult time ekata' },
-  christmas:   { en:'Christmas', si:'නත්තලට', tl:'Christmas ekata' },
-  baby:        { en:'the new baby', si:'අලුත් බබාට', tl:'aluth babata' },
-  housewarming:{ en:'the new home', si:'අලුත් ගෙදරට', tl:'aluth gedarata' },
+const occLabel: Record<string, Partial<Record<Lang, string>>> = {
+  mother:      { en:'your amma', si:'ඔබේ අම්මාට', sg:'oyage ammata' },
+  father:      { en:'your dad', si:'ඔබේ තාත්තාට', sg:'oyage thaatthatata' },
+  birthday:    { en:'the birthday', si:'උපන්දිනයට', sg:'birthday ekata' },
+  anniversary: { en:'the anniversary', si:'සංවත්සරයට', sg:'anniversary ekata' },
+  valentine:   { en:'your special someone', si:'ඔබේ ආදරවන්තයාට/ආදරවන්තිමට', sg:'oyage special kenata' },
+  avurudu:     { en:'Avurudu', si:'අවුරුදුට', sg:'Avurudu ekata' },
+  graduation:  { en:'the graduate', si:'උපාධිධාරියාට', sg:'graduate ekata' },
+  wedding:     { en:'the wedding', si:'මංගල්‍යයට', sg:'wedding ekata' },
+  sympathy:    { en:'a difficult time', si:'දුෂ්කර අවස්ථාවට', sg:'difficult time ekata' },
+  christmas:   { en:'Christmas', si:'නත්තලට', sg:'Christmas ekata' },
+  baby:        { en:'the new baby', si:'අලුත් බබාට', sg:'aluth babata' },
+  housewarming:{ en:'the new home', si:'අලුත් ගෙදරට', sg:'aluth gedarata' },
 }
 
 function formatPrice(n: number): string {
@@ -273,7 +273,7 @@ function formatPrice(n: number): string {
 //  Main respond() function
 // ═══════════════════════════════════════════════════════════
 
-export function respond(text: string, ctx: { cartCount: number; lastVimp?: string | null; effectiveLang?: Lang }): EngineResponse {
+export async function respond(text: string, ctx: { cartCount: number; lastVimp?: string | null; effectiveLang?: Lang }): Promise<EngineResponse> {
   // Use the session's effective language when available; fall back to per-message detection
   const lang = ctx.effectiveLang || detectLang(text)
   const t = ' ' + text.toLowerCase().trim() + ' '
@@ -286,18 +286,18 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
     if (vimp) return { lang, text: L(lang, {
       en: `Found it! 📦 Here's where ${vimp.toUpperCase()} is right now:`,
       si: `සොයාගත්තා! 📦 ${vimp.toUpperCase()} මෙන්න දැන් තියෙන තැන:`,
-      tl: `Hambauna! 📦 ${vimp.toUpperCase()} menna dan thiyena thena:` }),
+      sg: `Hambauna! 📦 ${vimp.toUpperCase()} menna dan thiyena thena:` }),
       card: { type: 'tracker', number: vimp.toUpperCase() },
       chips: ['Shop something new', 'Talk to support'] }
     if (ctx.lastVimp) return { lang, text: L(lang, {
       en: 'Sure! Here\'s your most recent order. To track any other order, just paste its VIMP number. 📦',
       si: 'හරි! ඔබ අවසන් වරට සිදු කළ ඇණවුම මෙන්න. වෙනත් ඇණවුමක් පිළිබඳව සොයා බැලීමට, එහි VIMP අංකය මෙහි ඇතුළත් කරන්න. 📦',
-      tl: 'Hari! Menna oyage aluthma order eka. Wena order ekak track karanna VIMP number eka athulath karanna. 📦' }),
+      sg: 'Hari! Menna oyage aluthma order eka. Wena order ekak track karanna VIMP number eka athulath karanna. 📦' }),
       card: { type: 'tracker', number: ctx.lastVimp }, chips: ['Shop something new'] }
     return { lang, text: L(lang, {
       en: "Happy to track that! 📦 What's your order number? It starts with VIMP… (you'll find it in your confirmation email).",
       si: 'අපි ඒක Track කරලා බලමු!! 📦 ඔයාගේ ඇණවුම් අංකය මොකක්ද? ඒක පටන් ගන්නේ VIMP… වලින් (ඔයාට ආපු Confirmation ඊමේල් එකේ ඒක තියෙනවා.).',
-      tl: 'Track karannam! 📦 Oyage order number eka mokakda? VIMP… valin patan gannawa (email eke thiyenawa).' }),
+      sg: 'Track karannam! 📦 Oyage order number eka mokakda? VIMP… valin patan gannawa (email eke thiyenawa).' }),
       chips: ['VIMP34456CB2', 'Shop something new'] }
   }
 
@@ -306,12 +306,12 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
     if (cartCount === 0) return { lang, text: L(lang, {
       en: "Your cart's empty right now! 🛍️ Tell me who you're shopping for and I'll find something lovely first.",
       si: 'ඔබේ සාප්පු කූඩයෙහි දැනට කිසිවක් නොමැත! 🛍️ ඔබ මේක ගන්නේ කාටද කියලා කියන්නකෝ. මම ඔයාට ගැළපෙනම දේ හොයලා දෙන්නම්.',
-      tl: 'Oyage cart eke danata kisima deyak naha! 🛍️ oya meka ganne katada kiyannako. mama oyata galapenama de hoyala dennam.' }),
+      sg: 'Oyage cart eke danata kisima deyak naha! 🛍️ oya meka ganne katada kiyannako. mama oyata galapenama de hoyala dennam.' }),
       chips: ['Gifts for mom', 'Birthday cakes', 'Avurudu hamper'] }
     return { lang, action: 'checkout', text: L(lang, {
       en: "Let's get this delivered! Just a few quick details… 🚚",
       si: 'ඔබේ ඇණවුම නිවසටම ගෙන්වා ගනිමු! ඒ සඳහා අවශ්‍ය තව කුඩා විස්තර කිහිපයක් පමණයි… 🚚',
-      tl: 'Api meka deliver karamu! Podi vistara tikak awashyai… 🚚' }) }
+      sg: 'Api meka deliver karamu! Podi vistara tikak awashyai… 🚚' }) }
   }
 
   // ─── 3. Greetings & Help ──────────────────────────────
@@ -319,7 +319,7 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
     return { lang, text: L(lang, {
       en: "Hi, I'm Kapri — your Kapruka shopping concierge! 🛍️ Tell me who you're shopping for and your budget, and I'll find the perfect gift, sort delivery to any city in Sri Lanka, and take you all the way to a pay link. What are we shopping for today? — Kapri 🛍️",
       si: 'ආයුබෝවන්! මම Kapri — ඔබේ Kapruka සාප්පු සහායක! 🛍️ ඔබ තෑග්ග ගන්නේ කා වෙනුවෙන්ද සහ ඔබේ බජට් එක මට කියන්න. මම ඔබට ගැළපෙනම තෑග්ග හොයලා දීලා, ලංකාවේ ඕනෑම නගරයකට ඩිලිවරි (Delivery) පහසුකම සකසලා, මුදල් ගෙවන පියවර දක්වාම ඔබට සහාය වෙන්නම්. අපි අද මොනවද මිලදී ගන්නේ? — Kapri 🛍️',
-      tl: 'Ayubowan! Mama Kapri — oyage Kapruka shopping concierge! 🛍️ Oya meka ganne kaatada, oyage budget eka mokakda kiyanna — mama hondama gift eka hoyala, Lankawe onema town ekakata delivery eka arrange karala, payment link eka wenakanma oyata udaw karannam. Api ada monawada ganne? — Kapri 🛍️' }),
+      sg: 'Ayubowan! Mama Kapri — oyage Kapruka shopping concierge! 🛍️ Oya meka ganne kaatada, oyage budget eka mokakda kiyanna — mama hondama gift eka hoyala, Lankawe onema town ekakata delivery eka arrange karala, payment link eka wenakanma oyata udaw karannam. Api ada monawada ganne? — Kapri 🛍️' }),
       chips: ['Gifts for mom under Rs. 5,000', 'Birthday cakes', 'Avurudu hamper', 'What categories do you have?'] }
   }
 
@@ -328,7 +328,7 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
     return { lang, text: L(lang, {
       en: "You're very welcome! 💜 It was lovely helping you. Come back anytime you need a gift — I'll be right here! — Kapri 🛍️",
       si: 'ඔබට උදව් කිරීමට ලැබීම මටත් ලොකු සතුටක්! 💜 තෑග්ගක් අවශ්‍ය වුණු ඕනෑම වෙලාවක ආයෙත් එන්න — මම ඔබට උදව් කරන්න මෙතැනම ඉන්නවා! — Kapri 🛍️',
-      tl: 'Oyata udaw karanna labunu eka mata loku sathutak! 💜 Gift ekak ona wunu onema welawaka aayeth enna — mama udaw karanna methanama innawa! — Kapri 🛍️' }),
+      sg: 'Oyata udaw karanna labunu eka mata loku sathutak! 💜 Gift ekak ona wunu onema welawaka aayeth enna — mama udaw karanna methanama innawa! — Kapri 🛍️' }),
       chips: ['Shop something new', 'Track my order'] }
   }
 
@@ -336,7 +336,7 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
     return { lang, text: L(lang, {
       en: "Goodbye! 👋 Enjoy your gifts, and remember — anytime you need something special delivered across Sri Lanka, Kapri's got you! 🛍️🇱🇰",
       si: 'සුබ දවසක්! 👋 ඔබේ තෑගිවලින් සතුටු වන්න. ඒ වගේම මතක තබාගන්න — ලංකාවේ ඕනෑම තැනකට විශේෂ යමක් යවන්න අවශ්‍ය වුණු ඕනෑම වෙලාවක, ඔබ වෙනුවෙන් Kapri ඉන්නවා! 🛍️🇱🇰',
-      tl: 'Suba dawasak! 👋 Oyage gifts enjoy karanna, e wagemai — Lankawe onema thanakata special deyak deliver karanna ona wunu onema welawaka, oya wenuwen Kapri innawa! 🛍️🇱🇰' }),
+      sg: 'Suba dawasak! 👋 Oyage gifts enjoy karanna, e wagemai — Lankawe onema thanakata special deyak deliver karanna ona wunu onema welawaka, oya wenuwen Kapri innawa! 🛍️🇱🇰' }),
       chips: ['Shop something new'] }
   }
 
@@ -346,7 +346,7 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
     return { lang, text: L(lang, {
       en: `Here's what I can help you with! 🗂️ We have: ${catList}. Just tell me a category or describe what you're looking for!`,
       si: `මට ඔබට සහාය විය හැකි දේවල් මෙන්න! 🗂️ අප සතුව තිබෙනවා  ${catList}. මෙයින් ඔබට අවශ්‍ය Category එකක් හෝ ඔබ සොයන දේ මට කියන්න!`,
-      tl: `Mata oyata udaw karanna puluwan deewal menna! 🗂️ Api gawa thiyenawa: ${catList}. Methanin category ekak hari, oya hoyana deyak hari mata kiyanna!` }),
+      sg: `Mata oyata udaw karanna puluwan deewal menna! 🗂️ Api gawa thiyenawa: ${catList}. Methanin category ekak hari, oya hoyana deyak hari mata kiyanna!` }),
       chips: ['Cakes', 'Flowers', 'Chocolates', 'Hampers', 'Electronics', 'Jewellery'] }
   }
 
@@ -359,17 +359,17 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
     return { lang, text: L(lang, {
       en: "Ooh, I love a good hamper! 🎁 Here's a little something I curated — add it all in one tap:",
       si: 'ෂා! මමත් ලස්සන Hampers වලට ගොඩක් ආසයි! 🎁 මෙන්න මම ඔබ වෙනුවෙන්ම තෝරාගත් අපූරු එකතුවක් — මේ සියල්ලම එකම Tap එකකින් එකතු කරගන්න:',
-      tl: 'Shaa! Mamath lassana hampers walata godak aasai! 🎁 Menna mama oya wenuwenma thoragaththu apuru ekathuwak — me okkoma eka tap ekakin add karaganna:' }),
+      sg: 'Shaa! Mamath lassana hampers walata godak aasai! 🎁 Menna mama oya wenuwenma thoragaththu apuru ekathuwak — me okkoma eka tap ekakin add karaganna:' }),
       card: { type: 'bundle', key }, chips: ['Show me cakes', 'Add a gift message', 'Checkout'] }
   }
 
   // ─── 7. Delivery to a city ────────────────────────────
-  const city = findCity(text)
+  const city = await findCity(text)
   if (city && /deliver|delivery|send|ship|ගේන්න|genna|yawanna|dispatch|courier/i.test(text)) {
     return { lang, text: L(lang, {
       en: `Good news! 🚚 Here's the delivery details for ${city.name}:`,
       si: `මෙන්න හොඳ ආරංචියක්! 🚚 ${city.name} සඳහා ඩිලිවරි (Delivery) විස්තර මෙන්න:`,
-      tl: `Suba aranchiyak! 🚚 ${city.name} walata delivery wisthara menna :` }),
+      sg: `Suba aranchiyak! 🚚 ${city.name} walata delivery wisthara menna :` }),
       card: { type: 'delivery', city: city.name, rate: city.rate, slow: city.slow, available: true,
               date: city.slow ? 'In 2–3 days' : 'Tomorrow' },
       chips: ['Find a gift', 'Change city', 'Checkout'] }
@@ -380,7 +380,7 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
     return { lang, text: L(lang, {
       en: `I see you mentioned ${city.name}! 📍 Delivery there costs ${formatPrice(city.rate)} flat${city.slow ? ' (takes 2–3 days for this area)' : ' (next-day available)'}. Would you like me to find some gifts to send there?`,
       si: `ඔබ ${city.name} ගැන සඳහන් කළා නේද! 📍 එහෙට ඩිලිවරි (Delivery) ගාස්තුව ${formatPrice(city.rate)} flat${city.slow ? ' (මෙම ප්‍රදේශයට දින 2–3ක් ගත වේ)' : ' (ඊළඟ දවසේම ලබා දිය හැකියි)'}. මම එහෙට යවන්න පුළුවන් අපූරු තෑගි ටිකක් හොයලා දෙන්නද?`,
-      tl: `oya ${city.name} gana kiyala thibuna neda! 📍 Eheta delivery charge eka ${formatPrice(city.rate)} flat${city.slow ? ' (me patthata dawas 2-3k yanawa)' : ' (heta unath deliver karanna puluwan)'}. Mama eheta yawanna puluwan gifts tikak hoyala dennada?` }),
+      sg: `oya ${city.name} gana kiyala thibuna neda! 📍 Eheta delivery charge eka ${formatPrice(city.rate)} flat${city.slow ? ' (me patthata dawas 2-3k yanawa)' : ' (heta unath deliver karanna puluwan)'}. Mama eheta yawanna puluwan gifts tikak hoyala dennada?` }),
       chips: [`Gifts to ${city.name}`, 'Birthday cakes', 'Flowers'] }
   }
 
@@ -391,24 +391,24 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
       return { lang, text: L(lang, {
         en: "Great idea! 🎂 You can add a personalized icing message (up to 120 characters) to any cake. Just add a cake to your cart, and you'll see the icing text field in the cart drawer. Here are some ideas:\n\n• \"Happy Birthday [Name]! 🎉\"\n• \"Happy Anniversary Love 💕\"\n• \"Congratulations! 🎓\"\n• \"Suba Aluth Avuruddak! 🇱🇰\"",
         si: 'නියම අදහසක්! 🎂 ඕනෑම කේක් එකකට ඔබේ කැමැත්තට අනුව අයිසිං සටහනක් (අකුරු 120ක් දක්වා) එකතු කරන්න පුළුවන්. කේක් එක Cart එකට එකතු කළ විට, එහි ඇති Icing Text Field එක ඔබට දැකගන්න පුළුවන්:.',
-        tl: 'Niyama adahasak! 🎂 Onema cake ekakata oyage kamaththa anuwa icing message ekak (characters 120k wenakan) add karanna puluwan. Cake eka cart ekata add karaama, eke thiyena icing text field eka oyata penewi.' }),
+        sg: 'Niyama adahasak! 🎂 Onema cake ekakata oyage kamaththa anuwa icing message ekak (characters 120k wenakan) add karanna puluwan. Cake eka cart ekata add karaama, eke thiyena icing text field eka oyata penewi.' }),
         chips: ['Show me cakes', 'Birthday cakes', 'Add to cart'] }
     }
     return { lang, text: L(lang, {
       en: "I'd love to help you write the perfect note! ✍️ Add an item to your cart, then at checkout I'll help you craft a warm, witty, or formal message — in any language. Here are some starters:\n\n• 🎂 \"Wishing you the sweetest birthday ever!\"\n• 💐 \"Thank you for being amazing, Amma.\"\n• 🇱🇰 \"සුබ අලුත් අවුරුද්දක්! සෞඛ්‍ය සම්පත් ලැබේවා.\"\n• 💝 \"You make every day special. Love always.\"",
       si: 'ඔබට අපූරු සුබපැතුම් සටහනක් නිර්මාණය කරගන්න මම ආසාවෙන් උදව් කරන්නම්! ✍️ ඔබට අවශ්‍ය දේ Cart එකට එකතු කරන්න, ඉන්පසු Checkout කරන අවස්ථාවේදී ඕනෑම භාෂාවකින් ආදරණීය, විනෝදාත්මක හෝ විධිමත් පණිවිඩයක් සකසා ගන්න මම සහාය වෙන්නම්.',
-      tl: 'Lassanama note ekak liyanna mama aasaawen udaw karannam! ✍️ Item ekak cart ekata add karanna, iitapasse checkout weddi onema bhashawakin adaraniya, fun hari formal hari message ekak hadaganna mama udaw karannam.' }),
+      sg: 'Lassanama note ekak liyanna mama aasaawen udaw karannam! ✍️ Item ekak cart ekata add karanna, iitapasse checkout weddi onema bhashawakin adaraniya, fun hari formal hari message ekak hadaganna mama udaw karannam.' }),
       chips: ['Gifts for mom', 'Birthday cakes', 'Checkout'] }
   }
 
   // ─── 9. Comparison / recommendation ───────────────────
   if (/which.*better|compare|recommend|suggest|best|hodama|koyda honda|vs|versus|difference between/i.test(text)) {
     const cat = findCat(t)
-    const items = search({ cat, occ: null, budget: { min: null, max: null }, sort: 'popular' })
+    const items = await search({ cat, occ: null, budget: { min: null, max: null }, sort: 'popular' })
     return { lang, text: L(lang, {
       en: `Here are my top recommendations${cat ? ` in ${cat}` : ''} — the most popular picks! ⭐ I've sorted them by what customers love most:`,
       si: `මෙන්න ${cat ? cat + ' සඳහා ' : ''}මගේ හොඳම නිර්දේශ — වඩාත්ම ජනප්‍රිය තේරීම්! ⭐ පාරිභෝගිකයින් වඩාත් කැමති පිළිවෙළට මම මේවා සකස් කර තිබෙනවා: ⭐`,
-      tl: `$Menna {cat ? cat + ' sadaha ' : ''}mage hondama recommendations — godakma popular picks! ⭐ Customersla wadiyenma kamathi piliwelata mama mewa sort karala thiyenawa: ⭐` }),
+      sg: `$Menna {cat ? cat + ' sadaha ' : ''}mage hondama recommendations — godakma popular picks! ⭐ Customersla wadiyenma kamathi piliwelata mama mewa sort karala thiyenawa: ⭐` }),
       card: { type: 'carousel', items },
       chips: ['Under Rs. 5,000', 'Show me flowers', 'Make it a hamper'] }
   }
@@ -417,7 +417,7 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
   if (/more|another|different|other|else|options|alternatives|wenath|wenama|thawa/i.test(text) && !/more.*info|more.*detail/i.test(text)) {
     const cat = findCat(t) || null
     const occ = findOcc(t) || null
-    const items = search({ cat, occ, budget: { min: null, max: null } })
+    const items = await search({ cat, occ, budget: { min: null, max: null } })
     // Shuffle for variety
     for (let i = items.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -426,7 +426,7 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
     return { lang, text: L(lang, {
       en: "Sure! Here are some different picks for you 🔄 — tap Add to pop one in your cart:",
       si: 'හරි! මෙන්න ඔබ සඳහා වෙනත් තේරීම් කිහිපයක් 🔄 — එය Cart එකට එකතු කරගැනීමට "Add" මත Tap කරන්න:',
-      tl: 'Hari! Menna oyata wenas picks tikak 🔄 — Cart ekata add karaganna "Add" eka tap karanna:' }),
+      sg: 'Hari! Menna oyata wenas picks tikak 🔄 — Cart ekata add karaganna "Add" eka tap karanna:' }),
       card: { type: 'carousel', items },
       chips: ['Show me cakes', 'Under Rs. 5,000', 'Make it a hamper'] }
   }
@@ -436,7 +436,7 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
     return { lang, text: L(lang, {
       en: "Delivery is a flat fee per order (not per item!) 🚚\n\nHere are some sample rates:\n• Colombo / Nugegoda / Dehiwala — Rs. 350\n• Negombo — Rs. 450\n• Kandy — Rs. 550\n• Galle — Rs. 600\n• Jaffna / Batticaloa — Rs. 850 (2–3 days)\n\nTell me a city and I'll get you the exact rate!",
       si: 'ඩිලිවරි (Delivery) ගාස්තුව අයවන්නේ සම්පූර්ණ ඇණවුමටමයි (එක් එක් භාණ්ඩයට වෙන වෙනම නොවේ!) 🚚\n\nසඳහා ගාස්තු මෙන්න:\n• කොළඹ / නුගේගොඩ — රු. 350\n• නේගොම්බ — රු. 450\n• මහනුවර — රු. 550\n• ගාල්ල — රු. 600\n• යාපනය / මඩකලපුව — රු. 850 (දින 2–3)\n\nඔබට අවශ්‍ය නගරය මට කියන්න, මම හරියටම ගාස්තුව කියන්නම්!',
-      tl: 'Delivery charge eka ayawenne mulu order ekatama ekawarai (eka eka item ekata wena wenama newei!) 🚚\n\nCities kihipayak sadaha rates menna:\n• Colombo / Nugegoda / Dehiwala — Rs. 350\n• Negombo — Rs. 450\n• Kandy — Rs. 550\n• Galle — Rs. 600\n• Jaffna / Batticaloa — Rs. 850 (2–3 days)\n\nOyata ona city eka mata kiyanna, mama exact rate eka kiyannam!' }),
+      sg: 'Delivery charge eka ayawenne mulu order ekatama ekawarai (eka eka item ekata wena wenama newei!) 🚚\n\nCities kihipayak sadaha rates menna:\n• Colombo / Nugegoda / Dehiwala — Rs. 350\n• Negombo — Rs. 450\n• Kandy — Rs. 550\n• Galle — Rs. 600\n• Jaffna / Batticaloa — Rs. 850 (2–3 days)\n\nOyata ona city eka mata kiyanna, mama exact rate eka kiyannam!' }),
       chips: ['Deliver to Colombo', 'Deliver to Kandy', 'Deliver to Galle'] }
   }
 
@@ -446,7 +446,7 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
     return { lang, text: L(lang, {
       en: `${isRefund ? "For refunds, returns, or cancellations, please contact Kapruka directly" : "Kapruka's here to help"}! 📞\n\n**24/7 Hotline:** +94 117 551 111\n**WhatsApp (24/7):** +94 707 117 777\n**Order by phone:** 1337 (within Sri Lanka)\n**Global Shop:** WhatsApp +94 707 115 533\n**Head Office:** 147 Old Kottawa Road, Nugegoda\n\nThey'll sort you out in no time! — Kapri`,
       si: `${isRefund ? "මුදල් ආපසු ලබාගැනීම්, භාණ්ඩ මාරු කිරීම් හෝ ඇණවුම් අවලංගු කිරීම් සඳහා කරුණාකර සෘජුවම Kapruka හා සම්බන්ධ වන්න" : "ඔබට සහාය වීමට Kapruka සූදානම්"}! 📞\n\n**24/7 ක්ෂණික ඇමතුම්:** +94 117 551 111\n**WhatsApp (24/7):** +94 707 117 777\n**දුරකථනයෙන් ඇණවුම් කිරීමට:** 1337 (ලංකාව ඇතුළත)\n**Global Shop:** WhatsApp +94 707 115 533\n**ප්‍රධාන කාර්යාලය:** 147 පැරණි කොට්ටාව පාර, නුගේගොඩ\n\nඔවුන් ඔබට ඉක්මනින්ම සහාය වනු ඇත! `,
-      tl: `${isRefund ? "Refunds, returns, hari cancellations walata karunakara kelinma Kapruka contact karanna" : "Oyata udaw karanna Kapruka lahasthiyi"}! 📞\n\n**24/7 Hotline:** +94 117 551 111\n**WhatsApp (24/7):** +94 707 117 777\n**Phone eken order karanna:** 1337 (Lankawa athulatha)\n**Global Shop:** WhatsApp +94 707 115 533\n**Head Office:** 147 Old Kottawa Road, Nugegoda\n\nEyal oyata ikmanatama udaw karawi! — Kapri` }),
+      sg: `${isRefund ? "Refunds, returns, hari cancellations walata karunakara kelinma Kapruka contact karanna" : "Oyata udaw karanna Kapruka lahasthiyi"}! 📞\n\n**24/7 Hotline:** +94 117 551 111\n**WhatsApp (24/7):** +94 707 117 777\n**Phone eken order karanna:** 1337 (Lankawa athulatha)\n**Global Shop:** WhatsApp +94 707 115 533\n**Head Office:** 147 Old Kottawa Road, Nugegoda\n\nEyal oyata ikmanatama udaw karawi! — Kapri` }),
       chips: ['Track my order', 'Shop something new'] }
   }
 
@@ -456,13 +456,13 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
       return { lang, text: L(lang, {
         en: "Your cart is empty right now! 🛒 Let me help you find something amazing. What are you looking for?",
         si: 'ඔබේ Cart එක දැනට හිස්! 🛒 ඔබට ගැළපෙනම අපූරු දෙයක් තෝරාගන්න මම උදව් කරන්නම්. ඔබ මොන වගේ දෙයක්ද හොයන්නේ?',
-        tl: 'Oyage cart eka danata his! 🛒 Oyata galapenama lassana deyak hoyaganna mama udaw karannam. Oya mona wage deyakda hoyanne?' }),
+        sg: 'Oyage cart eka danata his! 🛒 Oyata galapenama lassana deyak hoyaganna mama udaw karannam. Oya mona wage deyakda hoyanne?' }),
         chips: ['Birthday cakes', 'Flowers for mom', 'Gift hamper'] }
     }
     return { lang, action: 'open_cart', text: L(lang, {
       en: `You have ${cartCount} item${cartCount > 1 ? 's' : ''} in your cart! 🛒 Tap the cart icon to review, or say "checkout" when you're ready.`,
       si: `ඔබේ Cart එකේ අයිතම ${cartCount}ක් තිබෙනවා! 🛒 ඒවා නැවත පරීක්ෂා කිරීමට Cart අයිකනය (Icon) මත Tap කරන්න, නැත්නම් ඔබ සූදානම් වූ පසු "checkout" ලෙස මට කියන්න.`,
-      tl: `Oyage cart eke items ${cartCount}k thiyenawa! 🛒 Ewa check karanna cart icon eka tap karanna, nathnam oya lahasthi wunama "checkout" kiyala mata kiyanna.` }),
+      sg: `Oyage cart eke items ${cartCount}k thiyenawa! 🛒 Ewa check karanna cart icon eka tap karanna, nathnam oya lahasthi wunama "checkout" kiyala mata kiyanna.` }),
       chips: ['Checkout', 'Add more items', 'Clear cart'] }
   }
 
@@ -473,7 +473,7 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
       return { lang, text: L(lang, {
         en: `Great eye for deals! 🏷️ Here are items currently on sale — save up to ${Math.max(...discounted.map(p => Math.round(((p.was! - p.price) / p.was!) * 100)))}% off:`,
         si: `ඔබ හොඳම Deals තෝරාගන්න දක්ෂයෙක්! 🏷️ දැනට Sale එකේ (වට්ටම් සහිතව) තිබෙන අයිතම මෙන්න — මෙයින් ${Math.max(...discounted.map(p => Math.round(((p.was! - p.price) / p.was!) * 100)))}% ක් දක්වා ඔබේ මුදල් ඉතිරි කරගන්න:`,
-        tl: `Oya hondama deals thoraganna harima dakshayek! 🏷️ Danata sale eke thiyena items menna — meyin ${Math.max(...discounted.map(p => Math.round(((p.was! - p.price) / p.was!) * 100)))}% k dakwa oyage salli ithiri karaganna:` }),
+        sg: `Oya hondama deals thoraganna harima dakshayek! 🏷️ Danata sale eke thiyena items menna — meyin ${Math.max(...discounted.map(p => Math.round(((p.was! - p.price) / p.was!) * 100)))}% k dakwa oyage salli ithiri karaganna:` }),
         card: { type: 'carousel', items: discounted.slice(0, 8) },
         chips: ['Under Rs. 5,000', 'Show me cakes', 'Checkout'] }
     }
@@ -484,7 +484,7 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
     return { lang, text: L(lang, {
       en: "Great question! 🌸 Cakes and flowers are **perishable** — they're made/arranged fresh on the day of delivery. Here's what to know:\n\n• 🎂 **Cakes** — made to order, best consumed same day. Refrigerate if keeping overnight.\n• 💐 **Flowers** — hand-arranged morning of delivery. Put in water immediately.\n• 📦 **Chocolates, hampers, gifts** — non-perishable, no special care needed.\n\nWhen you check delivery for perishable items, I'll flag any date-specific warnings!",
       si: 'හොඳ ප්‍රශ්නයක්! 🌸 කේක් සහ මල් කියන්නේ ඉක්මනින් නරක් විය හැකි (perishable) දේවල් — ඒවා ඩිලිවරි (Delivery) කරන දවසේම නැවුම්ව තමයි සකස් කරන්නේ. මේ ගැන ඔබ දැනගත යුතු දේවල් මෙන්න:\n\n• 🎂 **කේක්** — ඇණවුමට අනුව පමණක් සාදන නිසා, එදිනම ආහාරයට ගැනීම වඩාත් සුදුසුයි. ඊළඟ දවසට තබාගන්නවා නම් ශීතකරණයේ (Fridge) තබන්න.\n• 💐 **මල්** — ඩිලිවරි කරන දවසේ උදෑසන තමයි සකස් කරන්නේ. ලැබුණු වහාම වතුරකට දමා තබන්න.\n• 📦 **චොකලට්, හැම්පර්ස් (Hampers) සහ තෑගි** — මේවා ඉක්මනින් නරක් නොවන නිසා විශේෂ සැලකිල්ලක් අවශ්‍ය වෙන්නේ නැහැ.\n\nඔබ මේ වගේ ඉක්මනින් නරක් විය හැකි දේවල් සඳහා ඩිලිවරි දිනයක් තෝරන විට, දිනය සම්බන්ධයෙන් යම් විශේෂ දැනුවත් කිරීමක් තිබේ නම් මම ඔබට ඒ බව කියන්නම්!',
-      tl: 'Honda prashnayak! 🌸 Cakes saha flowers kiyanne ikmanin narak wenna puluwan (perishable) deewal — ewa delivery karana dawasema aluthinma hadala/arrange karala thamai ewanne. Oya dänaganna oone deewal menna:\n\n• 🎂 **Cakes** — order ekata anuwa hadana nisa, e dawasema kaana eka hondai. Pahuwadaata thiyagannawa nam fridge eke danna.\n• 💐 **Flowers** — delivery karana dawase ude thamai arrange karanne. Labunu gaman wathura ekakata danna.\n• 📦 **Chocolates, hampers, gifts** — meewa ikmanin narak wenne nathi nisa, vishesha salakillak aawashya wenne naha.\n\nOya me wage perishable items delivery karanna dawasak thoranakota, e dawasata adala monawa hari warnings thiyenawa nam mama oyata kiyannam!' }),
+      sg: 'Honda prashnayak! 🌸 Cakes saha flowers kiyanne ikmanin narak wenna puluwan (perishable) deewal — ewa delivery karana dawasema aluthinma hadala/arrange karala thamai ewanne. Oya dänaganna oone deewal menna:\n\n• 🎂 **Cakes** — order ekata anuwa hadana nisa, e dawasema kaana eka hondai. Pahuwadaata thiyagannawa nam fridge eke danna.\n• 💐 **Flowers** — delivery karana dawase ude thamai arrange karanne. Labunu gaman wathura ekakata danna.\n• 📦 **Chocolates, hampers, gifts** — meewa ikmanin narak wenne nathi nisa, vishesha salakillak aawashya wenne naha.\n\nOya me wage perishable items delivery karanna dawasak thoranakota, e dawasata adala monawa hari warnings thiyenawa nam mama oyata kiyannam!' }),
       chips: ['Show me cakes', 'Order flowers', 'Non-perishable gifts'] }
   }
 
@@ -496,7 +496,7 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
   const keywords = extractKeywords(text)
 
   if (cat || occ || budget.max || budget.min || sort || /gift|present|buy|find|show|need|want|තෑග|gift ekak|baduwak|ganna|hoyanna|looking for/i.test(text)) {
-    const items = search({ cat, occ, budget, keywords, sort })
+    const items = await search({ cat, occ, budget, keywords, sort })
 
     const occText = occ ? (occLabel[occ]?.[lang] || occLabel[occ]?.en || occ) : null
     const budgetText = budget.max
@@ -506,7 +506,7 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
     const bridge = L(lang, {
       en: `Here are some lovely picks${occText ? ' for ' + occText : ''}${budgetText ? ' ' + budgetText : ''}${cat ? ' in ' + cat : ''} 🎁 — tap Add to drop one in your cart:`,
       si: `මෙන්න${occText ? ' ' + occText + ' සඳහා' : ''}${budgetText ? ' ' + budgetText : ''}${cat ? ' ' + cat + ' වලින්' : ''} අපූරු තේරීම් කිහිපයක් 🎁 — Cart එකට එකතු කරගැනීමට "Add" මත Tap කරන්න:`,
-      tl: `Menna${occText ? ' ' + occText + ' wenuwen' : ''}${budgetText ? ' ' + budgetText : ''}${cat ? ' ' + cat + ' walin' : ''} lassana picks tikak 🎁 — Cart ekata add karaganna "Add" eka tap karanna:`,
+      sg: `Menna${occText ? ' ' + occText + ' wenuwen' : ''}${budgetText ? ' ' + budgetText : ''}${cat ? ' ' + cat + ' walin' : ''} lassana picks tikak 🎁 — Cart ekata add karaganna "Add" eka tap karanna:`,
     })
 
     const chips = ['Start over']
@@ -520,11 +520,11 @@ export function respond(text: string, ctx: { cartCount: number; lastVimp?: strin
   }
 
   // ─── 17. Fallback — always show something ─────────────
-  const items = search({ cat: null, occ: null, budget: { min: null, max: null } })
+  const items = await search({ cat: null, occ: null, budget: { min: null, max: null } })
   return { lang, text: L(lang, {
     en: "I want to get this just right! 💜 Tell me a little more — who's it for, roughly your budget, and any occasion? Meanwhile, here are some all-time favourites:",
     si: 'මට ඔබට හරියටම ගැළපෙන දේ තෝරලා දෙන්න ඕනෙ! 💜 ඒ නිසා මට තව විස්තර ටිකක් කියන්න — මේ තෑග්ග කා වෙනුවෙන්ද, ඔබේ බජට් එක දළ වශයෙන් කීයක් වගේද, සහ මේක මොන වගේ අවස්ථාවක් (Occasion) සඳහාද? ඒ අතරතුර, හැමෝම ගොඩක්ම කැමති අපූරු තේරීම් කිහිපයක් මෙන්න:',
-    tl: 'Mata oyata hariyatama galapena de thorala denna oone! 💜 E nisa mata thawa wisthara tikak kiyanna — me gift eka kaatada, oyage budget eka dala washayen kiyak wageda, saha meka mona wage occasion ekakatada? E atharathura, hamoma godakma kamathi all-time favourites tikak menna:' }),
+    sg: 'Mata oyata hariyatama galapena de thorala denna oone! 💜 E nisa mata thawa wisthara tikak kiyanna — me gift eka kaatada, oyage budget eka dala washayen kiyak wageda, saha meka mona wage occasion ekakatada? E atharathura, hamoma godakma kamathi all-time favourites tikak menna:' }),
     card: { type: 'carousel', items },
     chips: ['Gifts for mom', 'Birthday cakes', 'Avurudu hamper', 'What categories do you have?'] }
 }
