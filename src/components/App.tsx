@@ -453,7 +453,7 @@ export default function App() {
         lang={lang}
         count={cartCount}
         favoritesCount={favorites.length}
-        onLang={() => setLang(l => l === 'en' ? 'si' : l === 'si' ? 'ta' : 'en')}
+        onLang={setLang}
         onCart={() => setCartOpen(true)}
         onFavorites={() => setFavoritesOpen(true)}
         onLogoClick={() => {

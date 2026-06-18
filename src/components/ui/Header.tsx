@@ -10,7 +10,7 @@ interface HeaderProps {
   favoritesCount?: number
   onFavorites?: () => void
   lang: Lang
-  onLang: () => void
+  onLang: (lang: Lang) => void
   onLogoClick?: () => void
   onBack?: () => void
   soundEnabled?: boolean
@@ -42,19 +42,35 @@ export function Header({ cart = [], count, onCart, favoritesCount, onFavorites, 
           </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          <button onClick={onLang} title="Switch language"
-            style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 11px', borderRadius:'var(--radius-md)',
-              background:'rgba(255,255,255,0.1)', color:'#fff', fontSize:12, fontWeight:600,
-              border:'none', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
-            <Ico name="globe" size={14} color="rgba(255,255,255,.8)" />
-            {lang === 'en'
-              ? <span>EN <span style={{ opacity:.55 }}>· සිං · தமி</span></span>
-              : lang === 'si' 
-              ? <span><span style={{ opacity:.55 }}>EN ·</span> සිං <span style={{ opacity:.55 }}>· தமி</span></span>
-              : lang === 'ta'
-              ? <span><span style={{ opacity:.55 }}>EN · සිං ·</span> தமி</span>
-              : <span>{lang.toUpperCase()}</span>}
-          </button>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <Ico name="globe" size={14} color="rgba(255,255,255,.8)" style={{ position: 'absolute', left: 10, pointerEvents: 'none' }} />
+            <select
+              value={lang}
+              onChange={(e) => onLang(e.target.value as Lang)}
+              title="Switch language"
+              style={{
+                appearance: 'none',
+                background: 'rgba(255,255,255,0.1)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 'var(--radius-md)',
+                padding: '7px 28px 7px 30px',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'var(--font-sans)',
+                outline: 'none'
+              }}
+            >
+              <option value="en" style={{ color: '#000' }}>English</option>
+              <option value="si" style={{ color: '#000' }}>සිංහල</option>
+              <option value="ta" style={{ color: '#000' }}>தமிழ்</option>
+            </select>
+            <div style={{ position: 'absolute', right: 10, pointerEvents: 'none', display: 'flex' }}>
+              {/* <Ico name="chevron-down" size={12} color="rgba(255,255,255,.5)" /> */}
+              <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L5 5L9 1" stroke="rgba(255,255,255,.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </div>
+          </div>
           {onFavorites && (favoritesCount || 0) > 0 && (
             <button onClick={onFavorites} aria-label="Favorites"
               style={{ position:'relative', width:40, height:40, display:'flex', alignItems:'center',
