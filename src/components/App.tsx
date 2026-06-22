@@ -1,6 +1,5 @@
 'use client'
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import confetti from 'canvas-confetti'
 import { Header } from './ui/Header'
 import { SeasonBanner } from './ui/SeasonBanner'
 import { Chip } from './ui/Chip'
@@ -179,14 +178,6 @@ export default function App() {
       return [...prev, { p, qty, icing }]
     })
     
-    // Confetti burst
-    confetti({
-      particleCount: 50,
-      spread: 60,
-      origin: { y: 0.9 },
-      colors: ['#442A73', '#7452B2', '#F9DB09', '#FBE840']
-    })
-    
     showToast(`${p.name.split('—')[0].trim()} added to cart 🛍️`)
   }, [showToast])
 
@@ -293,7 +284,7 @@ export default function App() {
     const SR = w.SpeechRecognition || w.webkitSpeechRecognition
     if (!SR) { showToast('Voice input not supported in this browser'); return }
     const rec = new SR()
-    rec.lang = lang === 'si' ? 'si-LK' : 'en-US'
+    rec.lang = lang === 'si' ? 'si-LK' : lang === 'ta' ? 'ta-LK' : 'en-US'
     rec.interimResults = false
     rec.onresult = (e: { results: { [0]: { [0]: { transcript: string } } } }) => {
       const transcript = e.results[0][0].transcript

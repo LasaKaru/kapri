@@ -48,6 +48,8 @@ export interface OrderData {
    *  When present, the CheckoutCard "Pay Now" button opens this instead of the
    *  simulated client-side payment used by the scripted demo flow. */
   url?: string
+  /** ISO timestamp for when the checkout URL expires (typically 1 hour after creation). */
+  expiresAt?: string
 }
 
 export interface OrderItem {

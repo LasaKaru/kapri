@@ -73,6 +73,9 @@ body {
 .kapri-hide-sm { }
 @media (max-width: 560px) { .kapri-hide-sm { display: none !important; } }
 
+.kapri-lang-select { padding: 7px 28px 7px 30px !important; }
+@media (max-width: 560px) { .kapri-lang-select { padding: 7px 28px 7px 12px !important; } }
+
 @media (min-width: 600px) {
   .kapri-modal { height: min(720px, 92%) !important; border-radius: var(--radius-xl); }
 }

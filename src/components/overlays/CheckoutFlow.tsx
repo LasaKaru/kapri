@@ -54,7 +54,7 @@ const GIFT_REWRITES = {
     {
       en: "I was going to get you something expensive, but then I remembered my presence is a present. Here’s a little something anyway! 😉",
       si: "ගණන් වැඩි දෙයක් ගන්න හිටියේ, ඒත් මාව ලැබුණු එකම ලොකු තෑග්ගක් නේ. කොහොම වුණත් මේක තියාගන්න! 😉",
-      tl: "Ganan wædi deyak ganna hitiye, eeth mawa labunu ekama loku thæggak ne. Kohoma unath meka thiyaganna! 😉",
+      tl: "Ganan wadi deyak ganna hitiye, eeth mawa labunu ekama loku thæggak ne. Kohoma unath meka thiyaganna! 😉",
     },
     {
       en: "If this isn’t exactly what you wanted, please pretend enthusiastically. Just kidding, I know you’ll love it! 😂🎉",
@@ -253,6 +253,7 @@ export function CheckoutFlow({ items, giftMessage, lang, onClose, onPlaced }: Ch
           subtotal: o.summary?.items_total ?? subtotal,
           total: o.summary?.grand_total ?? (subtotal + cityObj.rate),
           perishable: hasPerishable,
+          expiresAt: o.expires_at,
         })
         return
       }

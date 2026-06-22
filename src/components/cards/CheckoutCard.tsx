@@ -20,12 +20,26 @@ interface CheckoutCardProps {
 }
 
 export function CheckoutCard({ order, paid, onPay }: CheckoutCardProps) {
-  const [secs, setSecs] = useState(3600)
+  const [secs, setSecs] = useState(() => {
+    if (order.expiresAt) {
+      const ms = new Date(order.expiresAt).getTime() - Date.now()
+      return Math.max(0, Math.floor(ms / 1000))
+    }
+    return 3600
+  })
 
   useEffect(() => {
-    const t = setInterval(() => setSecs((s) => Math.max(0, s - 1)), 1000)
+    const t = setInterval(() => {
+      setSecs((prev) => {
+        if (order.expiresAt) {
+          const ms = new Date(order.expiresAt).getTime() - Date.now()
+          return Math.max(0, Math.floor(ms / 1000))
+        }
+        return Math.max(0, prev - 1)
+      })
+    }, 1000)
     return () => clearInterval(t)
-  }, [])
+  }, [order.expiresAt])
 
   const mm = String(Math.floor(secs / 60)).padStart(2, '0')
   const ss = String(secs % 60).padStart(2, '0')
@@ -66,18 +80,20 @@ export function CheckoutCard({ order, paid, onPay }: CheckoutCardProps) {
             <Ico name="check-circle" size={18} color="var(--success)" /> Payment received — thank you! 🎉
           </div>
         ) : (
-          <button onClick={() => onPay?.(order)}
+          <button onClick={() => onPay?.(order)} disabled={secs === 0}
             style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:14, borderRadius:'var(--radius-md)',
-              background:'var(--yellow-400)', color:'var(--purple-700)', fontWeight:700, fontSize:16, border:'none',
-              cursor:'pointer', fontFamily:'var(--font-sans)' }}>
-            Pay Now on Kapruka <Ico name="arrow-right" size={16} />
+              background: secs === 0 ? 'var(--line)' : 'var(--yellow-400)',
+              color: secs === 0 ? 'var(--muted)' : 'var(--purple-700)',
+              fontWeight:700, fontSize:16, border:'none',
+              cursor: secs === 0 ? 'not-allowed' : 'pointer', fontFamily:'var(--font-sans)', transition:'background .2s' }}>
+            {secs === 0 ? 'Link Expired' : 'Pay Now on Kapruka'} <Ico name="arrow-right" size={16} />
           </button>
         )}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, fontSize:12,
-          color: paid ? 'var(--success)' : warn ? 'var(--warn)' : 'var(--muted)',
-          fontWeight: (warn || paid) ? 600 : 400 }}>
-          <Ico name={paid ? 'check' : 'clock'} size={12} />
-          {paid ? 'Paid · tracking enabled' : `Price locked · ${mm}:${ss}`}
+          color: paid ? 'var(--success)' : (secs === 0 ? 'var(--error)' : warn ? 'var(--warn)' : 'var(--muted)'),
+          fontWeight: (warn || paid || secs === 0) ? 600 : 400 }}>
+          <Ico name={paid ? 'check' : secs === 0 ? 'x' : 'clock'} size={12} />
+          {paid ? 'Paid · tracking enabled' : secs === 0 ? 'Payment link expired' : `Price locked · ${mm}:${ss}`}
         </div>
       </div>
     </div>

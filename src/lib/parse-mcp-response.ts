@@ -106,6 +106,7 @@ function normalise(obj: Record<string, any>): EngineResponse {
         total: parsePrice(o.total ?? o.grand_total),
         perishable: Boolean(o.perishable),
         url: o.url ?? o.checkout_url ?? undefined,
+        expiresAt: o.expiresAt ?? o.expires_at ?? undefined,
       },
     }
   }

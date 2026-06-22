@@ -30,31 +30,37 @@ export function Header({ cart = [], count, onCart, favoritesCount, onFavorites, 
               <Ico name="chevron-left" size={18} />
             </button>
           )}
-          <button onClick={() => { if(onLogoClick) onLogoClick(); else window.location.href='https://www.kapruka.com/'; }} 
-            style={{ background:'none', border:'none', padding:0, cursor:'pointer', display:'flex' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/kapruka-logo.jpg" alt="Kapruka" style={{ height:30, width:'auto', borderRadius:5 }} />
-          </button>
-          <div style={{ width:1, height:22, background:'rgba(255,255,255,0.2)' }} />
-          <div>
-            <div style={{ fontSize:12.5, color:'var(--yellow-400)', fontWeight:700, lineHeight:1 }}>Kapri</div>
-            <div style={{ fontSize:9.5, color:'rgba(255,255,255,0.6)', lineHeight:1, marginTop:2, letterSpacing:'.02em' }}>AI Shopping Concierge</div>
+          {!onBack && (
+            <>
+              <button onClick={() => { if(onLogoClick) onLogoClick(); else window.location.href='https://www.kapruka.com/'; }} 
+                style={{ background:'none', border:'none', padding:0, cursor:'pointer', display:'flex' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/kapruka-logo.jpg" alt="Kapruka" style={{ height:25, width:'auto', borderRadius:1 }} />
+              </button>
+              <div style={{ width:1, height:22, background:'rgba(255,255,255,0.2)' }} />
+            </>
+          )}
+          <div style={{ flexShrink: 0 }}>
+            <div style={{ fontSize:12.5, color:'var(--yellow-400)', fontWeight:700, lineHeight:1, whiteSpace:'nowrap' }}>Kapri</div>
+            <div style={{ fontSize:9.5, color:'rgba(255,255,255,0.6)', lineHeight:1, marginTop:2, letterSpacing:'.02em', whiteSpace:'nowrap' }}>AI Shopping Concierge</div>
           </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <Ico name="globe" size={14} color="rgba(255,255,255,.8)" style={{ position: 'absolute', left: 10, pointerEvents: 'none' }} />
+            <div className="kapri-hide-sm" style={{ display: 'contents' }}>
+              <Ico name="globe" size={14} color="rgba(255,255,255,.8)" style={{ position: 'absolute', left: 10, pointerEvents: 'none' }} />
+            </div>
             <select
               value={lang}
               onChange={(e) => onLang(e.target.value as Lang)}
               title="Switch language"
+              className="kapri-lang-select"
               style={{
                 appearance: 'none',
                 background: 'rgba(255,255,255,0.1)',
                 color: '#fff',
                 border: 'none',
                 borderRadius: 'var(--radius-md)',
-                padding: '7px 28px 7px 30px',
                 fontSize: 12,
                 fontWeight: 600,
                 cursor: 'pointer',

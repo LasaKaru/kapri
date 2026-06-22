@@ -15,9 +15,11 @@ interface ComposerProps {
 }
 
 export function Composer({ value, onChange, onSend, onMic, recording, lang, image, onImage }: ComposerProps) {
+  const [pendingAction, setPendingAction] = React.useState<'mic' | 'camera' | null>(null)
+
   const placeholder = lang === 'en'
-    ? 'Type in English, Sinhala, or Tanglish…'
-    : 'සිංහලෙන්, English, හෝ Tanglish ලියන්න…'
+    ? 'Type in English, Sinhala, Tamil, or Tanglish…'
+    : 'සිංහලෙන්, English, தமிழ் හෝ Tanglish ලියන්න…'
 
   return (
     <div style={{ flexShrink:0, padding:'12px 16px', background:'#fff', borderTop:'1px solid var(--line)', zIndex:10 }}>
@@ -45,19 +47,22 @@ export function Composer({ value, onChange, onSend, onMic, recording, lang, imag
           }
           e.target.value = ''
         }} />
-        <label htmlFor="kapri-camera" title="Upload image"
+        <button type="button" onClick={() => setPendingAction('camera')} title="Upload image"
           style={{ width:44, height:44, flexShrink:0, borderRadius:'var(--radius-lg)', border:'none',
             display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
             background: 'var(--purple-50)', color: 'var(--purple-700)', transition: 'background .2s' }}>
           <Ico name="camera" size={18} sw={2.5} />
-        </label>
+        </button>
         <input value={value} onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder} className="sinhala-text"
           style={{ flex:1, minWidth:0, borderRadius:'var(--radius-lg)', border:'1px solid var(--line)', padding:'12px 16px',
             fontSize:14, color:'var(--ink)', background:'var(--surface)', outline:'none', fontFamily:'var(--font-sans)' }}
           onFocus={(e) => { e.target.style.borderColor='var(--purple-700)'; e.target.style.background='#fff'; e.target.style.boxShadow='0 0 0 3px var(--focus-ring)' }}
           onBlur={(e) => { e.target.style.borderColor='var(--line)'; e.target.style.background='var(--surface)'; e.target.style.boxShadow='none' }} />
-        <button type="button" onClick={onMic} aria-label="Voice input"
+        <button type="button" onClick={() => {
+            if (recording) { onMic(); return; }
+            setPendingAction('mic')
+          }} aria-label="Voice input"
           style={{ width:44, height:44, flexShrink:0, borderRadius:'var(--radius-lg)', border:'none',
             display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
             background: recording ? 'var(--error)' : 'var(--purple-100)',
@@ -82,8 +87,48 @@ export function Composer({ value, onChange, onSend, onMic, recording, lang, imag
             ))}
           </div>
           <span className="sinhala-text" style={{ fontSize:12, color:'var(--error)', fontWeight:600 }}>
-            Listening… speak in සිංහල or English · tap mic to stop
+            Listening… speak in {lang === 'si' ? 'සිංහල' : lang === 'ta' ? 'தமிழ்' : 'English'} · tap mic to stop
           </span>
+        </div>
+      )}
+
+      {pendingAction && (
+        <div style={{ position:'fixed', inset:0, zIndex:100, display:'flex', alignItems:'center', justifyContent:'center',
+          background:'rgba(36,21,68,0.45)', backdropFilter:'blur(3px)', animation:'kapri-up .3s var(--ease-out)' }}>
+          <div style={{ width:'90%', maxWidth:340, background:'#fff', borderRadius:'var(--radius-lg)', padding:24, boxShadow:'var(--shadow-xl)' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
+              <div style={{ width:40, height:40, borderRadius:999, background:'var(--purple-100)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <Ico name={pendingAction === 'mic' ? 'mic' : 'camera'} size={20} color="var(--purple-700)" />
+              </div>
+              <h3 style={{ margin:0, color:'var(--ink)', fontSize:18, fontWeight:700 }}>
+                {pendingAction === 'mic' ? 'Voice Input Tip 🎤' : 'Visual Search Tip 📸'}
+              </h3>
+            </div>
+            
+            {pendingAction === 'mic' ? (
+              <div style={{ margin:'0 0 20px', fontSize:14, color:'var(--muted)', lineHeight:1.5 }}>
+                For the best voice recognition and accurate shopping results, we highly recommend speaking in <strong style={{ color:'var(--purple-700)' }}>English</strong>. Kapri AI understands it best!
+              </div>
+            ) : (
+              <div style={{ margin:'0 0 20px', fontSize:14, color:'var(--muted)', lineHeight:1.5 }}>
+                For the best visual search results, please upload a <strong style={{ color:'var(--purple-700)' }}>clear, well-lit image</strong> of the item you are looking for.
+              </div>
+            )}
+
+            <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
+              <button onClick={() => setPendingAction(null)} style={{ padding:'10px 16px', borderRadius:'var(--radius-md)', border:'none', background:'var(--surface)', color:'var(--ink)', fontWeight:600, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+                Cancel
+              </button>
+              <button onClick={() => {
+                const act = pendingAction
+                setPendingAction(null)
+                if (act === 'mic') onMic()
+                if (act === 'camera') document.getElementById('kapri-camera')?.click()
+              }} style={{ padding:'10px 16px', borderRadius:'var(--radius-md)', border:'none', background:'var(--yellow-400)', color:'var(--purple-700)', fontWeight:700, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+                Continue
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
