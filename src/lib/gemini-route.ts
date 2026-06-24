@@ -11,6 +11,7 @@ import { createMCPClient } from '@ai-sdk/mcp'
 import { z } from 'zod'
 import { buildSystemPrompt } from './system-prompt'
 import { parseClaudeResponse } from './parse-mcp-response'
+import { enrichEngineResponse } from './product-cache'
 import type { CartItem, Product, Lang } from './types'
 
 export type HistoryMessage = { role: 'user' | 'assistant'; text: string; image?: string }
@@ -160,7 +161,8 @@ export async function callGemini(
   cart: CartItem[],
   lastVimp?: string | null,
   favorites: Product[] = [],
-  lang: Lang = 'en'
+  lang: Lang = 'en',
+  kvOrderContext: string = ''
 ): Promise<Record<string, unknown>> {
   const mcpClient = await createMCPClient({
     transport: { type: 'http', url: 'https://mcp.kapruka.com/mcp' },
@@ -197,7 +199,7 @@ export async function callGemini(
       try {
         const { text } = await generateText({
           model: google(modelName),
-          system: buildSystemPrompt(cart, lastVimp, favorites, lang),
+          system: buildSystemPrompt(cart, lastVimp, favorites, lang, kvOrderContext),
           messages,
           tools,
           maxOutputTokens: 2048,
@@ -216,7 +218,9 @@ export async function callGemini(
       throw lastError
     }
 
-    return parseClaudeResponse(resultText) as unknown as Record<string, unknown>
+    const result = parseClaudeResponse(resultText)
+    await enrichEngineResponse(result)
+    return result as unknown as Record<string, unknown>
   } finally {
     await mcpClient.close()
   }

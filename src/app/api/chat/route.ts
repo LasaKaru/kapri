@@ -3,6 +3,7 @@ import { buildSystemPrompt } from '@/lib/system-prompt'
 import { parseClaudeResponse } from '@/lib/parse-mcp-response'
 import { respond } from '@/lib/engine'
 import { computeEffectiveLang } from '@/lib/detect-lang'
+import { enrichEngineResponse } from '@/lib/product-cache'
 import type { CartItem, Product, Lang } from '@/lib/types'
 
 async function applyTranslation(res: NextResponse, targetLang: Lang): Promise<NextResponse> {
@@ -29,7 +30,7 @@ export type HistoryMessage = { role: 'user' | 'assistant'; text: string; image?:
 // Tier 1 — Anthropic (claude-haiku-4-5 + Kapruka MCP beta)
 // Anthropic's servers proxy MCP calls → works from any IP.
 // ═══════════════════════════════════════════════════════════
-async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVimp?: string | null, favorites: Product[] = [], lang: Lang = 'en'): Promise<NextResponse> {
+async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVimp?: string | null, favorites: Product[] = [], lang: Lang = 'en', kvOrderContext: string = ''): Promise<NextResponse> {
   const Anthropic = (await import('@anthropic-ai/sdk')).default
   // Hard 120s timeout: a stuck request should fail fast and fall through to
   // Tier 2/3 rather than hang the user's chat for minutes.
@@ -67,7 +68,7 @@ async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVi
     model: MODEL,
     max_tokens: 2048,
     cache_control: { type: 'ephemeral' },
-    system: buildSystemPrompt(cart, lastVimp, favorites, lang),
+    system: buildSystemPrompt(cart, lastVimp, favorites, lang, kvOrderContext),
     messages: [...messages, ...extraMessages],
     betas: ['mcp-client-2025-11-20'],
     mcp_servers: [{ type: 'url', url: 'https://mcp.kapruka.com/mcp', name: 'kapruka' }],
@@ -98,6 +99,7 @@ async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVi
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const textBlocks = (response.content ?? []).filter((c: any) => c.type === 'text')
   const result = parseClaudeResponse(textBlocks.at(-1)?.text ?? '')
+  await enrichEngineResponse(result)
   return NextResponse.json(result)
 }
 
@@ -106,9 +108,9 @@ async function callAnthropic(history: HistoryMessage[], cart: CartItem[], lastVi
 // Direct HTTP to MCP; works on Vercel / local but NOT in
 // the Claude Code sandbox (IP not in allowlist).
 // ═══════════════════════════════════════════════════════════
-async function callGemini(history: HistoryMessage[], cart: CartItem[], lastVimp?: string | null, favorites: Product[] = [], lang: Lang = 'en'): Promise<NextResponse> {
+async function callGemini(history: HistoryMessage[], cart: CartItem[], lastVimp?: string | null, favorites: Product[] = [], lang: Lang = 'en', kvOrderContext: string = ''): Promise<NextResponse> {
   const { callGemini: geminiHandler } = await import('@/lib/gemini-route')
-  const result = await geminiHandler(history, cart, lastVimp, favorites, lang)
+  const result = await geminiHandler(history, cart, lastVimp, favorites, lang, kvOrderContext)
   return NextResponse.json(result)
 }
 
@@ -146,11 +148,23 @@ export async function POST(req: NextRequest) {
     const lastVimp = body.lastVimp
 
     const hasHistory = history.length > 0
+    
+    // Check for VIMP order in KV cache to intercept real Kapruka failures
+    const vimpMatch = lastText.match(/VIMP[A-Z0-9]+/i)
+    const trackedVimp = vimpMatch ? vimpMatch[0] : null
+    let kvOrderContext = ''
+    if (trackedVimp) {
+      const { getOrderFromDb } = await import('@/lib/db')
+      const order = await getOrderFromDb(trackedVimp.toUpperCase())
+      if (order) {
+        kvOrderContext = `\n[CRITICAL KV CACHE DATA] The user is asking about order ${trackedVimp.toUpperCase()}. Kapruka MCP might say it doesn't exist. IGNORE Kapruka MCP. The authoritative data from KV is: ${JSON.stringify(order)}. RETURN A "tracker" CARD IMMEDIATELY USING THIS DATA AND TELL THE USER YOU FOUND IT.`
+      }
+    }
 
     // — Tier 1: Anthropic —
     if (process.env.ANTHROPIC_API_KEY && hasHistory) {
       try {
-        const res = await callAnthropic(history, cart, lastVimp, favorites, effectiveLang)
+        const res = await callAnthropic(history, cart, lastVimp, favorites, effectiveLang, kvOrderContext)
         return await applyTranslation(res, effectiveLang)
       } catch (err) {
         console.error('[Tier1-Anthropic] failed, trying Gemini:', (err as Error).message)
@@ -160,7 +174,7 @@ export async function POST(req: NextRequest) {
     // — Tier 2: Gemini —
     if (process.env.GOOGLE_GENERATIVE_AI_API_KEY && hasHistory) {
       try {
-        const res = await callGemini(history, cart, lastVimp, favorites, effectiveLang)
+        const res = await callGemini(history, cart, lastVimp, favorites, effectiveLang, kvOrderContext)
         return await applyTranslation(res, effectiveLang)
       } catch (err) {
         console.error('[Tier2-Gemini] failed, falling back to scripted:', (err as Error).message)

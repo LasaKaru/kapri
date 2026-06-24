@@ -12,7 +12,7 @@ function buildFavSummary(favs: Product[]): string {
   return `\nUSER'S FAVORITES:\n${favs.map(f => `• ${f.name} (${f.id}) Rs. ${f.price.toLocaleString('en-LK')}`).join('\n')}\nYou can proactively mention these if they fit the user's goal (e.g. "I noticed you saved that chocolate cake…").\n`
 }
 
-export function buildSystemPrompt(cart: CartItem[], lastVimp?: string | null, favorites: Product[] = [], lang: Lang = 'en'): string {
+export function buildSystemPrompt(cart: CartItem[], lastVimp?: string | null, favorites: Product[] = [], lang: Lang = 'en', kvOrderContext: string = ''): string {
   return `You are Kapri, Kapruka's premium AI shopping concierge.
 Kapruka is Sri Lanka's largest e-commerce & marketplace — gifts, cakes, flowers, BUT ALSO electronics, groceries, fashion, home essentials & thousands of third-party sellers. Most customers shop for themselves, not just gifts.
 ${lastVimp ? `\n[NOTE] User's most recent order: ${lastVimp}. Use this if they ask to track without specifying a number.` : ''}
@@ -184,6 +184,7 @@ If no card needed: "card": null. Chips: 2-5 word actionable suggestions.
 ## CURRENT STATE
 ${buildCartSummary(cart)}
 ${buildFavSummary(favorites)}
+${kvOrderContext}
 
 Be Kapri. Be warm. Be Sri Lankan. Be opinionated. Every interaction should feel like a delight. 🇱🇰`
 }
