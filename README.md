@@ -266,18 +266,18 @@ surfaces (real `PaymentFrame` & simulated `PaymentSheet` fallback).
 
 ```mermaid
 flowchart TD
-    subgraph PathA [Path A - Conversational (chat)]
+    subgraph PathA ["Path A - Conversational (chat)"]
         A1["User confirms order in chat"] --> A2["/api/chat to Tier 1 Claude Haiku 4.5"]
         A2 --> A3["Claude calls kapruka_check_delivery then kapruka_create_order (sequential - parallel calls deadlock the MCP session)"]
         A3 --> A4["Model returns JSON 'checkout' card: ref + checkout_url + totals"]
     end
 
-    subgraph PathB [Path B - Cart form (CheckoutFlow)]
+    subgraph PathB ["Path B - Cart form (CheckoutFlow)"]
         B1["User fills 4-step form: Recipient to Delivery to Gift to Review"] --> B2["POST /api/orders/create"]
         B2 --> B3["kapruka-mcp.ts raw client: initialize to initialized to tools/call kapruka_create_order"]
         B3 --> B4{"Order created?"}
         B4 -- yes --> B5["onPlaced(order with real url)"]
-        B4 --"no (network / 429 / invalid)"--> B6["Fallback: simulated order (no url) - demo never breaks"]
+        B4 -- "no (network / 429 / invalid)" --> B6["Fallback: simulated order (no url) - demo never breaks"]
     end
 
     A4 --> CC["CheckoutCard in chat - Items / Delivery / Total + 60-min price-lock countdown"]
@@ -285,8 +285,8 @@ flowchart TD
     B6 --> CC
 
     CC --> PAYBTN{"User clicks 'Pay Now on Kapruka' - does order.url exist?"}
-    PAYBTN --"yes - REAL order"--> PF["PaymentFrame - in-app sandboxed iframe loads the real checkout_url"]
-    PAYBTN --"no - simulated fallback"--> PS["PaymentSheet - demo card UI (4242...), fake VIMP"]
+    PAYBTN -- "yes - REAL order" --> PF["PaymentFrame - in-app sandboxed iframe loads the real checkout_url"]
+    PAYBTN -- "no - simulated fallback" --> PS["PaymentSheet - demo card UI (4242...), fake VIMP"]
 
     PF --> KP["Kapruka Secure Payment (kapruka.com) - card / other methods"]
     KP --> EMAIL["Kapruka emails the customer a real VIMP... tracking number"]
@@ -779,139 +779,48 @@ appears for fallback orders that couldn't be placed for real (e.g. rate limit).
 
 ---
 
-## 📋 Changelog
+## 📋 Changelog & Version History
 
-### v1.1 — Real Payments, Haiku 4.5 & Hardening
+A comprehensive log of architectural milestones for the Kapri AI Shopping Concierge, tracking new features, improvements, bug fixes, and documentation updates.
+
+### v1.1.0 — Real Payments, KV Caching & Hardening
 
 #### 💳 Real Checkout & Payments
+- **Cart form places real orders:** `CheckoutFlow` → `/api/orders/create` → `kapruka_create_order` via a new raw Streamable-HTTP MCP client (`src/lib/kapruka-mcp.ts`).
+- **In-app payment:** `PaymentFrame` overlay loads the real Kapruka pay page in a **sandboxed iframe** (no `allow-top-navigation`).
+- **Checkout enhancements:** Added strict **payment expiration time** (60-min price-lock countdown) and real `checkout_url`. Removed redundant add-to-cart effects.
 
-- **Cart form places real orders:** `CheckoutFlow` → `/api/orders/create` → `kapruka_create_order` via a new raw Streamable-HTTP MCP client (`src/lib/kapruka-mcp.ts`); graceful fallback to the simulated flow on failure.
-- **In-app payment:** new `PaymentFrame` overlay loads the real Kapruka pay page in a **sandboxed iframe** (no `allow-top-navigation` — the page can't hijack the app), with an "Open in new tab" fallback for 3-D Secure. The simulated `PaymentSheet` no longer opens for real orders.
-- **Checkout card** carries the real `order_ref`, `checkout_url`, and `summary` totals with the 60-min price-lock countdown.
+#### 🧠 Tier 1 & Performance Optimization
+- Switched to **`claude-haiku-4-5-20251001`**.
+- **Anthropic Prompt Caching:** Added `cache_control: { type: "ephemeral" }` to drastically reduce API costs.
+- **Fixed parallel-call deadlock:** Added `disable_parallel_tool_use: true` to prevent MCP session hanging.
+- **Vercel KV Serverless Caching:** Migrated product tracking memory to Vercel KV for persistent, stateless product caching and tracking numbers.
 
-#### 🧠 Tier 1 — Claude Haiku 4.5 + MCP connector fixes
-
-- Model switched to **`claude-haiku-4-5-20251001`** (~⅓ the cost of Sonnet; verified across all 7 tools).
-- **Fixed the parallel-call deadlock:** `disable_parallel_tool_use` — two simultaneous Kapruka calls hung one of them for the connector's full 300 s timeout; flows now complete in 12–15 s.
-- **Streaming + 120 s timeout + `pause_turn` continuation;** read the **last** text block (the JSON answer), not the first (the preamble).
-- Added the **`mcp_toolset`** entry required by `mcp-client-2025-11-20`.
-
-#### 🔌 MCP contract fixes (both tiers)
-
-- All Gemini Zod schemas wrapped in the server's required **`params`** object (flat args are rejected).
-- `create_order` fields aligned to the live schema: `location_type` (house/apartment/office/other), no email/extra fields (`additionalProperties: false`).
-- System prompt: documented the `checkout` and enriched `tracker` card shapes; removed nonexistent CategoryGrid/DeliveryPicker references.
-
-#### 📦 Live order tracking
-
-- `kapruka_track_order` results now flow into the UI: status → progress stage (0–3), recipient, amount, delivery date — no more demo-only tracker for real VIMP numbers.
-
-#### 📖 Documentation
-
-- New **[`mcp.md`](./mcp.md)**: full integration reference — every tool with live markdown + JSON request/response samples, error shapes, rate limits, and reliability notes.
-
-### v1.0 — Kapruka Agent Challenge Entry
-
-#### ✨ Core AI & Architecture
-
-- **Agentic Chat Engine:** Full-screen, generative UI shopping agent connected to the Kapruka MCP.
-- **3-Tier AI Fallback:** Anthropic → Gemini → Scripted Engine, ensuring 100% uptime.
-- **Multi-lingual System Prompt:** Understands and responds in Sinhala, English, and Tanglish.
-- **Vercel KV Integration:** Redis-backed order storage for tracking demo orders.
-- **Client-Only Rendering:** `next/dynamic` with `ssr: false` eliminates hydration mismatches.
+#### 🌐 Advanced Multi-Language & Voice
+- **Multi-Language & Translation Layer:** Full support for English, Sinhala, **Tamil**, Singlish, and Tanglish. Fixed Tanglish response bugs.
+- **Auto-Detect Overrides Fixed:** Prevented Claude's `{ lang: 'en' }` from locking the dropdown language. Added a global language toggle display for PC/Tab.
+- **Voice integration:** Fixed voice button input issues for Sinhala dictation (`si-LK`).
 
 #### 🛍️ Shopping & Discovery
+- **Live order tracking:** Surfaced `kapruka_track_order` real-time data dynamically into the UI tracking card via KV table lookups.
+- **Product Comparisons & Budget Negotiation:** Introduced dynamic **Compare Mode** (with fixed image fetching bugs) and budget filtering directly using Kapruka MCP tools.
+- **UI Polish:** Disabled Kapruka logo on chat, initialized Bubbles UI with emoji parsing and typing indicators, and created the interactive animated empty state and onboarding overlay.
 
-- **Generative UI Cards:** `<ProductCarousel>`, `<BundleCard>`, `<ProductDetail>` with images, pricing, and stock badges.
-- **Persistent Cart:** localStorage-backed multi-item cart with slide-out drawer and quantity controls.
-- **Voice Input:** Web Speech API with `si-LK` locale for Sinhala voice commands.
-- **Category & Occasion Carousels:** Touch-friendly, horizontally scrolling image rows with swipe buttons.
-- **Seasonal Awareness:** Auto-detects Avurudu, Wesak, Poson, Deepavali, Christmas, Valentine's Day.
+#### 🔌 MCP Contract & Documentation
+- **Static Zod Tool Schemas:** Aligned Gemini tool schemas precisely to Kapruka server requirements (`location_type`, `additionalProperties: false`).
+- **Documentation:** Added `mcp.md` documentation, request/response samples, updated README with no-license and copyrights, and clarified the fallback cascade architecture.
 
-#### 🚚 Checkout & Delivery
+### v1.0.0 — Kapruka Agent Challenge Entry (Initial Release)
 
-- **Multi-Step Checkout:** Accordion overlay — Recipient → Delivery → Sender → Gift Message.
-- **Smart Delivery Validation:** City autocomplete, flat-fee display, 2-day lead time for remote areas.
-- **Perishable Warnings:** Auto-flags fresh cakes/flowers with delivery reminders.
-- **Form Validation:** Real-time regex validation for Sri Lankan mobile numbers (`07X` / `+947X`), address length, and required fields.
+#### ✨ Core AI & Architecture
+- **Agentic Chat Engine:** Full-screen, generative UI shopping agent connected to the Kapruka MCP.
+- **3-Tier AI Fallback:** Anthropic → Gemini → Scripted Engine, ensuring 100% uptime with multi-model Gemini cascade.
+- **Client-Only Rendering:** `next/dynamic` with `ssr: false` eliminates hydration mismatches.
 
-#### 🎁 Post-Purchase
-
+#### 🚚 Features
+- **Generative UI Cards:** `<ProductCarousel>`, `<BundleCard>`, `<ProductDetail>` with persistent multi-item cart.
+- **Checkout & Delivery Validation:** Multi-step checkout overlay, real-time regex validation for Sri Lankan mobile numbers, flat-fee delivery display, perishable warnings.
 - **AI Gift Message Enhancer:** "Magic wand" rewrites messages in Warm, Witty, or Formal tones (EN + Sinhala).
-- **Order Tracking Timeline:** Visual progress tracker with delivery stage indicators.
-- **Graceful Tracking Fallback:** Shows realistic demo data when tracking external orders.
-
----
-
-# Changelog
-
-A comprehensive log of the 69 commits and architectural milestones for the Kapri AI Shopping Concierge, tracking new features, improvements, bug fixes, and documentation updates.
-
-## ✨ New Features
-* **Multi-Tier LLM Architecture:** Implemented a robust 3-tier chat route with Anthropic MCP (Tier 1), Gemini fallback (Tier 2), and Scripted Engine (Tier 3).
-* **Anthropic Prompt Caching:** Added `cache_control: { type: "ephemeral" }` to drastically reduce API costs and improve response times for system prompts.
-* **Vercel KV Serverless Caching:** Migrated product and city memory from a local JSON file to Vercel KV (Upstash Redis) for persistent, stateless memory that survives server restarts.
-* **Multi-Language & Translation Layer:** Added comprehensive language detection and translation middleware for Sinhala Unicode, Tamil Unicode, Singlish, and Tanglish.
-* **Real Kapruka MCP Integration:** Wired the UI checkout form to place real Kapruka orders via the MCP server.
-* **Order Tracking:** Surfaced real `kapruka_track_order` data dynamically into the UI tracking card.
-* **Product Discovery UI:** Built dynamic 'Shop by Category' strip directly linked to the Kapruka MCP, complete with Product Comparisons and Budget Negotiation flows.
-* **Interactive Chat Interface:** Added Bubbles UI with emoji parsing, typing indicators, and a floating Chat/Cart header.
-* **Checkout Flow & Payments:** Built a multi-step checkout component with address validation, delivery scheduling, gift messaging, and a responsive in-app iframe modal for real Kapruka payments.
-* **Analytics:** Integrated Vercel Speed Insights and Analytics instrumentation.
-
-## 🚀 Improvements & Refactors
-* **Gemini Fallback Cascade:** Implemented a multi-model fallback cascade for translation tasks to ensure robust 100% uptime for local languages.
-* **Model Upgrade:** Switched Tier 1 engine to `claude-haiku-4-5-20251001` for faster MCP tool executions.
-* **Asynchronous Scripted Engine:** Refactored the Tier 3 Scripted Engine to be fully asynchronous, enabling it to await data directly from Vercel KV.
-* **Static Zod Tool Schemas:** Implemented static Zod schemas for the Gemini route to mirror the Kapruka MCP tool capabilities seamlessly.
-* **UI & UX Polish:** Initialized core UI architecture, global design tokens, custom SVG `Ico` registry, and an animated onboarding overlay.
-
-## 🐛 Bug Fixes
-* **Language Auto-Detect Override:** Fixed a critical bug where Claude's internal `{ lang: 'en' }` JSON response would override the frontend's auto-detected Sinhala/Tamil state, locking the dropdown language to English.
-* **Singlish vs Tanglish Keyword Clashes:** Fixed the language detection logic by introducing comparative hit-scoring (e.g., `sgHits` vs `tgHits`) to accurately separate Singlish and Tanglish inputs that share similar words.
-* **MCP Parallel-Call Deadlock:** Fixed a stalling issue in the MCP tool execution loop by forcing `disable_parallel_tool_use: true` in Anthropic requests.
-* **Vercel KV Environment Variables:** Fixed corrupted `.env.local` spaces caused by local shell scripts, ensuring Next.js could read `KV_REST_API_URL` and `KV_REST_API_TOKEN` correctly.
-* **Mobile Padding:** Fixed mobile viewport padding in the `EmptyState` component and adjusted the purple neon borders on the Kapri avatar.
-* **MCP Schema Alignment:** Ensured the internal tool calls exactly match the live Kapruka server schema requirements.
-
-## 📚 Documentation
-* **Architecture Overhaul:** Added comprehensive `README.md` complete with Mermaid architecture diagrams, fallback logic explanations, and project strategy.
-* **Deployment Guides:** Created specialized deployment walkthroughs for Netlify and Vercel environments.
-* **API Key Optimization:** Wrote an API key configuration guide to educate developers on cost-effective model usage.
-* **MCP & Testing Docs:** Added `mcp.md` documentation, `submition/.env.example`, and testing instructions for the guest-checkout flow.
-
----
-
-## 📅 Version History
-
-**v1.0.5 - Jun 18, 2026**
-- Refactored Scripted Engine to be fully asynchronous
-- Integrated Vercel KV for persistent, stateless product caching
-- Added Anthropic Prompt Caching (`ephemeral`) to drastically reduce API spend
-- Fixed UI translation bugs and auto-detect overrides locking to English
-
-**v1.0.4 - Jun 17, 2026**
-- Added full support for Sinhala, Tamil, Singlish, and Tanglish
-- Integrated Gemini translation fallback cascade for maximum resilience
-- Fixed Singlish vs Tanglish detection scoring algorithm
-- Replaced header language toggle button with a clean `<select>` dropdown
-
-**v1.0.3 - Jun 15, 2026**
-- Upgraded Anthropic engine to `claude-haiku-4-5-20251001`
-- Wired real Kapruka checkout and payment gateway in a responsive iframe
-- Integrated live Kapruka order tracking directly into the UI card
-- Fixed MCP parallel-call deadlock by disabling concurrent tool use
-
-**v1.0.2 - Jun 10, 2026**
-- Implemented multi-tier 3-stage fallback architecture (Anthropic → Gemini → Scripted)
-- Added dynamic 'Shop by Category' strip via live Kapruka MCP
-- Built interactive Bubbles UI, Product Carousel, and EmptyState components
-- Added automated cart and favorites management
-
-**v1.0.1 - Jun 8, 2026**
-- Initial Release & Design System Handoff
-- Scaffolded Next.js 14 application and global design tokens
-
 
 ## 📜 License
 
