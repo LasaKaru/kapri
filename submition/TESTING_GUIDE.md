@@ -21,5 +21,6 @@ These prompts are specifically designed to showcase Kapri's advanced capabilitie
   3. It will render a Checkout summary card with an exact, calculated estimated total.
 
 ### Test 4: Order Tracking
-**Type:** `"Track my order VIMP8899"`
+**Type:** `"Track my order VPAY827982BA"`
 - **What it tests:** The `kapruka_track_order` endpoint. Kapri will pull the live status of the order directly from the Kapruka backend and render a visual timeline of the delivery progress.
+- `VPAY827982BA` is Kapruka's official test order number — it always returns a real, live tracking response (no purchase needed), so you can demo the full discovery → cart → checkout → tracking journey end to end.

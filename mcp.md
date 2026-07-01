@@ -531,6 +531,11 @@ browser, Kapruka emails a separate **VIMP…** order number — that is what
 
 Status + timestamped progress for a paid order by its **VIMP** number.
 
+> **Test order (no purchase needed):** Kapruka provides a standing test order
+> number, `VPAY827982BA`, that always returns a real, live tracking response.
+> Use it to build/demo the tracker UI without placing a real order. Note the
+> `VPAY` prefix — not every tracking number starts with `VIMP` (see §6.6).
+
 | Param | Type | Default | Notes |
 |---|---|---|---|
 | `order_number` | string (4–40) | — | **required**, e.g. `"VIMP34456CB2"` (from the confirmation email, **not** `order_ref`) |
@@ -678,6 +683,12 @@ For example, if the user says "උපන් දින කේක්" (Sinhala for
    timeout so a stuck Tier-1 call fails over to Tier 2/3 instead of hanging.
 5. **`additionalProperties: false`** on `create_order` — never send fields not
    in the schema (no emails, no `delivery.type`).
+6. **Don't hardcode the `VIMP` prefix.** Kapruka order numbers aren't all
+   `VIMP…` — the official test order `VPAY827982BA` proves other prefixes
+   exist. The app matches order numbers with a general pattern
+   (`src/lib/order-number.ts`: `V` + 2-5 letters + digits/alnum) instead of a
+   `startsWith('VIMP')` check, so both `create_order` reminders and
+   `track_order` lookups keep working regardless of prefix.
 
 ---
 

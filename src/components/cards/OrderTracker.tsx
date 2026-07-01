@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { Ico } from '../ui/Icons'
 import { LKR } from '@/lib/data'
+import { looksLikeOrderNumber } from '@/lib/order-number'
 import type { PlacedOrder } from '@/lib/types'
 
 interface OrderTrackerProps {
@@ -19,7 +20,7 @@ export function OrderTracker({ order: initialOrder }: OrderTrackerProps) {
   const [order, setOrder] = useState<PlacedOrder>(initialOrder)
 
   useEffect(() => {
-    if (order.number && order.number.startsWith('VIMP')) {
+    if (order.number && looksLikeOrderNumber(order.number)) {
       fetch(`/api/orders/${order.number}`)
         .then(res => res.json())
         .then(data => {

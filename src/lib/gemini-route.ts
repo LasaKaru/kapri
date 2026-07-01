@@ -149,7 +149,7 @@ const KAPRUKA_SCHEMAS = {
   kapruka_track_order: {
     inputSchema: z.object({
       params: z.object({
-        order_number: z.string().describe('VIMP tracking number from confirmation email'),
+        order_number: z.string().describe('Kapruka tracking number from confirmation email, e.g. VIMP34456CB2 or VPAY827982BA'),
         response_format: z.literal('json').optional().default('json'),
       }),
     }),
