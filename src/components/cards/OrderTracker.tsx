@@ -16,8 +16,19 @@ const STAGES: [string, string][] = [
   ['Delivered','gift'],
 ]
 
+/** Kapruka's payment_method field is often a raw digit string (last 4 card
+ *  digits or an internal code) — show it as a masked card when it looks like
+ *  one, otherwise fall back to the raw value from the API. */
+function formatPaymentMethod(pm?: string): string | null {
+  if (!pm) return null
+  const digits = pm.replace(/\D/g, '')
+  if (digits && digits === pm) return `Card •••• ${digits.slice(-4).padStart(4, '0')}`
+  return pm
+}
+
 export function OrderTracker({ order: initialOrder }: OrderTrackerProps) {
   const [order, setOrder] = useState<PlacedOrder>(initialOrder)
+  const [showTimeline, setShowTimeline] = useState(false)
 
   useEffect(() => {
     if (order.number && looksLikeOrderNumber(order.number)) {
@@ -72,16 +83,29 @@ export function OrderTracker({ order: initialOrder }: OrderTrackerProps) {
         </div>
       </div>
 
-      <div style={{ padding:'8px 16px' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 12px', borderRadius:'var(--radius-md)',
-          background:'var(--yellow-100)', border:'1px solid var(--yellow-300)' }}>
-          <Ico name="gift" size={16} color="var(--purple-700)" />
-          <span style={{ fontSize:12, color:'var(--ink)', fontWeight:500 }}>Delivery photo available — proof of a delivered smile 🎁</span>
+      {(order.hasDeliveryPhoto || order.hasDeliveryVideo) && (
+        <div style={{ padding:'8px 16px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 12px', borderRadius:'var(--radius-md)',
+            background:'var(--yellow-100)', border:'1px solid var(--yellow-300)' }}>
+            <Ico name={order.hasDeliveryPhoto ? 'camera' : 'video'} size={16} color="var(--purple-700)" />
+            <span style={{ fontSize:12, color:'var(--ink)', fontWeight:500 }}>
+              {order.hasDeliveryPhoto && order.hasDeliveryVideo
+                ? 'Delivery photo & video available — proof of a delivered smile 🎁'
+                : order.hasDeliveryPhoto
+                ? 'Delivery photo available — proof of a delivered smile 📸'
+                : 'Delivery video available — proof of a delivered smile 🎥'}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       <div style={{ padding:'12px 16px', borderTop:'1px solid var(--line)', display:'flex', flexDirection:'column', gap:8, fontSize:13.5 }}>
-        {([['clock','Ordered',order.orderDate],['truck','Delivery',order.deliveryDate],['pin','To',order.recipient]] as [string,string,string][]).map(([ic,l,v]) => (
+        {([
+          ['clock','Ordered',order.orderDate],
+          ['truck','Delivery',order.deliveryDate],
+          ['pin','To',order.recipient],
+          ...(formatPaymentMethod(order.paymentMethod) ? [['credit-card','Payment',formatPaymentMethod(order.paymentMethod) as string]] : []),
+        ] as [string,string,string][]).map(([ic,l,v]) => (
           <div key={l} style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <span style={{ display:'flex', alignItems:'center', gap:6, color:'var(--muted)' }}>
               <Ico name={ic} size={14} /> {l}
@@ -94,6 +118,29 @@ export function OrderTracker({ order: initialOrder }: OrderTrackerProps) {
           <span style={{ color:'var(--purple-700)', fontWeight:700 }}>{LKR(order.amount)}</span>
         </div>
       </div>
+
+      {order.progress && order.progress.length > 0 && (
+        <div style={{ padding:'12px 16px', borderTop:'1px solid var(--line)' }}>
+          <button onClick={() => setShowTimeline(v => !v)} style={{
+            display:'flex', width:'100%', alignItems:'center', justifyContent:'space-between',
+            background:'none', border:'none', padding:0, cursor:'pointer' }}>
+            <span style={{ fontSize:11, fontWeight:600, letterSpacing:'.06em', textTransform:'uppercase', color:'var(--muted)' }}>
+              Delivery timeline ({order.progress.length})
+            </span>
+            <Ico name={showTimeline ? 'chevron-up' : 'chevron-down'} size={14} color="var(--muted)" />
+          </button>
+          {showTimeline && (
+            <div style={{ marginTop:10, display:'flex', flexDirection:'column', gap:9 }}>
+              {order.progress.map((p, i) => (
+                <div key={i} style={{ display:'flex', gap:10, fontSize:11.5 }}>
+                  <span style={{ color:'var(--muted)', flexShrink:0, minWidth:112 }}>{p.timestamp}</span>
+                  <span style={{ color:'var(--ink)' }}>{p.step}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {order.items && order.items.length > 0 && (
         <div style={{ padding:'12px 16px', borderTop:'1px solid var(--line)' }}>

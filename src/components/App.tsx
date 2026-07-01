@@ -416,6 +416,10 @@ export default function App() {
             recipient: trackerCard.recipient ?? order.recipient,
             amount: trackerCard.amount ?? order.amount,
             items: trackerCard.items && trackerCard.items.length ? trackerCard.items : order.items,
+            paymentMethod: trackerCard.paymentMethod ?? order.paymentMethod,
+            hasDeliveryPhoto: trackerCard.hasDeliveryPhoto ?? order.hasDeliveryPhoto,
+            hasDeliveryVideo: trackerCard.hasDeliveryVideo ?? order.hasDeliveryVideo,
+            progress: trackerCard.progress ?? order.progress,
           }
         }
         return <OrderTracker key={idx} order={order} />

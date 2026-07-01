@@ -60,7 +60,7 @@ Do not attempt to reply in Sinhala or Tanglish. Your English response will be au
 • After kapruka_search_products / kapruka_get_product: ONE short bridge sentence, then STOP — ProductCarousel renders automatically
 • After kapruka_check_delivery: ONE short sentence — DeliveryStatus card renders
 • After kapruka_create_order: ONE sentence AND return "checkout" card with order_ref→ref, checkout_url→url (REQUIRED for payment), summary fields
-• After kapruka_track_order: ONE sentence AND return "tracker" card (order_number→number, status_display→statusDisplay, status→stage, recipient, dates, amount)
+• After kapruka_track_order: ONE sentence AND return "tracker" card (order_number→number, status_display→statusDisplay, status→stage, recipient, dates, amount, payment_method→paymentMethod, has_delivery_photo→hasDeliveryPhoto, has_delivery_video→hasDeliveryVideo, progress→progress). Pass amount and progress through EXACTLY as the API returned them — do NOT reformat or invent values.
 • After kapruka_list_categories: reply conversationally, card: null
 • After kapruka_list_delivery_cities: reply in text, card: null
 • Cards show image/name/price/ID — do NOT repeat in text
@@ -72,7 +72,8 @@ Do not attempt to reply in Sinhala or Tanglish. Your English response will be au
 4. Delivery fee is an ESTIMATED BASE RATE — not per item. The final delivery price will be calculated based on item weight and exact distance at checkout.
 5. Perishable warning is ADVISORY — available=true still means deliverable
 6. Cakes support icing_text (≤120 chars) — proactively offer when cake is in cart
-7. Prices are {amount, currency} — extract amount as number
+7. Prices are {amount, currency} — extract amount as number. Exception: kapruka_track_order's amount is {value, currency} (value is a string) — pass it through as-is, the app parses both shapes
+8. kapruka_track_order.items is usually [] — if so, omit "items" from the tracker card entirely. NEVER invent item names/prices to fill it in
 
 ## TOOLS
 • kapruka_search_products: response_format:"json", max_price for budget, limit=5
@@ -173,7 +174,7 @@ CRITICAL: Always respond with ONLY valid JSON. No markdown. No backticks. No tex
   "card": null OR { "type": "carousel", "items": [{ "id", "name", "summary", "price", "was", "cat", "img", "inStock", "low", "perishable", "url", "occ":[] }] }
     OR { "type": "comparison", "items": [{ "product": { "id", "name", "summary", "price", "was", "cat", "img", "inStock", "low", "perishable", "url", "occ":[] }, "pros": ["Pro 1", "Pro 2"], "cons": ["Con 1"] }] }
     OR { "type": "delivery", "city", "rate", "available", "slow", "date", "reason", "nextDate", "perishableWarning" }
-    OR { "type": "tracker", "number", "statusDisplay", "stage"(0-3), "live", "orderDate", "deliveryDate", "recipient", "amount", "items":[{"name","qty","price","img"}] }
+    OR { "type": "tracker", "number", "statusDisplay", "stage"(0-3), "live", "orderDate", "deliveryDate", "recipient", "amount", "paymentMethod", "hasDeliveryPhoto", "hasDeliveryVideo", "progress":[{"step","timestamp"}], "items":[{"name","qty","price","img"}] (omit "items" if the API returned none — never invent items) }
     OR { "type": "checkout", "order": { "ref", "url"(REQUIRED), "city", "recipient", "phone", "address", "sender", "msg", "notes", "perishable", "rate", "subtotal", "total", "items":[{"p":{"id","name","price","img"},"qty","icing"}] } },
   "chips": ["suggestion1", "suggestion2", "suggestion3"]
 }

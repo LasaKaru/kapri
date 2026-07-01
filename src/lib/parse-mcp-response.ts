@@ -79,6 +79,14 @@ function normalise(obj: Record<string, any>): EngineResponse {
         price: parsePrice(i.price),
         icing: i.icing ?? i.icing_text ?? undefined,
       })) : undefined,
+      paymentMethod: t.paymentMethod ?? t.payment_method ?? undefined,
+      hasDeliveryPhoto: t.hasDeliveryPhoto != null ? Boolean(t.hasDeliveryPhoto) : Boolean(t.has_delivery_photo),
+      hasDeliveryVideo: t.hasDeliveryVideo != null ? Boolean(t.hasDeliveryVideo) : Boolean(t.has_delivery_video),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      progress: Array.isArray(t.progress) ? t.progress.map((p: any) => ({
+        step: String(p.step ?? ''),
+        timestamp: String(p.timestamp ?? ''),
+      })) : undefined,
     }
   }
 
@@ -161,6 +169,11 @@ function normaliseProduct(item: any): any {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parsePrice(val: any): number {
   if (typeof val === 'number') return val
-  if (val && typeof val === 'object' && val.amount != null) return Number(val.amount)
+  if (typeof val === 'string') return Number(val) || 0
+  // kapruka_create_order uses {amount, currency}; kapruka_track_order uses {value, currency}
+  if (val && typeof val === 'object') {
+    if (val.amount != null) return Number(val.amount) || 0
+    if (val.value != null) return Number(val.value) || 0
+  }
   return 0
 }

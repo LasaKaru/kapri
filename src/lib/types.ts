@@ -60,6 +60,11 @@ export interface OrderItem {
   icing?: string
 }
 
+export interface OrderProgressStep {
+  step: string
+  timestamp: string
+}
+
 export interface PlacedOrder {
   number: string
   statusDisplay: string
@@ -70,6 +75,10 @@ export interface PlacedOrder {
   recipient: string
   amount: number
   items: OrderItem[]
+  paymentMethod?: string
+  hasDeliveryPhoto?: boolean
+  hasDeliveryVideo?: boolean
+  progress?: OrderProgressStep[]
 }
 
 // Card union types
@@ -78,7 +87,7 @@ export type CardData =
   | { type: 'comparison'; items: { product: Product; pros: string[]; cons: string[] }[] }
   | { type: 'bundle'; key: string }
   | { type: 'delivery'; city: string; rate: number; slow?: boolean; available?: boolean; date?: string; reason?: string | null; nextDate?: string | null; perishableWarning?: string | null }
-  | { type: 'tracker'; number?: string; statusDisplay?: string; stage?: number; live?: boolean; orderDate?: string; deliveryDate?: string; recipient?: string; amount?: number; items?: OrderItem[] }
+  | { type: 'tracker'; number?: string; statusDisplay?: string; stage?: number; live?: boolean; orderDate?: string; deliveryDate?: string; recipient?: string; amount?: number; items?: OrderItem[]; paymentMethod?: string; hasDeliveryPhoto?: boolean; hasDeliveryVideo?: boolean; progress?: OrderProgressStep[] }
   | { type: 'checkout'; order: OrderData }
 
 export interface Message {
