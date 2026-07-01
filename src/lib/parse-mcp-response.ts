@@ -60,6 +60,8 @@ function normalise(obj: Record<string, any>): EngineResponse {
       delivered: 3, completed: 3,
     }
     const status = String(t.status ?? '').toLowerCase()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rec = (t.recipient && typeof t.recipient === 'object' ? t.recipient : {}) as any
     result.card = {
       type: 'tracker',
       number: t.number ?? t.order_number ?? undefined,
@@ -69,7 +71,7 @@ function normalise(obj: Record<string, any>): EngineResponse {
       orderDate: t.orderDate ?? t.order_date ?? undefined,
       deliveryDate: t.deliveryDate ?? t.delivery_date ?? undefined,
       recipient: typeof t.recipient === 'string' ? t.recipient
-        : (t.recipient && typeof t.recipient.name === 'string' ? t.recipient.name : undefined),
+        : (typeof rec.name === 'string' ? rec.name : undefined),
       amount: t.amount != null ? parsePrice(t.amount) : undefined,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       items: Array.isArray(t.items) ? t.items.map((i: any) => ({
@@ -87,6 +89,11 @@ function normalise(obj: Record<string, any>): EngineResponse {
         step: String(p.step ?? ''),
         timestamp: String(p.timestamp ?? ''),
       })) : undefined,
+      phone: cleanPhone(t.phone ?? rec.phone),
+      address: t.address ?? rec.address ?? undefined,
+      city: t.city ?? rec.city ?? undefined,
+      greetingMessage: t.greetingMessage ?? t.greeting_message ?? undefined,
+      specialInstructions: t.specialInstructions ?? t.special_instructions ?? undefined,
     }
   }
 
@@ -164,6 +171,13 @@ function normaliseProduct(item: any): any {
     url: String(item.url ?? ''),
     occ: Array.isArray(item.occ) ? item.occ : [],
   }
+}
+
+// kapruka_track_order sometimes appends a stray "<BR" to the phone string
+function cleanPhone(raw: unknown): string | undefined {
+  if (typeof raw !== 'string') return undefined
+  const cleaned = raw.replace(/<br\b.*$/i, '').trim()
+  return cleaned || undefined
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -99,6 +99,16 @@ export function OrderTracker({ order: initialOrder }: OrderTrackerProps) {
         </div>
       )}
 
+      {order.greetingMessage && (
+        <div style={{ padding:'8px 16px' }}>
+          <div style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'10px 12px', borderRadius:'var(--radius-md)',
+            background:'var(--purple-50)', border:'1px solid var(--purple-100)' }}>
+            <Ico name="message-square" size={16} color="var(--purple-700)" style={{ marginTop:1 }} />
+            <span style={{ fontSize:12, color:'var(--ink)', fontStyle:'italic' }}>&ldquo;{order.greetingMessage}&rdquo;</span>
+          </div>
+        </div>
+      )}
+
       <div style={{ padding:'12px 16px', borderTop:'1px solid var(--line)', display:'flex', flexDirection:'column', gap:8, fontSize:13.5 }}>
         {([
           ['clock','Ordered',order.orderDate],
@@ -118,6 +128,33 @@ export function OrderTracker({ order: initialOrder }: OrderTrackerProps) {
           <span style={{ color:'var(--purple-700)', fontWeight:700 }}>{LKR(order.amount)}</span>
         </div>
       </div>
+
+      {(order.phone || order.address || order.city || order.specialInstructions) && (
+        <div style={{ padding:'12px 16px', borderTop:'1px solid var(--line)', display:'flex', flexDirection:'column', gap:8 }}>
+          {(order.phone || order.address || order.city) && (
+            <p style={{ margin:0, fontSize:11, fontWeight:600, letterSpacing:'.06em', textTransform:'uppercase', color:'var(--muted)' }}>
+              Contact &amp; delivery address
+            </p>
+          )}
+          {order.phone && (
+            <a href={`tel:${order.phone.replace(/[^\d+]/g, '')}`} style={{ display:'flex', alignItems:'center', gap:8,
+              fontSize:13, color:'var(--ink)', textDecoration:'none' }}>
+              <Ico name="phone" size={14} color="var(--muted)" /> {order.phone}
+            </a>
+          )}
+          {(order.address || order.city) && (
+            <div style={{ display:'flex', alignItems:'flex-start', gap:8, fontSize:13, color:'var(--ink)' }}>
+              <Ico name="pin" size={14} color="var(--muted)" style={{ marginTop:2 }} />
+              <span>{[order.address, order.city].filter(Boolean).join(', ')}</span>
+            </div>
+          )}
+          {order.specialInstructions && (
+            <p style={{ margin:0, fontSize:11.5, color:'var(--muted)' }}>
+              <strong style={{ color:'var(--ink)' }}>Note:</strong> {order.specialInstructions}
+            </p>
+          )}
+        </div>
+      )}
 
       {order.progress && order.progress.length > 0 && (
         <div style={{ padding:'12px 16px', borderTop:'1px solid var(--line)' }}>

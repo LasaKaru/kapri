@@ -423,6 +423,11 @@ export default function App() {
             hasDeliveryPhoto: trackerCard.hasDeliveryPhoto ?? order.hasDeliveryPhoto,
             hasDeliveryVideo: trackerCard.hasDeliveryVideo ?? order.hasDeliveryVideo,
             progress: trackerCard.progress ?? order.progress,
+            phone: trackerCard.phone ?? order.phone,
+            address: trackerCard.address ?? order.address,
+            city: trackerCard.city ?? order.city,
+            greetingMessage: trackerCard.greetingMessage ?? order.greetingMessage,
+            specialInstructions: trackerCard.specialInstructions ?? order.specialInstructions,
           }
         }
         return <OrderTracker key={idx} order={order} />
