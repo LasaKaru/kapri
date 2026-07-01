@@ -415,7 +415,10 @@ export default function App() {
             deliveryDate: trackerCard.deliveryDate ?? order.deliveryDate,
             recipient: trackerCard.recipient ?? order.recipient,
             amount: trackerCard.amount ?? order.amount,
-            items: trackerCard.items && trackerCard.items.length ? trackerCard.items : order.items,
+            // Never fall back to DEMO_ORDER's sample cake/flowers/chocolate items here —
+            // those belong to the onboarding demo, not a real tracked order. If the API
+            // (or our own session history) has no real items, show none.
+            items: trackerCard.items && trackerCard.items.length ? trackerCard.items : [],
             paymentMethod: trackerCard.paymentMethod ?? order.paymentMethod,
             hasDeliveryPhoto: trackerCard.hasDeliveryPhoto ?? order.hasDeliveryPhoto,
             hasDeliveryVideo: trackerCard.hasDeliveryVideo ?? order.hasDeliveryVideo,
