@@ -60,6 +60,8 @@ function normalise(obj: Record<string, any>): EngineResponse {
       delivered: 3, completed: 3,
     }
     const status = String(t.status ?? '').toLowerCase()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rec = (t.recipient && typeof t.recipient === 'object' ? t.recipient : {}) as any
     result.card = {
       type: 'tracker',
       number: t.number ?? t.order_number ?? undefined,
@@ -69,7 +71,7 @@ function normalise(obj: Record<string, any>): EngineResponse {
       orderDate: t.orderDate ?? t.order_date ?? undefined,
       deliveryDate: t.deliveryDate ?? t.delivery_date ?? undefined,
       recipient: typeof t.recipient === 'string' ? t.recipient
-        : (t.recipient && typeof t.recipient.name === 'string' ? t.recipient.name : undefined),
+        : (typeof rec.name === 'string' ? rec.name : undefined),
       amount: t.amount != null ? parsePrice(t.amount) : undefined,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       items: Array.isArray(t.items) ? t.items.map((i: any) => ({
@@ -79,6 +81,19 @@ function normalise(obj: Record<string, any>): EngineResponse {
         price: parsePrice(i.price),
         icing: i.icing ?? i.icing_text ?? undefined,
       })) : undefined,
+      paymentMethod: t.paymentMethod ?? t.payment_method ?? undefined,
+      hasDeliveryPhoto: t.hasDeliveryPhoto != null ? Boolean(t.hasDeliveryPhoto) : Boolean(t.has_delivery_photo),
+      hasDeliveryVideo: t.hasDeliveryVideo != null ? Boolean(t.hasDeliveryVideo) : Boolean(t.has_delivery_video),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      progress: Array.isArray(t.progress) ? t.progress.map((p: any) => ({
+        step: String(p.step ?? ''),
+        timestamp: String(p.timestamp ?? ''),
+      })) : undefined,
+      phone: cleanPhone(t.phone ?? rec.phone),
+      address: t.address ?? rec.address ?? undefined,
+      city: t.city ?? rec.city ?? undefined,
+      greetingMessage: t.greetingMessage ?? t.greeting_message ?? undefined,
+      specialInstructions: t.specialInstructions ?? t.special_instructions ?? undefined,
     }
   }
 
@@ -158,9 +173,32 @@ function normaliseProduct(item: any): any {
   }
 }
 
+// kapruka_track_order sometimes appends a stray "<BR" to the phone string
+function cleanPhone(raw: unknown): string | undefined {
+  if (typeof raw !== 'string') return undefined
+  const cleaned = raw.replace(/<br\b.*$/i, '').trim()
+  return cleaned || undefined
+}
+
+// Tolerant number extraction — the model doesn't always pass amounts through
+// verbatim (e.g. "Rs. 26,060", "LKR 26,060.00") despite being told to, so this
+// strips currency symbols/thousands separators rather than trusting the shape.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parsePrice(val: any): number {
-  if (typeof val === 'number') return val
-  if (val && typeof val === 'object' && val.amount != null) return Number(val.amount)
+  if (typeof val === 'number') return Number.isFinite(val) ? val : 0
+  if (typeof val === 'string') {
+    // Extract the numeric run itself rather than stripping non-digits blindly —
+    // currency abbreviations like "Rs." carry a period that would otherwise be
+    // misread as a decimal point (e.g. "Rs. 26,060" -> ".26060").
+    const match = val.match(/\d[\d,]*\.?\d*/)
+    if (!match) return 0
+    const n = Number(match[0].replace(/,/g, ''))
+    return Number.isFinite(n) ? n : 0
+  }
+  // kapruka_create_order uses {amount, currency}; kapruka_track_order uses {value, currency}
+  if (val && typeof val === 'object') {
+    if (val.amount != null) return parsePrice(val.amount)
+    if (val.value != null) return parsePrice(val.value)
+  }
   return 0
 }

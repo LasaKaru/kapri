@@ -4,6 +4,7 @@ import { parseClaudeResponse } from '@/lib/parse-mcp-response'
 import { respond } from '@/lib/engine'
 import { computeEffectiveLang } from '@/lib/detect-lang'
 import { enrichEngineResponse } from '@/lib/product-cache'
+import { extractOrderNumber } from '@/lib/order-number'
 import type { CartItem, Product, Lang } from '@/lib/types'
 
 async function applyTranslation(res: NextResponse, targetLang: Lang): Promise<NextResponse> {
@@ -149,9 +150,8 @@ export async function POST(req: NextRequest) {
 
     const hasHistory = history.length > 0
     
-    // Check for VIMP order in KV cache to intercept real Kapruka failures
-    const vimpMatch = lastText.match(/VIMP[A-Z0-9]+/i)
-    const trackedVimp = vimpMatch ? vimpMatch[0] : null
+    // Check for a Kapruka order/tracking number in KV cache to intercept real Kapruka failures
+    const trackedVimp = extractOrderNumber(lastText)
     let kvOrderContext = ''
     if (trackedVimp) {
       const { getOrderFromDb } = await import('@/lib/db')

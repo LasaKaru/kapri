@@ -531,6 +531,11 @@ browser, Kapruka emails a separate **VIMP…** order number — that is what
 
 Status + timestamped progress for a paid order by its **VIMP** number.
 
+> **Test order (no purchase needed):** Kapruka provides a standing test order
+> number, `VPAY827982BA`, that always returns a real, live tracking response.
+> Use it to build/demo the tracker UI without placing a real order. Note the
+> `VPAY` prefix — not every tracking number starts with `VIMP` (see §6.6).
+
 | Param | Type | Default | Notes |
 |---|---|---|---|
 | `order_number` | string (4–40) | — | **required**, e.g. `"VIMP34456CB2"` (from the confirmation email, **not** `order_ref`) |
@@ -610,9 +615,16 @@ _live tracking available on the Kapruka order page._
 **App mapping:** → enriched `tracker` card:
 `order_number`→`number`, `status_display`→`statusDisplay`, `status`→`stage`,
 `live_tracking_available`→`live`, `delivery_date`→`deliveryDate`,
-`recipient.name`→`recipient`, `amount.value`→`amount`. Rendered by
-`OrderTracker`. (Field quirks in raw data: `phone` may have a trailing
-`<BR`; `amount` is an object `{value, currency}`; `items` is often `[]`.)
+`recipient.name`→`recipient`, `amount.value`→`amount`,
+`payment_method`→`paymentMethod` (shown as `Card •••• XXXX` when it's all
+digits), `has_delivery_photo`/`has_delivery_video`→`hasDeliveryPhoto`/
+`hasDeliveryVideo` (drives a conditional photo/video-available banner —
+no photo/video URL is returned by the API, only the flags), `progress`→
+`progress` (rendered as a collapsible delivery timeline, not just the 4-stage
+bar). Rendered by `OrderTracker`. (Field quirks in raw data: `phone` may
+have a trailing `<BR`; `amount` is an object `{value, currency}`, not
+`{amount, currency}` like the other tools; `items` is often `[]` — the model
+is instructed not to invent items when this happens.)
 
 ---
 
@@ -678,6 +690,12 @@ For example, if the user says "උපන් දින කේක්" (Sinhala for
    timeout so a stuck Tier-1 call fails over to Tier 2/3 instead of hanging.
 5. **`additionalProperties: false`** on `create_order` — never send fields not
    in the schema (no emails, no `delivery.type`).
+6. **Don't hardcode the `VIMP` prefix.** Kapruka order numbers aren't all
+   `VIMP…` — the official test order `VPAY827982BA` proves other prefixes
+   exist. The app matches order numbers with a general pattern
+   (`src/lib/order-number.ts`: `V` + 2-5 letters + digits/alnum) instead of a
+   `startsWith('VIMP')` check, so both `create_order` reminders and
+   `track_order` lookups keep working regardless of prefix.
 
 ---
 
@@ -695,8 +713,10 @@ For example, if the user says "උපන් දින කේක්" (Sinhala for
     still produce an order. Prefer carts whose items came from live MCP search.
   - Bare `"Colombo"` from the form's offline city list is mapped to
     `"Colombo 03"` before the call (it isn't a canonical Kapruka city).
-- **`track_order` items** are usually `[]` from the server, so the tracker
-  card's item list falls back to placeholder data.
+- **`track_order` items** are usually `[]` from the server. The system prompt
+  now tells the model to omit `items` from the tracker card in that case
+  rather than inventing placeholder items — the card just skips the "N items"
+  section and shows the payment/delivery-timeline/photo-video info instead.
 - **Tier 2 (Gemini)** schemas were aligned to the `params` wrapper but require
   a `GOOGLE_GENERATIVE_AI_API_KEY` to exercise end-to-end.
 

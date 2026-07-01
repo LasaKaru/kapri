@@ -15,6 +15,7 @@ import type { Lang, EngineResponse, Product } from './types'
 import { CATALOG, BUNDLES, CITIES, CATEGORIES } from './data'
 import { getCachedProducts, getCachedCities } from './product-cache'
 import { detectLang as sharedDetectLang } from './detect-lang'
+import { extractOrderNumber } from './order-number'
 
 // ═══════════════════════════════════════════════════════════
 //  Language Detection — delegated to shared module
@@ -280,9 +281,8 @@ export async function respond(text: string, ctx: { cartCount: number; lastVimp?:
   const { cartCount } = ctx
 
   // ─── 1. Track order ───────────────────────────────────
-  if (/track|vimp|where.*order|order.*status|kohedha|tracking|enu thaen/i.test(text)) {
-    const vimpMatch = text.match(/VIMP[A-Z0-9]+/i)
-    const vimp = vimpMatch ? vimpMatch[0] : null
+  if (/track|vimp|vpay|where.*order|order.*status|kohedha|tracking|enu thaen/i.test(text)) {
+    const vimp = extractOrderNumber(text)
     if (vimp) return { lang, text: L(lang, {
       en: `Found it! 📦 Here's where ${vimp.toUpperCase()} is right now:`,
       si: `සොයාගත්තා! 📦 ${vimp.toUpperCase()} මෙන්න දැන් තියෙන තැන:`,
@@ -290,15 +290,15 @@ export async function respond(text: string, ctx: { cartCount: number; lastVimp?:
       card: { type: 'tracker', number: vimp.toUpperCase() },
       chips: ['Shop something new', 'Talk to support'] }
     if (ctx.lastVimp) return { lang, text: L(lang, {
-      en: 'Sure! Here\'s your most recent order. To track any other order, just paste its VIMP number. 📦',
-      si: 'හරි! ඔබ අවසන් වරට සිදු කළ ඇණවුම මෙන්න. වෙනත් ඇණවුමක් පිළිබඳව සොයා බැලීමට, එහි VIMP අංකය මෙහි ඇතුළත් කරන්න. 📦',
-      sg: 'Hari! Menna oyage aluthma order eka. Wena order ekak track karanna VIMP number eka athulath karanna. 📦' }),
+      en: 'Sure! Here\'s your most recent order. To track any other order, just paste its tracking number. 📦',
+      si: 'හරි! ඔබ අවසන් වරට සිදු කළ ඇණවුම මෙන්න. වෙනත් ඇණවුමක් පිළිබඳව සොයා බැලීමට, එහි Tracking අංකය මෙහි ඇතුළත් කරන්න. 📦',
+      sg: 'Hari! Menna oyage aluthma order eka. Wena order ekak track karanna tracking number eka athulath karanna. 📦' }),
       card: { type: 'tracker', number: ctx.lastVimp }, chips: ['Shop something new'] }
     return { lang, text: L(lang, {
-      en: "Happy to track that! 📦 What's your order number? It starts with VIMP… (you'll find it in your confirmation email).",
-      si: 'අපි ඒක Track කරලා බලමු!! 📦 ඔයාගේ ඇණවුම් අංකය මොකක්ද? ඒක පටන් ගන්නේ VIMP… වලින් (ඔයාට ආපු Confirmation ඊමේල් එකේ ඒක තියෙනවා.).',
-      sg: 'Track karannam! 📦 Oyage order number eka mokakda? VIMP… valin patan gannawa (email eke thiyenawa).' }),
-      chips: ['VIMP34456CB2', 'Shop something new'] }
+      en: "Happy to track that! 📦 What's your order number? (e.g. VIMP… or VPAY…, from your confirmation email).",
+      si: 'අපි ඒක Track කරලා බලමු!! 📦 ඔයාගේ ඇණවුම් අංකය මොකක්ද? (උදා: VIMP… හෝ VPAY…, ඔයාට ආපු Confirmation ඊමේල් එකේ ඒක තියෙනවා).',
+      sg: 'Track karannam! 📦 Oyage order number eka mokakda? (eg: VIMP… hari VPAY…, email eke thiyenawa).' }),
+      chips: ['VPAY827982BA', 'Shop something new'] }
   }
 
   // ─── 2. Checkout intent ───────────────────────────────
