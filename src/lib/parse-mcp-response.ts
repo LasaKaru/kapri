@@ -180,14 +180,25 @@ function cleanPhone(raw: unknown): string | undefined {
   return cleaned || undefined
 }
 
+// Tolerant number extraction — the model doesn't always pass amounts through
+// verbatim (e.g. "Rs. 26,060", "LKR 26,060.00") despite being told to, so this
+// strips currency symbols/thousands separators rather than trusting the shape.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parsePrice(val: any): number {
-  if (typeof val === 'number') return val
-  if (typeof val === 'string') return Number(val) || 0
+  if (typeof val === 'number') return Number.isFinite(val) ? val : 0
+  if (typeof val === 'string') {
+    // Extract the numeric run itself rather than stripping non-digits blindly —
+    // currency abbreviations like "Rs." carry a period that would otherwise be
+    // misread as a decimal point (e.g. "Rs. 26,060" -> ".26060").
+    const match = val.match(/\d[\d,]*\.?\d*/)
+    if (!match) return 0
+    const n = Number(match[0].replace(/,/g, ''))
+    return Number.isFinite(n) ? n : 0
+  }
   // kapruka_create_order uses {amount, currency}; kapruka_track_order uses {value, currency}
   if (val && typeof val === 'object') {
-    if (val.amount != null) return Number(val.amount) || 0
-    if (val.value != null) return Number(val.value) || 0
+    if (val.amount != null) return parsePrice(val.amount)
+    if (val.value != null) return parsePrice(val.value)
   }
   return 0
 }
