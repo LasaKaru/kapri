@@ -21,10 +21,10 @@ export function Header({ cart = [], count, onCart, favoritesCount, onFavorites, 
   const [cartHover, setCartHover] = React.useState(false)
 
   return (
-    <header style={{ display:'flex', justifyContent:'center', padding:'11px 16px', background:'var(--purple-700)',
+    <header style={{ display:'flex', justifyContent:'center', padding:'11px clamp(8px, 3vw, 16px)', background:'var(--purple-700)',
       boxShadow:'var(--shadow-lg)', zIndex:20, flexShrink:0, position:'relative' }}>
       <div style={{ width:'100%', maxWidth:1180, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+        <div style={{ display:'flex', alignItems:'center', gap: 'clamp(6px, 2vw, 12px)' }}>
           {onBack && (
             <button onClick={onBack} aria-label="Go back" style={{ background:'rgba(255,255,255,0.15)', border:'none', width:32, height:32, borderRadius:'50%', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', transition:'background .2s', marginRight: -4 }} onMouseEnter={(e) => e.currentTarget.style.background='rgba(255,255,255,0.25)'} onMouseLeave={(e) => e.currentTarget.style.background='rgba(255,255,255,0.15)'}>
               <Ico name="chevron-left" size={18} />
@@ -42,10 +42,10 @@ export function Header({ cart = [], count, onCart, favoritesCount, onFavorites, 
           )}
           <div style={{ flexShrink: 0 }}>
             <div style={{ fontSize:12.5, color:'var(--yellow-400)', fontWeight:700, lineHeight:1, whiteSpace:'nowrap' }}>Kapri</div>
-            <div style={{ fontSize:9.5, color:'rgba(255,255,255,0.6)', lineHeight:1, marginTop:2, letterSpacing:'.02em', whiteSpace:'nowrap' }}>AI Shopping Concierge</div>
+            <div className="kapri-hide-sm" style={{ fontSize:9.5, color:'rgba(255,255,255,0.6)', lineHeight:1, marginTop:2, letterSpacing:'.02em', whiteSpace:'nowrap' }}>AI Shopping Concierge</div>
           </div>
         </div>
-        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+        <div style={{ display:'flex', alignItems:'center', gap: 'clamp(4px, 1.5vw, 8px)' }}>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <div className="kapri-hide-sm" style={{ display: 'contents' }}>
               <Ico name="globe" size={14} color="rgba(255,255,255,.8)" style={{ position: 'absolute', left: 10, pointerEvents: 'none' }} />
@@ -79,8 +79,8 @@ export function Header({ cart = [], count, onCart, favoritesCount, onFavorites, 
           </div>
           {onFavorites && (favoritesCount || 0) > 0 && (
             <button onClick={onFavorites} aria-label="Favorites"
-              style={{ position:'relative', width:40, height:40, display:'flex', alignItems:'center',
-                justifyContent:'center', borderRadius:'var(--radius-md)', background:'rgba(255,255,255,0.1)',
+              style={{ position:'relative', width:36, height:36, display:'flex', alignItems:'center',
+                justifyContent:'center', borderRadius:'50%', background:'rgba(255,255,255,0.12)',
                 color:'#fff', border:'none', cursor:'pointer', transition:'background .2s' }}>
               <Ico name="heart" size={18} />
               <span style={{ position:'absolute', top:-6, right:-6, minWidth:19, height:19, padding:'0 4px',
@@ -95,8 +95,8 @@ export function Header({ cart = [], count, onCart, favoritesCount, onFavorites, 
           {/* CART WITH DROPDOWN PREVIEW */}
           <div style={{ position: 'relative' }} onMouseEnter={() => setCartHover(true)} onMouseLeave={() => setCartHover(false)}>
             <button onClick={onCart} aria-label="Cart"
-              style={{ position:'relative', width:40, height:40, display:'flex', alignItems:'center',
-                justifyContent:'center', borderRadius:'var(--radius-md)', background:'rgba(255,255,255,0.1)',
+              style={{ position:'relative', width:36, height:36, display:'flex', alignItems:'center',
+                justifyContent:'center', borderRadius:'50%', background:'rgba(255,255,255,0.12)',
                 color:'#fff', border:'none', cursor:'pointer' }}>
               <Ico name="cart" size={20} />
               {count > 0 && (
@@ -128,8 +128,8 @@ export function Header({ cart = [], count, onCart, favoritesCount, onFavorites, 
             )}
           </div>
           <a href="https://www.kapruka.com/shops/customerAccounts/accountLogin.jsp" aria-label="Login"
-            style={{ width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center',
-              borderRadius:'var(--radius-md)', background:'rgba(255,255,255,0.1)', color:'#fff', textDecoration:'none' }}>
+            style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center',
+              borderRadius:'50%', background:'rgba(255,255,255,0.12)', color:'#fff', textDecoration:'none' }}>
             <Ico name="user" size={18} />
           </a>
         </div>

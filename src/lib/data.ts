@@ -106,19 +106,88 @@ export const BUNDLES: Record<string, Bundle> = {
   },
 }
 
+/**
+ * Full-year seasonal calendar for Sri Lanka.
+ * Each entry has a date window (MM-DD start → end, inclusive).
+ * The first matching entry wins, so order matters within each month.
+ * When one event ends, the next automatically takes over.
+ */
+const SEASONAL_CALENDAR: Season[] = [
+  // ──── January ────
+  { key:'new-year',     startDate:'01-01', endDate:'01-07', emoji:'🎆', greeting:'Happy New Year!',              sub:'Start 2026 with the perfect gift — cakes, hampers & more',           cta:'New Year gifts',     q:'gifts' },
+  { key:'thai-pongal',  startDate:'01-08', endDate:'01-16', emoji:'🌾', greeting:'Happy Thai Pongal!',           sub:'Celebrate the harvest — sweets, flowers & festive hampers',           cta:'Pongal gifts',       q:'hampers' },
+  { key:'jan-gifting',  startDate:'01-17', endDate:'01-31', emoji:'💝', greeting:'New Year, new surprises!',     sub:'Treat someone special this January',                                  cta:'Shop now',           q:'gifts' },
+
+  // ──── February ────
+  { key:'valentine-early', startDate:'02-01', endDate:'02-07', emoji:'💕', greeting:"Valentine's is coming!",    sub:"Don't wait — order flowers, chocolates & gifts early",                cta:'Early bird deals',   q:'valentine' },
+  { key:'valentine',       startDate:'02-08', endDate:'02-15', emoji:'❤️', greeting:"Happy Valentine's Day!",    sub:'Say it with roses, chocolates & a heartfelt note',                    cta:'Valentine gifts',    q:'valentine' },
+  { key:'feb-love',        startDate:'02-16', endDate:'02-28', emoji:'🌹', greeting:'Love lingers on',           sub:"It's never too late to surprise someone special",                     cta:'Send love',          q:'flowers' },
+
+  // ──── March ────
+  { key:'womens-day',     startDate:'03-01', endDate:'03-10', emoji:'👩', greeting:"Happy Women's Day!",         sub:'Celebrate the amazing women in your life',                            cta:'Gifts for her',      q:'mother' },
+  { key:'spring-gifting', startDate:'03-11', endDate:'03-25', emoji:'🌸', greeting:'Spring into gifting!',       sub:'Fresh flowers, cakes & hampers — delivered island-wide',              cta:'Spring gifts',       q:'flowers' },
+  { key:'avurudu-prep',   startDate:'03-26', endDate:'03-31', emoji:'🇱🇰', greeting:'Avurudu is around the corner!', sub:'Get your sweetmeats, hampers & gifts ready early',              cta:'Pre-order now',      q:'Avurudu hamper bundle' },
+
+  // ──── April ────
+  { key:'avurudu',       startDate:'04-01', endDate:'04-16', emoji:'🇱🇰', greeting:'Suba Aluth Avuruddak!',     sub:'Avurudu hampers, sweets & kiribath gifts — island-wide',              cta:'Avurudu hampers',    q:'Avurudu hamper bundle' },
+  { key:'april-treats',  startDate:'04-17', endDate:'04-30', emoji:'🎊', greeting:'Post-Avurudu treats',        sub:'Keep the festive spirit going — cakes, gifts & more',                 cta:'Shop treats',        q:'cakes' },
+
+  // ──── May ────
+  { key:'may-day',       startDate:'05-01', endDate:'05-04', emoji:'✊', greeting:'Happy May Day!',              sub:'Celebrate with gifts for your favourite people',                      cta:'Shop gifts',         q:'gifts' },
+  { key:'wesak',         startDate:'05-05', endDate:'05-15', emoji:'🪔', greeting:'Happy Wesak!',               sub:'Brighten the season with a thoughtful gift',                          cta:'Wesak gifts',        q:'gifts' },
+  { key:'mothers-day',   startDate:'05-16', endDate:'05-31', emoji:'💐', greeting:"Happy Mother's Day!",        sub:"Show Amma your love — flowers, cakes & pampering gifts",              cta:"Gifts for Mom",      q:'mother' },
+
+  // ──── June ────
+  { key:'poson',         startDate:'06-01', endDate:'06-15', emoji:'🌕', greeting:'Happy Poson!',               sub:'Share the Poson spirit — flowers, sweets & more',                     cta:'Poson gifts',        q:'flowers' },
+  { key:'fathers-day',   startDate:'06-16', endDate:'06-25', emoji:'👔', greeting:"Happy Father's Day!",        sub:'Gadgets, grooming & gifts Dad will actually love',                    cta:'Gifts for Dad',      q:'father' },
+  { key:'june-gifting',  startDate:'06-26', endDate:'06-30', emoji:'🎁', greeting:'Mid-year gifting',           sub:'Surprise someone — cakes, chocolates & hampers',                      cta:'Shop now',           q:'gifts' },
+
+  // ──── July ────
+  { key:'esala',         startDate:'07-01', endDate:'07-15', emoji:'🐘', greeting:'Esala Perahera Season!',     sub:'Celebrate Sri Lankan heritage — festive hampers & gifts',              cta:'Festive gifts',      q:'hampers' },
+  { key:'friendship',    startDate:'07-16', endDate:'07-31', emoji:'🤝', greeting:'Friendship Month!',          sub:'Send your bestie something sweet — chocolates, cakes & more',         cta:'BFF gifts',          q:'chocolates' },
+
+  // ──── August ────
+  { key:'nikini',        startDate:'08-01', endDate:'08-10', emoji:'🌕', greeting:'Happy Nikini Poya!',         sub:'A mindful gift for a meaningful day',                                  cta:'Poya gifts',         q:'gifts' },
+  { key:'back-to-school',startDate:'08-11', endDate:'08-25', emoji:'📚', greeting:'Back to School!',            sub:'Books, stationery & treats for the little ones',                      cta:'Shop for kids',      q:'KidsToys' },
+  { key:'aug-gifting',   startDate:'08-26', endDate:'08-31', emoji:'🎁', greeting:'End of summer treats',       sub:'Wrap up August with a surprise delivery',                             cta:'Send a gift',        q:'gifts' },
+
+  // ──── September ────
+  { key:'teachers-day',  startDate:'09-01', endDate:'09-07', emoji:'📝', greeting:"Happy Teachers' Day!",       sub:"Thank your favourite teacher — flowers, hampers & more",               cta:'Teacher gifts',      q:'hampers' },
+  { key:'sep-wellness',  startDate:'09-08', endDate:'09-20', emoji:'🧘', greeting:'Self-care season',           sub:'Treat yourself — cosmetics, perfumes & pamper kits',                   cta:'Pamper gifts',       q:'Cosmetics' },
+  { key:'sep-gifting',   startDate:'09-21', endDate:'09-30', emoji:'🎁', greeting:'Surprise someone today!',    sub:'Flowers, cakes & chocolates — delivered with love',                    cta:'Send joy',           q:'gifts' },
+
+  // ──── October ────
+  { key:'deepavali',     startDate:'10-01', endDate:'10-15', emoji:'🪔', greeting:'Happy Deepavali!',           sub:'Sweets, lights & gifts for the festival of lights',                   cta:'Deepavali gifts',    q:'chocolates' },
+  { key:'halloween',     startDate:'10-16', endDate:'10-31', emoji:'🎃', greeting:'Trick or Treat!',            sub:'Spooky sweets, chocolate hampers & fun gifts',                        cta:'Halloween treats',   q:'chocolates' },
+
+  // ──── November ────
+  { key:'nov-gratitude', startDate:'11-01', endDate:'11-14', emoji:'🙏', greeting:'Season of gratitude',        sub:'Say thank you with a heartfelt gift',                                  cta:'Thank-you gifts',    q:'gifts' },
+  { key:'black-friday',  startDate:'11-15', endDate:'11-30', emoji:'🛍️', greeting:'Black Friday deals!',       sub:'Unbeatable prices on gifts, electronics & hampers',                    cta:'Shop deals',         q:'Electronic' },
+
+  // ──── December ────
+  { key:'christmas-early', startDate:'12-01', endDate:'12-20', emoji:'🎄', greeting:'Christmas is coming!',     sub:'Order early — cakes, hampers & gifts for everyone on your list',       cta:'Christmas gifts',    q:'hampers' },
+  { key:'christmas',       startDate:'12-21', endDate:'12-26', emoji:'🎅', greeting:'Merry Christmas!',         sub:'Christmas cakes, hampers & gifts to spread cheer',                    cta:'Last-minute gifts',  q:'hampers' },
+  { key:'year-end',        startDate:'12-27', endDate:'12-31', emoji:'🥂', greeting:'Cheers to a great year!',  sub:'End the year on a sweet note — cakes, chocolates & more',             cta:'Year-end gifts',     q:'gifts' },
+]
+
+/** Resolve which seasonal event is active right now based on today's date. */
 function currentSeason(): Season {
-  const m = new Date().getMonth()
-  const S: Record<number, Season> = {
-    3:  { key:'avurudu',   emoji:'🇱🇰', greeting:'Suba Aluth Avuruddak!',  sub:'Avurudu hampers, sweets & kiribath gifts — island-wide', cta:'Avurudu hampers',  q:'Avurudu hamper bundle' },
-    4:  { key:'wesak',     emoji:'🪔', greeting:'Happy Wesak!',            sub:'Brighten the season with a thoughtful gift',            cta:'Wesak gifts',     q:'gifts' },
-    5:  { key:'poson',     emoji:'🌕', greeting:'Happy Poson!',            sub:'Share the Poson spirit — flowers, sweets & more',        cta:'Poson gifts',     q:'flowers' },
-    9:  { key:'deepavali', emoji:'🪔', greeting:'Happy Deepavali!',        sub:'Sweets, lights & gifts for the festival of lights',      cta:'Deepavali gifts', q:'chocolates' },
-    11: { key:'christmas', emoji:'🎄', greeting:"Season's Greetings!",     sub:'Christmas cakes, hampers & gifts to spread cheer',       cta:'Christmas gifts', q:'hampers' },
-    1:  { key:'valentine', emoji:'❤️', greeting:"Happy Valentine's!",      sub:'Say it with flowers, chocolates & a sweet note',         cta:'Valentine gifts', q:'valentine' },
+  const now = new Date()
+  const mm = String(now.getMonth() + 1).padStart(2, '0')
+  const dd = String(now.getDate()).padStart(2, '0')
+  const today = `${mm}-${dd}`
+
+  for (const s of SEASONAL_CALENDAR) {
+    if (s.startDate && s.endDate && today >= s.startDate && today <= s.endDate) {
+      return s
+    }
   }
-  return S[m] ?? { key:'evergreen', emoji:'🎁', greeting:'Gifting made joyful', sub:'Find the perfect gift for any occasion', cta:'Popular gifts', q:'gifts' }
+  // Fallback — should never happen since every day is covered
+  return { key:'evergreen', emoji:'🎁', greeting:'Gifting made joyful', sub:'Find the perfect gift for any occasion — island-wide delivery', cta:'Popular gifts', q:'gifts' }
 }
 export const SEASON = currentSeason()
+/** Expose the full calendar for components that need upcoming events. */
+export const SEASONAL_EVENTS = SEASONAL_CALENDAR
 
 export const CAT_BLURB: Record<string, string> = {
   Cakes:       "Freshly baked to order by Kapruka's master bakers using premium ingredients, and delivered on a sturdy board with a complimentary message card. Personalise it with an icing message below.",

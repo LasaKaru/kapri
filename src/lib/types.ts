@@ -139,6 +139,10 @@ export interface Season {
   sub: string
   cta: string
   q: string
+  /** MM-DD start (inclusive). Used by the seasonal calendar to determine active window. */
+  startDate?: string
+  /** MM-DD end (inclusive). Used by the seasonal calendar to determine active window. */
+  endDate?: string
 }
 
 export interface EngineResponse {

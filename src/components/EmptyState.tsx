@@ -158,26 +158,28 @@ export function EmptyState({ prompts, onPrompt, categories, occasions, onCategor
         </p>
       </div>
       
+      <div style={{ width:'100%', maxWidth:640, marginTop: 8, padding: '0 20px' }}>
+        <p style={{ margin:'0 0 8px', fontSize:11, color:'var(--muted)', fontWeight:600, letterSpacing:'.06em', textTransform:'uppercase', textAlign:'left' }}>Try saying…</p>
+        <div className="kapri-prompts-grid" style={{ display:'grid', gap:8 }}>
+          {prompts.map((p) => (
+            <button key={p.text} onClick={() => onPrompt(p.text)} className="sinhala-text"
+              style={{ width:'100%', textAlign:'left', padding:'12px 15px', background:'#fff', borderRadius:'var(--radius-lg)',
+                border:'1px solid var(--line)', fontSize:14, color:'var(--ink)', display:'flex', alignItems:'center',
+                gap:12, cursor:'pointer', boxShadow:'var(--shadow-sm)', transition:'all .15s var(--ease-out)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor='var(--purple-700)'; e.currentTarget.style.background='var(--purple-50)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor='var(--line)'; e.currentTarget.style.background='#fff' }}>
+              <span style={{ display:'flex', alignItems:'center', justifyContent:'center', width: 28, height: 28, background: 'var(--yellow-300)', borderRadius: 8, color: 'var(--purple-900)' }}>
+                <Ico name={p.icon} size={16} />
+              </span>
+              <span style={{ flex:1 }}>{p.text}</span>
+              <Ico name="sparkles" size={15} color="var(--purple-300)" />
+            </button>
+          ))}
+        </div>
+      </div>
+
       <ScrollRow title="Shop by Category" items={categories} onClick={onCategory} />
       <ScrollRow title="Shop by Occasion" items={occasions} onClick={onCategory} />
-
-      <div style={{ width:'100%', maxWidth:420, display:'flex', flexDirection:'column', gap:8, marginTop: 8, padding: '0 20px' }}>
-        <p style={{ margin:0, fontSize:11, color:'var(--muted)', fontWeight:600, letterSpacing:'.06em', textTransform:'uppercase', textAlign:'left' }}>Try saying…</p>
-        {prompts.map((p) => (
-          <button key={p.text} onClick={() => onPrompt(p.text)} className="sinhala-text"
-            style={{ width:'100%', textAlign:'left', padding:'12px 15px', background:'#fff', borderRadius:'var(--radius-lg)',
-              border:'1px solid var(--line)', fontSize:14, color:'var(--ink)', display:'flex', alignItems:'center',
-              gap:12, cursor:'pointer', boxShadow:'var(--shadow-sm)', transition:'all .15s var(--ease-out)' }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor='var(--purple-700)'; e.currentTarget.style.background='var(--purple-50)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor='var(--line)'; e.currentTarget.style.background='#fff' }}>
-            <span style={{ display:'flex', alignItems:'center', justifyContent:'center', width: 28, height: 28, background: 'var(--yellow-300)', borderRadius: 8, color: 'var(--purple-900)' }}>
-              <Ico name={p.icon} size={16} />
-            </span>
-            <span style={{ flex:1 }}>{p.text}</span>
-            <Ico name="sparkles" size={15} color="var(--purple-300)" />
-          </button>
-        ))}
-      </div>
 
       <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
         <button onClick={() => onPrompt('Track my order')}
@@ -205,7 +207,7 @@ export function EmptyState({ prompts, onPrompt, categories, occasions, onCategor
         )}
       </div>
 
-      <p style={{ margin:'12px 0 0', fontSize:11, color:'var(--purple-200)' }}>Powered by Kapruka · Island-wide delivery</p>
+      <p style={{ margin:'12px 0 0', fontSize:11, color:'var(--purple-200)' }}>Powered by Kapruka · Island-wide delivery · Hotline +94 117 551 111</p>
       </div>
     </div>
   )
