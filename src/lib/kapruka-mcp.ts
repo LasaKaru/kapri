@@ -21,7 +21,13 @@ function parseSSE(body: string): unknown {
     if (trimmed.startsWith('data:')) {
       const json = trimmed.slice(5).trim()
       if (json) {
-        try { return JSON.parse(json) } catch { /* keep scanning */ }
+        try { 
+          const parsed = JSON.parse(json) 
+          // Ignore server notifications (e.g. progress), wait for the actual RPC response
+          if (parsed && ('result' in parsed || 'error' in parsed || 'id' in parsed)) {
+            return parsed
+          }
+        } catch { /* keep scanning */ }
       }
     }
   }

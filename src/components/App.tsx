@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Header } from './ui/Header'
 import { SeasonBanner } from './ui/SeasonBanner'
 import { Chip } from './ui/Chip'
+import { DesktopSidePanel } from './ui/DesktopSidePanel'
 import { UserBubble, KapriRow, KapriText, Typing } from './ui/Bubbles'
 import { Composer } from './ui/Composer'
 import { EmptyState } from './EmptyState'
@@ -80,7 +81,8 @@ export default function App() {
   const [msgs, setMsgs] = useState<Message[]>([])
   const [cart, setCart] = useState<CartItem[]>([])
   const [lang, setLang] = useState<Lang>('en')
-  const [sessionOrders, setSessionOrders] = useState<PlacedOrder[]>([])
+  const [sessionOrders, setSessionOrders] = useState<any[]>([]) // Used for conversational context
+  const [trackedOrderIds, setTrackedOrderIds] = useState<string[]>([]) // Only display manually tracked orders in the sidebar
   const [view, setView] = useState<'home' | 'chat'>('home')
   const [typing, setTyping] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
@@ -451,7 +453,10 @@ export default function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', width: '100%',
       background: '#fff', position: 'relative' }}>
-
+      <style>{`
+        ::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+        * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+      `}</style>
       <Header
         lang={lang}
         count={cartCount}
@@ -466,12 +471,16 @@ export default function App() {
         onBack={view === 'chat' && msgs.length > 0 ? () => setView('home') : undefined}
       />
 
-      {season && <SeasonBanner season={season} onShop={(q) => { send(q) }} />}
+      <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        
+        {/* LEFT COLUMN: Main Chat & Empty State */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          {season && <SeasonBanner season={season} onShop={(q) => { send(q) }} />}
 
-      <div ref={scrollRef} className="scrollbar-hide"
-        style={{ flex: 1, overflowY: 'auto', padding: '12px 0 8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div ref={scrollRef} className="scrollbar-hide"
+            style={{ flex: 1, overflowY: 'auto', padding: '12px 0 8px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
-        {view === 'home' ? (
+            {view === 'home' ? (
           <EmptyState
             prompts={PROMPTS}
             onPrompt={send}
@@ -518,16 +527,52 @@ export default function App() {
         )}
       </div>
 
-      <Composer
-        lang={lang}
-        recording={recording}
-        value={input}
-        onChange={setInput}
-        onSend={() => { if (input.trim() || imageInput) { send(input); setInput('') } }}
-        onMic={onMic}
-        image={imageInput}
-        onImage={setImageInput}
-      />
+          <Composer
+            lang={lang}
+            recording={recording}
+            value={input}
+            onChange={setInput}
+            onSend={() => { if (input.trim() || imageInput) { send(input); setInput('') } }}
+            onMic={onMic}
+            image={imageInput}
+            onImage={setImageInput}
+          />
+        </div>
+
+        {/* RIGHT COLUMN: Desktop Side Panel */}
+        <div className="hide-on-mobile" style={{ height: '100%', display: 'flex' }}>
+          <DesktopSidePanel
+            cart={cart}
+            trackedOrders={sessionOrders.filter(o => trackedOrderIds.includes(o.number))}
+            hasPurchased={sessionOrders.some(o => !trackedOrderIds.includes(o.number))}
+            onManageCart={() => setCartOpen(true)}
+            onCheckout={() => setCheckoutOpen(true)}
+            onRemoveItem={removeItem}
+            onTrackOrder={async (num) => {
+              if (trackedOrderIds.includes(num)) return
+              
+              setToast('Fetching order details...')
+              try {
+                const res = await fetch(`/api/orders/${num}`)
+                if (!res.ok) throw new Error('Order not found')
+                const data = await res.json()
+                if (data.error) throw new Error(data.error)
+                
+                setSessionOrders(prev => {
+                  if (prev.some(o => o.number === num)) return prev
+                  return [data, ...prev]
+                })
+                setTrackedOrderIds(prev => [num, ...prev])
+                setToast(null)
+              } catch (err) {
+                setToast(`Order ${num} not found.`)
+                setTimeout(() => setToast(null), 3000)
+              }
+            }}
+          />
+        </div>
+
+      </div>
 
       <FavoritesDrawer
         open={favoritesOpen}

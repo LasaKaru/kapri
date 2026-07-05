@@ -22,9 +22,9 @@ export function Composer({ value, onChange, onSend, onMic, recording, lang, imag
     : 'සිංහලෙන්, English, தமிழ் හෝ Tanglish ලියන්න…'
 
   return (
-    <div style={{ flexShrink:0, padding:'12px 16px', background:'#fff', borderTop:'1px solid var(--line)', zIndex:10 }}>
+    <div style={{ flexShrink:0, padding:'12px 16px', paddingBottom: '24px', zIndex:10, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
       {image && (
-        <div style={{ maxWidth: 780, margin: '0 auto 8px', display: 'flex' }}>
+        <div style={{ width: '100%', maxWidth: 816, margin: '0 auto 8px', display: 'flex' }}>
           <div style={{ position: 'relative', display: 'inline-block', animation: 'kapri-pop .2s var(--ease-spring)' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={image} alt="Upload preview" style={{ height: 60, borderRadius: 'var(--radius-md)', border: '1px solid var(--line)', objectFit: 'cover' }} />
@@ -36,7 +36,7 @@ export function Composer({ value, onChange, onSend, onMic, recording, lang, imag
         </div>
       )}
       <form onSubmit={(e) => { e.preventDefault(); onSend() }}
-        style={{ display:'flex', alignItems:'flex-end', gap:8, maxWidth:780, margin:'0 auto' }}>
+        style={{ display:'flex', alignItems:'flex-end', gap:8, width: '100%', maxWidth:816, margin:'0 auto' }}>
         <input type="file" accept="image/*" hidden id="kapri-camera" onChange={(e) => {
           const file = e.target.files?.[0]
           if (file) {
@@ -79,7 +79,7 @@ export function Composer({ value, onChange, onSend, onMic, recording, lang, imag
         </button>
       </form>
       {recording && (
-        <div style={{ display:'flex', alignItems:'center', gap:9, maxWidth:780, margin:'9px auto 0', padding:'0 2px' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:9, width: '100%', maxWidth:816, margin:'9px auto 0', padding:'0 2px' }}>
           <div style={{ display:'flex', alignItems:'center', gap:3, height:18 }}>
             {[0,1,2,3,4,5,6].map((i) => (
               <span key={i} style={{ width:3, height:'100%', borderRadius:999, background:'var(--error)', transformOrigin:'center',
