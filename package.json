@@ -8,15 +8,15 @@
     "start": "next start"
   },
   "dependencies": {
-    "@ai-sdk/google": "^3.0.80",
-    "@ai-sdk/mcp": "^1.0.46",
+    "@ai-sdk/google": "^3.0.121",
+    "@ai-sdk/mcp": "^1.0.78",
     "@anthropic-ai/sdk": "^0.102.0",
     "@lottiefiles/react-lottie-player": "^3.6.0",
     "@types/canvas-confetti": "^1.9.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/kv": "^3.0.0",
     "@vercel/speed-insights": "^2.0.0",
-    "ai": "^6.0.198",
+    "ai": "^6.0.277",
     "canvas-confetti": "^1.9.4",
     "next": "^14.2.0",
     "react": "^18.3.0",
